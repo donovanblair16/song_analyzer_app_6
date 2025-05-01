@@ -1,0 +1,623 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_explorer &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=12958129"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">data_explorer</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for data_explorer</h1><div class="highlight"><pre>
+<span></span><span class="c1"># /Users/donovanblair/Desktop/song_analyzer_app_6/data_explorer.py</span>
+
+<span class="sd">&quot;&quot;&quot;Provides functions or classes for exploring analysis data.&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ttk</span><span class="p">,</span> <span class="n">filedialog</span><span class="p">,</span> <span class="n">messagebox</span><span class="p">,</span> <span class="n">scrolledtext</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">joblib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="c1"># &lt;&lt;&lt; Import the feature calculation function &gt;&gt;&gt;</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Assuming data_explorer_gui.py is in the project root,</span>
+    <span class="c1"># alongside the GMMHMM_modules folder</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">GMMHMM_modules.feature_extraction</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_section_features</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG Explorer: Successfully imported extract_section_features.&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: Could not import extract_section_features: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+        <span class="s2">&quot;Import Error&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Could not find the feature extraction function.</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;Ensure data_explorer_gui.py is in the correct project folder.&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Define a dummy if import fails, so the GUI can still load partially</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_section_features</span><span class="p">(</span><span class="n">track_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Dummy function if the real feature extraction fails to import.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Using dummy extract_section_features in Explorer!&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+
+
+<div class="viewcode-block" id="DataExplorerApp">
+<a class="viewcode-back" href="../_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">DataExplorerApp</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A GUI application to scan analysis files for sections meeting specific</span>
+<span class="sd">    feature criteria. Calculates HMM features on-the-fly during scan.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DataExplorerApp.__init__">
+<a class="viewcode-back" href="../_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Initializes the DataExplorerApp GUI.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            master (tk.Tk or tk.Toplevel): The root window or top-level widget.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="o">=</span> <span class="n">master</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Analysis Data Explorer (HMM Features)&quot;</span><span class="p">)</span>  <span class="c1"># Updated title</span>
+        <span class="n">master</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="s2">&quot;800x600&quot;</span><span class="p">)</span>
+
+        <span class="c1"># --- State Variables ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of features found in data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># List of labels found in data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selected_feature</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">selected_label</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">comparison_type</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&lt;&quot;</span><span class="p">)</span>  <span class="c1"># Default to less than</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_value</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;0.0&quot;</span><span class="p">)</span>
+
+        <span class="c1"># --- Build GUI ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">create_widgets</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DataExplorerApp.create_widgets">
+<a class="viewcode-back" href="../_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp.create_widgets">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">create_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates and lays out all the GUI widgets for the application.&quot;&quot;&quot;</span>
+        <span class="n">main_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;10&quot;</span><span class="p">)</span>
+        <span class="n">main_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># --- Top Controls Frame ---</span>
+        <span class="n">controls_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">LabelFrame</span><span class="p">(</span>
+            <span class="n">main_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Scan Configuration&quot;</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;10&quot;</span>
+        <span class="p">)</span>
+        <span class="n">controls_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="n">controls_frame</span><span class="o">.</span><span class="n">columnconfigure</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># Allow folder path label to expand</span>
+
+        <span class="c1"># Folder Selection</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">controls_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Select Folder...&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">select_folder</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span>
+            <span class="n">controls_frame</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s2">&quot;readonly&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">60</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Feature Selection</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">controls_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Feature:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span>
+            <span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_combo</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span>
+            <span class="n">controls_frame</span><span class="p">,</span>
+            <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_feature</span><span class="p">,</span>
+            <span class="n">state</span><span class="o">=</span><span class="s2">&quot;readonly&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_combo</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Label Selection</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">controls_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Label:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span>
+            <span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_combo</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Combobox</span><span class="p">(</span>
+            <span class="n">controls_frame</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">selected_label</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="s2">&quot;readonly&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">25</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">label_combo</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Comparison Type &amp; Threshold</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">controls_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Condition:&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span>
+            <span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;e&quot;</span>
+        <span class="p">)</span>
+        <span class="n">condition_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">controls_frame</span><span class="p">)</span>
+        <span class="n">condition_frame</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Radiobutton</span><span class="p">(</span>
+            <span class="n">condition_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Value &lt;&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comparison_type</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;&lt;&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Radiobutton</span><span class="p">(</span>
+            <span class="n">condition_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Value &gt;&quot;</span><span class="p">,</span> <span class="n">variable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">comparison_type</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="s2">&quot;&gt;&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_entry</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Entry</span><span class="p">(</span>
+            <span class="n">condition_frame</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">threshold_value</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">10</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">threshold_entry</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">)</span>
+
+        <span class="c1"># Scan Button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_button</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">controls_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Scan Folder&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">run_scan</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scan_button</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">columnspan</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># --- Results Frame ---</span>
+        <span class="n">results_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">LabelFrame</span><span class="p">(</span><span class="n">main_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Results&quot;</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;10&quot;</span><span class="p">)</span>
+        <span class="n">results_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Use Treeview for structured results</span>
+        <span class="n">columns</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="s2">&quot;feature&quot;</span><span class="p">,</span> <span class="s2">&quot;value&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Treeview</span><span class="p">(</span>
+            <span class="n">results_frame</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="s2">&quot;headings&quot;</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">15</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Define headings</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Filename&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Sec Idx&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Label&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;feature&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Feature&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Value&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Define column widths and alignment</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;filename&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;index&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">60</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">CENTER</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;label&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;feature&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s2">&quot;value&quot;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">E</span><span class="p">)</span>
+
+        <span class="c1"># Add scrollbars</span>
+        <span class="n">vsb</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Scrollbar</span><span class="p">(</span>
+            <span class="n">results_frame</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;vertical&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">yview</span>
+        <span class="p">)</span>
+        <span class="n">hsb</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Scrollbar</span><span class="p">(</span>
+            <span class="n">results_frame</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;horizontal&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">xview</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">yscrollcommand</span><span class="o">=</span><span class="n">vsb</span><span class="o">.</span><span class="n">set</span><span class="p">,</span> <span class="n">xscrollcommand</span><span class="o">=</span><span class="n">hsb</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+
+        <span class="c1"># Grid layout for treeview and scrollbars</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;nsew&quot;</span><span class="p">)</span>
+        <span class="n">vsb</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ns&quot;</span><span class="p">)</span>
+        <span class="n">hsb</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="s2">&quot;ew&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Configure resizing behavior</span>
+        <span class="n">results_frame</span><span class="o">.</span><span class="n">grid_rowconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">results_frame</span><span class="o">.</span><span class="n">grid_columnconfigure</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># --- Status Bar ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;Select a folder to begin.&quot;</span><span class="p">)</span>
+        <span class="n">status_bar</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span>
+            <span class="n">main_frame</span><span class="p">,</span> <span class="n">textvariable</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="p">,</span> <span class="n">relief</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">SUNKEN</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span>
+        <span class="p">)</span>
+        <span class="n">status_bar</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTTOM</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">X</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DataExplorerApp.select_folder">
+<a class="viewcode-back" href="../_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp.select_folder">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_folder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Opens a dialog to select the folder containing analysis files.</span>
+
+<span class="sd">        Sets the folder path, updates the status bar, triggers feature/label</span>
+<span class="sd">        extraction, and enables the scan button upon successful selection.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">initial_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">default_base</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s2">&quot;/Users/donovanblair/Desktop/song_analyzer_app_6/completed_analyses&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">default_base</span><span class="p">):</span>
+                <span class="n">initial_dir</span> <span class="o">=</span> <span class="n">default_base</span>
+            <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">default_base</span><span class="p">)):</span>
+                <span class="n">initial_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">default_base</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">pass</span>
+
+        <span class="n">selected_path</span> <span class="o">=</span> <span class="n">filedialog</span><span class="o">.</span><span class="n">askdirectory</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Folder Containing Analysis Files (e.g., &#39;Perfect&#39;)&quot;</span><span class="p">,</span>
+            <span class="n">initialdir</span><span class="o">=</span><span class="n">initial_dir</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">selected_path</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">selected_path</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Folder selected. Extracting features/labels from first file...&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">update_idletasks</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">extract_features_and_labels</span><span class="p">()</span>  <span class="c1"># Calls updated logic</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scan_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Ready to scan folder: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">selected_path</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">scan_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                    <span class="s2">&quot;Error: Could not extract features/labels. Check console.&quot;</span>
+                <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;Folder selection cancelled.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DataExplorerApp.extract_features_and_labels">
+<a class="viewcode-back" href="../_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp.extract_features_and_labels">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_features_and_labels</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the first valid joblib file, runs extract_section_features on it,</span>
+<span class="sd">        and populates the feature and label lists available for selection in the GUI.</span>
+
+<span class="sd">        Updates the feature and label comboboxes and the status bar.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">folder</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;Error: Invalid folder path.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># Reset lists</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">found_file_processed</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.joblib&quot;</span><span class="p">):</span>
+                    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;DEBUG: Attempting to load and process </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> for feature/label extraction.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">track_data</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">track_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: Data in </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> is not a dict.&quot;</span><span class="p">)</span>
+                            <span class="k">continue</span>
+
+                        <span class="c1"># &lt;&lt;&lt; Call the HMM feature extraction function &gt;&gt;&gt;</span>
+                        <span class="n">calculated_features_list</span><span class="p">,</span> <span class="n">original_labels</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">extract_section_features</span><span class="p">(</span><span class="n">track_data</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                        <span class="k">if</span> <span class="ow">not</span> <span class="n">calculated_features_list</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;DEBUG: extract_section_features returned no features for </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">.&quot;</span>
+                            <span class="p">)</span>
+                            <span class="k">continue</span>  <span class="c1"># Try next file if feature extraction failed</span>
+
+                        <span class="c1"># --- Populate Labels ---</span>
+                        <span class="k">if</span> <span class="n">original_labels</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                            <span class="n">original_labels</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                        <span class="p">):</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">original_labels</span><span class="p">)</span>
+
+                        <span class="c1"># --- Populate Features (from the calculated features) ---</span>
+                        <span class="n">found_features_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+                        <span class="k">for</span> <span class="n">section_dict</span> <span class="ow">in</span> <span class="n">calculated_features_list</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                                    <span class="c1"># Check if value is a standard numeric type (excluding complex)</span>
+                                    <span class="c1"># and not NaN before adding the key</span>
+                                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span>
+                                        <span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)</span>
+                                    <span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">complexfloating</span><span class="p">)):</span>
+                                        <span class="n">is_nan</span> <span class="o">=</span> <span class="kc">False</span>
+                                        <span class="c1"># Check for NaN safely, handling potential type errors</span>
+                                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">)):</span>
+                                            <span class="k">try</span><span class="p">:</span>
+                                                <span class="n">is_nan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                                            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+                                                <span class="k">pass</span>  <span class="c1"># Ignore if isnan fails for some reason</span>
+                                        <span class="k">if</span> <span class="ow">not</span> <span class="n">is_nan</span><span class="p">:</span>
+                                            <span class="n">found_features_set</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+                        <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">found_features_set</span><span class="p">))</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: Extracted features: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">all_features</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">found_file_processed</span> <span class="o">=</span> <span class="kc">True</span>
+                        <span class="k">break</span>  <span class="c1"># Stop after processing the first valid file</span>
+
+                    <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">mnfe</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;WARNING: ModuleNotFoundError loading </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">mnfe</span><span class="si">}</span><span class="s2">. Skipping file.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="k">continue</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Warning: Could not load or process </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> for feature extraction: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+                        <span class="k">continue</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found_file_processed</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="s2">&quot;No valid .joblib analysis files found or processed successfully.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Convert sets to sorted lists</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span>
+                <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span> <span class="k">for</span> <span class="n">lbl</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="k">if</span> <span class="n">lbl</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Update comboboxes</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_combo</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label_combo</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span>
+
+            <span class="c1"># Set default selections</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selected_feature</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_features</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selected_feature</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selected_label</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">selected_label</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;Features and labels extracted. Ready to scan.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                    <span class="s2">&quot;Warning: Could not extract all features or labels.&quot;</span>
+                <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error extracting features/labels: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Could not extract features/labels from folder:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_combo</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">label_combo</span><span class="p">[</span><span class="s2">&quot;values&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_features</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">all_labels</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<div class="viewcode-block" id="DataExplorerApp.run_scan">
+<a class="viewcode-back" href="../_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp.run_scan">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">run_scan</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Scans files in the selected folder based on user criteria.</span>
+
+<span class="sd">        Loads each analysis file, runs feature extraction, checks sections</span>
+<span class="sd">        matching the selected label and feature condition, and displays</span>
+<span class="sd">        results in the treeview.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">folder</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">folder_path</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">feature_to_check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_feature</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># Renamed variable for clarity</span>
+        <span class="n">label_to_check</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">selected_label</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>  <span class="c1"># Renamed variable for clarity</span>
+        <span class="n">compare_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">comparison_type</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="n">threshold_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">threshold_value</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+        <span class="c1"># --- Validate Inputs ---</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">folder</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Please select a valid folder first.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">feature_to_check</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Please select a feature to analyze.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">label_to_check</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Please select a label to analyze.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">threshold</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">threshold_str</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Threshold must be a valid number.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="c1"># --- Clear previous results ---</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">get_children</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Scanning for &#39;</span><span class="si">{</span><span class="n">label_to_check</span><span class="si">}</span><span class="s2">&#39; sections where &#39;</span><span class="si">{</span><span class="n">feature_to_check</span><span class="si">}</span><span class="s2">&#39; </span><span class="si">{</span><span class="n">compare_type</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">threshold</span><span class="si">}</span><span class="s2">...&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">update_idletasks</span><span class="p">()</span>
+
+        <span class="c1"># --- Scan Files ---</span>
+        <span class="n">found_results</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">files_scanned</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">errors</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">filename</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">folder</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">filename</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.joblib&quot;</span><span class="p">):</span>
+                    <span class="n">files_scanned</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">track_data</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">track_data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                            <span class="k">continue</span>
+
+                        <span class="c1"># &lt;&lt;&lt; Call HMM feature extraction for EACH file &gt;&gt;&gt;</span>
+                        <span class="n">calculated_features_list</span><span class="p">,</span> <span class="n">original_labels</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">extract_section_features</span><span class="p">(</span><span class="n">track_data</span><span class="p">)</span>
+                        <span class="p">)</span>
+
+                        <span class="k">if</span> <span class="p">(</span>
+                            <span class="ow">not</span> <span class="n">calculated_features_list</span>
+                            <span class="ow">or</span> <span class="ow">not</span> <span class="n">original_labels</span>
+                            <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">calculated_features_list</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">original_labels</span><span class="p">)</span>
+                        <span class="p">):</span>
+                            <span class="nb">print</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Warning: Feature extraction failed or inconsistent for </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2">. Skipping.&quot;</span>
+                            <span class="p">)</span>
+                            <span class="k">continue</span>  <span class="c1"># Skip files if feature extraction fails</span>
+
+                        <span class="c1"># &lt;&lt;&lt; Iterate through CALCULATED features and ORIGINAL labels &gt;&gt;&gt;</span>
+                        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sec_label</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">original_labels</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">sec_label</span><span class="p">)</span> <span class="o">==</span> <span class="n">label_to_check</span><span class="p">:</span>  <span class="c1"># Compare as strings</span>
+                                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">calculated_features_list</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span>
+                                    <span class="n">calculated_features_list</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="nb">dict</span>
+                                <span class="p">):</span>
+                                    <span class="c1"># Use the dictionary from the calculated list</span>
+                                    <span class="n">feature_dict</span> <span class="o">=</span> <span class="n">calculated_features_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                                    <span class="n">value</span> <span class="o">=</span> <span class="n">feature_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                                        <span class="n">feature_to_check</span>
+                                    <span class="p">)</span>  <span class="c1"># Check the selected feature</span>
+
+                                    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                                        <span class="k">try</span><span class="p">:</span>
+                                            <span class="n">value_float</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                                            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">value_float</span><span class="p">):</span>
+                                                <span class="c1"># Perform comparison</span>
+                                                <span class="n">match</span> <span class="o">=</span> <span class="kc">False</span>
+                                                <span class="k">if</span> <span class="p">(</span>
+                                                    <span class="n">compare_type</span> <span class="o">==</span> <span class="s2">&quot;&lt;&quot;</span>
+                                                    <span class="ow">and</span> <span class="n">value_float</span> <span class="o">&lt;</span> <span class="n">threshold</span>
+                                                <span class="p">):</span>
+                                                    <span class="n">match</span> <span class="o">=</span> <span class="kc">True</span>
+                                                <span class="k">elif</span> <span class="p">(</span>
+                                                    <span class="n">compare_type</span> <span class="o">==</span> <span class="s2">&quot;&gt;&quot;</span>
+                                                    <span class="ow">and</span> <span class="n">value_float</span> <span class="o">&gt;</span> <span class="n">threshold</span>
+                                                <span class="p">):</span>
+                                                    <span class="n">match</span> <span class="o">=</span> <span class="kc">True</span>
+
+                                                <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+                                                    <span class="n">found_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                                                        <span class="p">(</span>
+                                                            <span class="n">filename</span><span class="p">,</span>
+                                                            <span class="n">i</span><span class="p">,</span>
+                                                            <span class="n">label_to_check</span><span class="p">,</span>
+                                                            <span class="n">feature_to_check</span><span class="p">,</span>
+                                                            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">value_float</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>  <span class="c1"># Format value</span>
+                                                        <span class="p">)</span>
+                                                    <span class="p">)</span>
+                                        <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                                            <span class="k">pass</span>  <span class="c1"># Ignore non-numeric or NaN</span>
+
+                    <span class="k">except</span> <span class="ne">ModuleNotFoundError</span> <span class="k">as</span> <span class="n">mnfe</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Error loading </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> during scan (ModuleNotFound): </span><span class="si">{</span><span class="n">mnfe</span><span class="si">}</span><span class="s2">. Skipping file.&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">errors</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">load_err</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot;Error loading/processing </span><span class="si">{</span><span class="n">filename</span><span class="si">}</span><span class="s2"> during scan: </span><span class="si">{</span><span class="n">load_err</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                        <span class="c1"># traceback.print_exc() # Uncomment for more detail</span>
+                        <span class="n">errors</span> <span class="o">+=</span> <span class="mi">1</span>
+
+            <span class="c1"># --- Display Results ---</span>
+            <span class="k">if</span> <span class="n">found_results</span><span class="p">:</span>
+                <span class="c1"># Sort results primarily by filename, then by section index</span>
+                <span class="n">found_results</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+                <span class="k">for</span> <span class="n">result_item</span> <span class="ow">in</span> <span class="n">found_results</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">results_tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="n">result_item</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Scan complete. Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">found_results</span><span class="p">)</span><span class="si">}</span><span class="s2"> matching sections in </span><span class="si">{</span><span class="n">files_scanned</span><span class="si">}</span><span class="s2"> files.&quot;</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Scan complete. No matching sections found in </span><span class="si">{</span><span class="n">files_scanned</span><span class="si">}</span><span class="s2"> files.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">errors</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">messagebox</span><span class="o">.</span><span class="n">showwarning</span><span class="p">(</span>
+                    <span class="s2">&quot;Scan Warning&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;Encountered errors while processing </span><span class="si">{</span><span class="n">errors</span><span class="si">}</span><span class="s2"> files. Check console for details.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">scan_err</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error during scan: </span><span class="si">{</span><span class="n">scan_err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;Scan Error&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;An unexpected error occurred during the scan:</span><span class="se">\n</span><span class="si">{</span><span class="n">scan_err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="c1"># --- Main Execution ---</span>
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s2">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">root</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Tk</span><span class="p">()</span>
+    <span class="n">app</span> <span class="o">=</span> <span class="n">DataExplorerApp</span><span class="p">(</span><span class="n">root</span><span class="p">)</span>
+    <span class="n">root</span><span class="o">.</span><span class="n">mainloop</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

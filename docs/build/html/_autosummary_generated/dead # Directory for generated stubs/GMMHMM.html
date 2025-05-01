@@ -1,0 +1,416 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMMHMM &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <link rel="next" title="GMMHMM Sub-Modules" href="../../gmmhmm_submodules.html" />
+    <link rel="prev" title="Dead Modules" href="../../dead_modules.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">GMMHMM</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.remove_feature_outliers"><code class="docutils literal notranslate"><span class="pre">remove_feature_outliers()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.remove_short_sections"><code class="docutils literal notranslate"><span class="pre">remove_short_sections()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.filter_consistency"><code class="docutils literal notranslate"><span class="pre">filter_consistency()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.export_analysis_results"><code class="docutils literal notranslate"><span class="pre">export_analysis_results()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.create_widgets"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.create_widgets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.select_all"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.select_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.unselect_all"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.unselect_all()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.select_original_seven"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.select_original_seven()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.select_classic"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.select_classic()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.validate_inputs"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.validate_inputs()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.on_confirm"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.on_confirm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog.on_cancel"><code class="docutils literal notranslate"><span class="pre">FeatureSelectionDialog.on_cancel()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog"><code class="docutils literal notranslate"><span class="pre">ModelAnalysisDialog</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog.create_widgets"><code class="docutils literal notranslate"><span class="pre">ModelAnalysisDialog.create_widgets()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog.create_states_tab"><code class="docutils literal notranslate"><span class="pre">ModelAnalysisDialog.create_states_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog.create_transitions_tab"><code class="docutils literal notranslate"><span class="pre">ModelAnalysisDialog.create_transitions_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog.create_cleaning_tab"><code class="docutils literal notranslate"><span class="pre">ModelAnalysisDialog.create_cleaning_tab()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog.on_close"><code class="docutils literal notranslate"><span class="pre">ModelAnalysisDialog.on_close()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.show_feature_selection_dialog"><code class="docutils literal notranslate"><span class="pre">show_feature_selection_dialog()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.show_model_analysis_dialog"><code class="docutils literal notranslate"><span class="pre">show_model_analysis_dialog()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.load_perfect_analyses"><code class="docutils literal notranslate"><span class="pre">load_perfect_analyses()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.prepare_multi_feature_data"><code class="docutils literal notranslate"><span class="pre">prepare_multi_feature_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.train_gmmhmm"><code class="docutils literal notranslate"><span class="pre">train_gmmhmm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#GMMHMM.analyze_trained_gmmhmm"><code class="docutils literal notranslate"><span class="pre">analyze_trained_gmmhmm()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../dead_modules.html">Dead Modules</a></li>
+      <li class="breadcrumb-item active">GMMHMM</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary_generated/dead " rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-GMMHMM">
+<span id="gmmhmm"></span><h1>GMMHMM<a class="headerlink" href="#module-GMMHMM" title="Link to this heading"></a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#GMMHMM.analyze_trained_gmmhmm" title="GMMHMM.analyze_trained_gmmhmm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">analyze_trained_gmmhmm</span></code></a>(model, int_to_label, ...)</p></td>
+<td><p>Analyzes the trained GMMHMM model to describe state characteristics.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#GMMHMM.export_analysis_results" title="GMMHMM.export_analysis_results"><code class="xref py py-obj docutils literal notranslate"><span class="pre">export_analysis_results</span></code></a>(model_info, ...[, ...])</p></td>
+<td><p>Export the model analysis results and data cleaning information to a JSON file.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#GMMHMM.filter_consistency" title="GMMHMM.filter_consistency"><code class="xref py py-obj docutils literal notranslate"><span class="pre">filter_consistency</span></code></a>(section_features_list, ...)</p></td>
+<td><p>Remove sections where features don't match typical values for their label.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#GMMHMM.load_perfect_analyses" title="GMMHMM.load_perfect_analyses"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_perfect_analyses</span></code></a>(folder_path)</p></td>
+<td><p>Loads all .joblib analysis files from the 'Perfect' subfolder.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#GMMHMM.prepare_multi_feature_data" title="GMMHMM.prepare_multi_feature_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_multi_feature_data</span></code></a>(...)</p></td>
+<td><p>Processes loaded track data to extract multiple features defined in FEATURE_KEYS, scales them, applies weights, determines states, and prepares for HMM training.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#GMMHMM.remove_feature_outliers" title="GMMHMM.remove_feature_outliers"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_feature_outliers</span></code></a>(...[, z_threshold])</p></td>
+<td><p>Remove sections with extreme feature values.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#GMMHMM.remove_short_sections" title="GMMHMM.remove_short_sections"><code class="xref py py-obj docutils literal notranslate"><span class="pre">remove_short_sections</span></code></a>(section_features_list, ...)</p></td>
+<td><p>Remove sections shorter than minimum bar count.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#GMMHMM.show_feature_selection_dialog" title="GMMHMM.show_feature_selection_dialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_feature_selection_dialog</span></code></a>()</p></td>
+<td><p>Shows the feature selection dialog and updates global variables based on selection.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="#GMMHMM.show_model_analysis_dialog" title="GMMHMM.show_model_analysis_dialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">show_model_analysis_dialog</span></code></a>(model_info, ...)</p></td>
+<td><p>Shows a dialog with model analysis results.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#GMMHMM.train_gmmhmm" title="GMMHMM.train_gmmhmm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_gmmhmm</span></code></a>(X, lengths, n_states, n_mix, ...)</p></td>
+<td><p>Trains a GMMHMM model on the prepared multi-feature data.</p></td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#GMMHMM.FeatureSelectionDialog" title="GMMHMM.FeatureSelectionDialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">FeatureSelectionDialog</span></code></a>(parent)</p></td>
+<td><p></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="#GMMHMM.ModelAnalysisDialog" title="GMMHMM.ModelAnalysisDialog"><code class="xref py py-obj docutils literal notranslate"><span class="pre">ModelAnalysisDialog</span></code></a>(parent, model_info, ...)</p></td>
+<td><p></p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.remove_feature_outliers">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">remove_feature_outliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_features_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">song_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">z_threshold</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#remove_feature_outliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.remove_feature_outliers" title="Link to this definition"></a></dt>
+<dd><p>Remove sections with extreme feature values.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.remove_short_sections">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">remove_short_sections</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_features_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">song_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_bars</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#remove_short_sections"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.remove_short_sections" title="Link to this definition"></a></dt>
+<dd><p>Remove sections shorter than minimum bar count.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.filter_consistency">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">filter_consistency</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_features_list</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">song_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#filter_consistency"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.filter_consistency" title="Link to this definition"></a></dt>
+<dd><p>Remove sections where features don’t match typical values for their label.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.export_analysis_results">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">export_analysis_results</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_cleaning_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_averages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#export_analysis_results"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.export_analysis_results" title="Link to this definition"></a></dt>
+<dd><p>Export the model analysis results and data cleaning information to a JSON file.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_info</strong> (<em>dict</em>) – Dictionary containing model analysis information</p></li>
+<li><p><strong>data_cleaning_info</strong> (<em>dict</em>) – Dictionary containing data cleaning information</p></li>
+<li><p><strong>feature_keys</strong> (<em>list</em>) – List of feature names used in the model</p></li>
+<li><p><strong>feature_weights</strong> (<em>dict</em>) – Dictionary of feature weights</p></li>
+<li><p><strong>model_path</strong> (<em>str</em>) – Path to the saved model (used to generate output filename)</p></li>
+<li><p><strong>raw_averages</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary containing raw feature averages by label</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Path to the exported file</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">FeatureSelectionDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Toplevel</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.create_widgets">
+<span class="sig-name descname"><span class="pre">create_widgets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.create_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.create_widgets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.select_all">
+<span class="sig-name descname"><span class="pre">select_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.select_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.select_all" title="Link to this definition"></a></dt>
+<dd><p>Select all features</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.unselect_all">
+<span class="sig-name descname"><span class="pre">unselect_all</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.unselect_all"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.unselect_all" title="Link to this definition"></a></dt>
+<dd><p>Unselect all features</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.select_original_seven">
+<span class="sig-name descname"><span class="pre">select_original_seven</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.select_original_seven"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.select_original_seven" title="Link to this definition"></a></dt>
+<dd><p>Select the original 7 features</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.select_classic">
+<span class="sig-name descname"><span class="pre">select_classic</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.select_classic"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.select_classic" title="Link to this definition"></a></dt>
+<dd><p>Select only classic features (not the new ones)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.validate_inputs">
+<span class="sig-name descname"><span class="pre">validate_inputs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.validate_inputs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.validate_inputs" title="Link to this definition"></a></dt>
+<dd><p>Validate inputs before closing dialog</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.on_confirm">
+<span class="sig-name descname"><span class="pre">on_confirm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.on_confirm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.on_confirm" title="Link to this definition"></a></dt>
+<dd><p>Handle confirm button click</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.FeatureSelectionDialog.on_cancel">
+<span class="sig-name descname"><span class="pre">on_cancel</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#FeatureSelectionDialog.on_cancel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.FeatureSelectionDialog.on_cancel" title="Link to this definition"></a></dt>
+<dd><p>Handle cancel button click</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="GMMHMM.ModelAnalysisDialog">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">ModelAnalysisDialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cleaning_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_averages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#ModelAnalysisDialog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.ModelAnalysisDialog" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Toplevel</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.ModelAnalysisDialog.create_widgets">
+<span class="sig-name descname"><span class="pre">create_widgets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#ModelAnalysisDialog.create_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.ModelAnalysisDialog.create_widgets" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.ModelAnalysisDialog.create_states_tab">
+<span class="sig-name descname"><span class="pre">create_states_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#ModelAnalysisDialog.create_states_tab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.ModelAnalysisDialog.create_states_tab" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.ModelAnalysisDialog.create_transitions_tab">
+<span class="sig-name descname"><span class="pre">create_transitions_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#ModelAnalysisDialog.create_transitions_tab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.ModelAnalysisDialog.create_transitions_tab" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.ModelAnalysisDialog.create_cleaning_tab">
+<span class="sig-name descname"><span class="pre">create_cleaning_tab</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent_frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#ModelAnalysisDialog.create_cleaning_tab"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.ModelAnalysisDialog.create_cleaning_tab" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="GMMHMM.ModelAnalysisDialog.on_close">
+<span class="sig-name descname"><span class="pre">on_close</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#ModelAnalysisDialog.on_close"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.ModelAnalysisDialog.on_close" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.show_feature_selection_dialog">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">show_feature_selection_dialog</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#show_feature_selection_dialog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.show_feature_selection_dialog" title="Link to this definition"></a></dt>
+<dd><p>Shows the feature selection dialog and updates global variables based on selection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>True if user confirmed selection, False if cancelled.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.show_model_analysis_dialog">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">show_model_analysis_dialog</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data_cleaning_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_averages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#show_model_analysis_dialog"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.show_model_analysis_dialog" title="Link to this definition"></a></dt>
+<dd><p>Shows a dialog with model analysis results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model_info</strong> (<em>dict</em>) – Dictionary containing model analysis information</p></li>
+<li><p><strong>data_cleaning_info</strong> (<em>dict</em>) – Dictionary containing data cleaning information</p></li>
+<li><p><strong>raw_averages</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary containing raw feature averages by label</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.load_perfect_analyses">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">load_perfect_analyses</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">folder_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#load_perfect_analyses"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.load_perfect_analyses" title="Link to this definition"></a></dt>
+<dd><p>Loads all .joblib analysis files from the ‘Perfect’ subfolder.
+Returns a list of tuples: [(filename, data_dict), …]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.prepare_multi_feature_data">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">prepare_multi_feature_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_track_data_with_filenames</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#prepare_multi_feature_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.prepare_multi_feature_data" title="Link to this definition"></a></dt>
+<dd><p>Processes loaded track data to extract multiple features defined in FEATURE_KEYS,
+scales them, applies weights, determines states, and prepares for HMM training.
+Includes detailed debugging prints for features.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.train_gmmhmm">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">train_gmmhmm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_mix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_covar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transmat_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#train_gmmhmm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.train_gmmhmm" title="Link to this definition"></a></dt>
+<dd><p>Trains a GMMHMM model on the prepared multi-feature data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>np.ndarray</em>) – The scaled and weighted multi-feature data (n_observations, n_features).</p></li>
+<li><p><strong>lengths</strong> (<em>list</em>) – List of sequence lengths.</p></li>
+<li><p><strong>n_states</strong> (<em>int</em>) – The number of hidden states (labels).</p></li>
+<li><p><strong>n_mix</strong> (<em>int</em>) – The number of Gaussian mixtures per state.</p></li>
+<li><p><strong>min_covar</strong> (<em>float</em>) – Minimum covariance value for regularization.</p></li>
+<li><p><strong>transmat_prior</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Pre-calculated transition matrix to initialize with.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The trained GMMHMM model, or None if training fails.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>hmm.GMMHMM</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM.analyze_trained_gmmhmm">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM.</span></span><span class="sig-name descname"><span class="pre">analyze_trained_gmmhmm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">int_to_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scaler</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_weights</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">raw_averages</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM.html#analyze_trained_gmmhmm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM.analyze_trained_gmmhmm" title="Link to this definition"></a></dt>
+<dd><p>Analyzes the trained GMMHMM model to describe state characteristics.
+Calculates weighted average means for easier interpretation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>hmm.GMMHMM</em>) – The trained GMMHMM model.</p></li>
+<li><p><strong>int_to_label</strong> (<em>dict</em>) – Dictionary mapping state indices to labels.</p></li>
+<li><p><strong>scaler</strong> (<em>StandardScaler</em>) – The scaler fitted on the multi-feature data.</p></li>
+<li><p><strong>feature_keys</strong> (<em>list</em>) – List of feature names in the correct order.</p></li>
+<li><p><strong>feature_weights</strong> (<em>np.ndarray</em>) – NumPy array of weights applied to features.</p></li>
+<li><p><strong>raw_averages</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary containing raw feature averages by label</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing model analysis information</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="../../dead_modules.html" class="btn btn-neutral float-left" title="Dead Modules" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../../gmmhmm_submodules.html" class="btn btn-neutral float-right" title="GMMHMM Sub-Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

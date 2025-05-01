@@ -1,0 +1,470 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>file_manager &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=12958129"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">file_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for file_manager</h1><div class="highlight"><pre>
+<span></span><span class="c1"># =============================================================================</span>
+<span class="c1"># FILE: file_manager.py</span>
+<span class="c1"># Purpose: Handles file selection, loading, and saving of analysis data.</span>
+<span class="c1"># Added missing ttk import.</span>
+<span class="c1"># FIXED: Convert defaultdict to dict after loading to prevent pickle error.</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">joblib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ttk</span>  <span class="c1"># *** ADDED missing import ***</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">filedialog</span><span class="p">,</span> <span class="n">messagebox</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>  <span class="c1"># Added for type checking during load validation</span>
+
+<span class="c1"># Define constants directly or import if needed elsewhere</span>
+<span class="n">PERFECT_SUBFOLDER</span> <span class="o">=</span> <span class="s2">&quot;Perfect&quot;</span>
+<span class="n">WIP_SUBFOLDER</span> <span class="o">=</span> <span class="s2">&quot;WIP&quot;</span>
+<span class="c1"># ANALYSIS_BASE_FOLDER needs to be passed or defined consistently</span>
+<span class="c1"># For now, hardcode to match main_app.py - consider better config later</span>
+<span class="c1"># *** Ensure this path is correct for your setup ***</span>
+<span class="n">ANALYSIS_BASE_FOLDER</span> <span class="o">=</span> <span class="s2">&quot;/Users/donovanblair/Desktop/song_analyzer_app_6/completed_analyses&quot;</span>  <span class="c1"># Corrected path</span>
+
+
+<div class="viewcode-block" id="FileManager">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">FileManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handles file selection, loading, and saving operations.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FileManager.__init__">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">app_instance</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the FileManager.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            app_instance (AudioAnalyzerApp): Reference to the main application instance.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app_instance</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">analysis_base_folder</span> <span class="o">=</span> <span class="n">ANALYSIS_BASE_FOLDER</span>  <span class="c1"># Store base path</span></div>
+
+
+<div class="viewcode-block" id="FileManager.select_file">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager.select_file">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">select_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track_num</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles file selection for a given track number.&quot;&quot;&quot;</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span>  <span class="c1"># Use local reference for clarity</span>
+        <span class="n">f_path</span> <span class="o">=</span> <span class="n">filedialog</span><span class="o">.</span><span class="n">askopenfilename</span><span class="p">(</span>
+            <span class="n">title</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Select Track </span><span class="si">{</span><span class="n">track_num</span><span class="si">}</span><span class="s2"> Audio&quot;</span><span class="p">,</span>  <span class="c1"># Updated title to be more generic</span>
+            <span class="n">filetypes</span><span class="o">=</span><span class="p">[</span>
+                <span class="p">(</span><span class="s2">&quot;Audio files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.wav *.mp3&quot;</span><span class="p">),</span>  <span class="c1"># Add MP3 to the main audio type</span>
+                <span class="p">(</span><span class="s2">&quot;WAV files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.wav&quot;</span><span class="p">),</span>  <span class="c1"># Keep WAV option for backwards compatibility</span>
+                <span class="p">(</span><span class="s2">&quot;MP3 files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.mp3&quot;</span><span class="p">),</span>  <span class="c1"># Add dedicated MP3 option</span>
+                <span class="p">(</span><span class="s2">&quot;All files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.*&quot;</span><span class="p">),</span>
+            <span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">f_path</span><span class="p">:</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">file_path</span><span class="p">[</span><span class="n">track_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">f_path</span>
+            <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">f_path</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">track_names</span><span class="p">[</span><span class="n">track_num</span><span class="p">]</span> <span class="o">=</span> <span class="n">filename</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">file_label1</span> <span class="k">if</span> <span class="n">track_num</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">app</span><span class="o">.</span><span class="n">file_label2</span>
+            <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+                <span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">filename</span><span class="p">)</span>
+
+            <span class="n">app</span><span class="o">.</span><span class="n">playback_manager</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;status_label&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+            <span class="c1"># Use plot manager methods</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">clear_plots</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">add_placeholder_labels</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">update_analyze_button_state</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">use_manual_bpm</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;manual_bpm_check&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">app</span><span class="o">.</span><span class="n">manual_bpm_check</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">manual_bpm_check</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">update_manual_bpm_state</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">toggle_labels_button</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">toggle_labels_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">save_button</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">save_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">section_editor</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">section_editor</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">show_pre_cleanup_labels_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">show_hmm_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># Reset HMM view toggle</span>
+
+            <span class="c1"># Clear previous data for this track, including HMM results</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="n">track_num</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>  <span class="c1"># Check if track 1 still exists</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hmm_semantic_labels&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hmm_label_colors&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;hmm_section_starts&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;single&quot;</span> <span class="ow">and</span> <span class="n">track_num</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Clear track 2 if in single mode</span>
+
+            <span class="n">app</span><span class="o">.</span><span class="n">_update_hmm_button_state</span><span class="p">()</span>  <span class="c1"># Ensure HMM buttons are disabled</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">_update_playback_buttons_state_from_manager</span><span class="p">(</span><span class="s2">&quot;stopped&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">label</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">file_label1</span> <span class="k">if</span> <span class="n">track_num</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">app</span><span class="o">.</span><span class="n">file_label2</span>
+            <span class="k">if</span> <span class="n">label</span><span class="p">:</span>
+                <span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Selection cancelled.&quot;</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_ask_save_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a modal dialog asking user to classify the save.&quot;&quot;&quot;</span>
+        <span class="n">dialog</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s2">&quot;Save Analysis Status&quot;</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">transient</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">grab_set</span><span class="p">()</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">resizable</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">status_var</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">StringVar</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+        <span class="n">parent_x</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">winfo_rootx</span><span class="p">()</span>
+        <span class="n">parent_y</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">winfo_rooty</span><span class="p">()</span>
+        <span class="n">parent_w</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">winfo_width</span><span class="p">()</span>
+        <span class="n">parent_h</span> <span class="o">=</span> <span class="n">parent</span><span class="o">.</span><span class="n">winfo_height</span><span class="p">()</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">update_idletasks</span><span class="p">()</span>
+        <span class="n">dialog_w</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">winfo_width</span><span class="p">()</span>
+        <span class="n">dialog_h</span> <span class="o">=</span> <span class="n">dialog</span><span class="o">.</span><span class="n">winfo_height</span><span class="p">()</span>
+        <span class="n">center_x</span> <span class="o">=</span> <span class="n">parent_x</span> <span class="o">+</span> <span class="p">(</span><span class="n">parent_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">dialog_w</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">center_y</span> <span class="o">=</span> <span class="n">parent_y</span> <span class="o">+</span> <span class="p">(</span><span class="n">parent_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span> <span class="o">-</span> <span class="p">(</span><span class="n">dialog_h</span> <span class="o">//</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">dialog</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;+</span><span class="si">{</span><span class="n">center_x</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">center_y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">dialog</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;15&quot;</span><span class="p">)</span>
+        <span class="n">frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">)</span>  <span class="c1"># Uses ttk</span>
+        <span class="n">ttk</span><span class="o">.</span><span class="n">Label</span><span class="p">(</span><span class="n">frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save analysis as:&quot;</span><span class="p">,</span> <span class="n">font</span><span class="o">=</span><span class="s2">&quot;-weight bold&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span>
+            <span class="n">pady</span><span class="o">=</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># Uses ttk</span>
+        <span class="n">button_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="n">frame</span><span class="p">)</span>
+        <span class="n">button_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># Uses ttk</span>
+
+        <span class="k">def</span><span class="w"> </span><span class="nf">set_status</span><span class="p">(</span><span class="n">status</span><span class="p">):</span>
+            <span class="n">status_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+            <span class="n">dialog</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span>
+
+        <span class="c1"># Uses ttk Button</span>
+        <span class="n">perfect_btn</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">button_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Perfect (Training)&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">set_status</span><span class="p">(</span><span class="n">PERFECT_SUBFOLDER</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">perfect_btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">wip_btn</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span>
+            <span class="n">button_frame</span><span class="p">,</span>
+            <span class="n">text</span><span class="o">=</span><span class="s2">&quot;WIP (Work in Progress)&quot;</span><span class="p">,</span>
+            <span class="n">width</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+            <span class="n">command</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">set_status</span><span class="p">(</span><span class="n">WIP_SUBFOLDER</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">wip_btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="n">parent</span><span class="o">.</span><span class="n">wait_window</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">status_var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+
+<div class="viewcode-block" id="FileManager.save_analysis">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager.save_analysis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">save_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves analysis results, overwriting previous file for the same track in Perfect/WIP.&quot;&quot;&quot;</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Save Analysis called.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">!=</span> <span class="s2">&quot;single&quot;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showwarning</span><span class="p">(</span>
+                <span class="s2">&quot;Save Error&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;Analysis data for Track 1 must exist and be in Single Track mode to save.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">save_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ask_save_status</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">master</span><span class="p">)</span>  <span class="c1"># Pass main window as parent</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">save_status</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Save status selection cancelled.&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save Cancelled&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: User selected save status: </span><span class="si">{</span><span class="n">save_status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">target_directory</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_base_folder</span><span class="p">,</span> <span class="n">save_status</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: Target save directory: </span><span class="si">{</span><span class="n">target_directory</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">target_directory</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: Ensured directory &#39;</span><span class="si">{</span><span class="n">target_directory</span><span class="si">}</span><span class="s2">&#39; exists.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;Save Error&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not create save directory:</span><span class="se">\n</span><span class="si">{</span><span class="n">target_directory</span><span class="si">}</span><span class="se">\n</span><span class="s2">Error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save Error!&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">base_audio_name</span> <span class="o">=</span> <span class="s2">&quot;track&quot;</span>
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">file_path</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
+                <span class="n">base_audio_name</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">file_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]))[</span>
+                    <span class="mi">0</span>
+                <span class="p">]</span>
+            <span class="n">safe_base_name</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">base_audio_name</span> <span class="k">if</span> <span class="n">c</span><span class="o">.</span><span class="n">isalnum</span><span class="p">()</span> <span class="ow">or</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+            <span class="n">fixed_filename</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">safe_base_name</span><span class="si">}</span><span class="s2">.analysis.joblib&quot;</span>
+            <span class="n">save_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">target_directory</span><span class="p">,</span> <span class="n">fixed_filename</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: Determined save path: </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Save Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Error creating filename: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save Error!&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">confirm_overwrite</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">save_path</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: File exists: </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">confirm_overwrite</span> <span class="o">=</span> <span class="n">messagebox</span><span class="o">.</span><span class="n">askyesno</span><span class="p">(</span>
+                <span class="s2">&quot;Confirm Overwrite&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Analysis file already exists:</span><span class="se">\n</span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Overwrite?&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">confirm_overwrite</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Overwrite cancelled by user.&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save Cancelled&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: Saving analysis data to: </span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># *** IMPORTANT: Ensure data_to_save is a standard dict ***</span>
+            <span class="n">data_to_save</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="c1"># Check if it&#39;s still a defaultdict (shouldn&#39;t be if load was fixed)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_to_save</span><span class="p">,</span> <span class="n">defaultdict</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;DEBUG FileManager: Converting defaultdict to dict before saving.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">data_to_save</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">data_to_save</span><span class="p">)</span>  <span class="c1"># Convert just in case</span>
+
+            <span class="n">joblib</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">data_to_save</span><span class="p">,</span> <span class="n">save_path</span><span class="p">,</span> <span class="n">compress</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showinfo</span><span class="p">(</span>
+                <span class="s2">&quot;Save Successful&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Analysis saved successfully to:</span><span class="se">\n</span><span class="si">{</span><span class="n">save_path</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Analysis Saved&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Save Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Failed to save analysis file:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Save Failed!&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="FileManager.load_analysis">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager.load_analysis">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads previously saved analysis results.&quot;&quot;&quot;</span>
+        <span class="n">app</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Load Analysis called.&quot;</span><span class="p">)</span>
+        <span class="n">initial_dir</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">analysis_base_folder</span>
+            <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">analysis_base_folder</span><span class="p">)</span>
+            <span class="k">else</span> <span class="s2">&quot;.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">load_path</span> <span class="o">=</span> <span class="n">filedialog</span><span class="o">.</span><span class="n">askopenfilename</span><span class="p">(</span>
+            <span class="n">initialdir</span><span class="o">=</span><span class="n">initial_dir</span><span class="p">,</span>
+            <span class="n">title</span><span class="o">=</span><span class="s2">&quot;Select Analysis File&quot;</span><span class="p">,</span>
+            <span class="n">filetypes</span><span class="o">=</span><span class="p">[(</span><span class="s2">&quot;Joblib Analysis Files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.joblib&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;All Files&quot;</span><span class="p">,</span> <span class="s2">&quot;*.*&quot;</span><span class="p">)],</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">load_path</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Load cancelled by user.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">app</span><span class="o">.</span><span class="n">playback_manager</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">clear_plots</span><span class="p">()</span>  <span class="c1"># Use plot manager</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Loading...&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;orange&quot;</span><span class="p">)</span>
+        <span class="n">app</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">update_idletasks</span><span class="p">()</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: Loading analysis data from: </span><span class="si">{</span><span class="n">load_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">loaded_data_raw</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">load_path</span><span class="p">)</span>  <span class="c1"># Load raw data first</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loaded_data_raw</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;Loaded file does not contain a valid analysis dictionary.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># *** FIX: Convert to standard dict immediately after loading ***</span>
+            <span class="n">loaded_data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">loaded_data_raw</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Converted loaded data to standard dict.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Basic check for essential keys</span>
+            <span class="n">required_keys</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="s2">&quot;file_path&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;sr&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;y_processed&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;semantic_labels&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;section_features&quot;</span><span class="p">,</span>
+            <span class="p">]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">key</span> <span class="ow">in</span> <span class="n">loaded_data</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">required_keys</span><span class="p">):</span>
+                <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">required_keys</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">loaded_data</span><span class="p">]</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Loaded data is missing essential keys: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Loaded data verified.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Reset app state before loading</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">track_data</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">loaded_data</span>  <span class="c1"># Store the standard dict</span>
+
+            <span class="n">loaded_file_path</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_path&quot;</span><span class="p">)</span>
+            <span class="n">original_audio_found</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">if</span> <span class="n">loaded_file_path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">loaded_file_path</span><span class="p">):</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">file_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">loaded_file_path</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">track_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">loaded_file_path</span><span class="p">)</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">file_label1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">track_names</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;DEBUG FileManager: Original audio file found at: </span><span class="si">{</span><span class="n">loaded_file_path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">original_audio_found</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Warning: Original audio file not found at path stored in analysis: </span><span class="si">{</span><span class="n">loaded_file_path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">messagebox</span><span class="o">.</span><span class="n">showwarning</span><span class="p">(</span>
+                    <span class="s2">&quot;Audio File Missing&quot;</span><span class="p">,</span>
+                    <span class="sa">f</span><span class="s2">&quot;The original audio file path stored in the analysis was:</span><span class="se">\n</span><span class="si">{</span><span class="n">loaded_file_path</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">This file could not be found. Playback requires the original audio. Please re-select the audio file if you wish to use playback.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">file_path</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">track_names</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Loaded: </span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">basename</span><span class="p">(</span><span class="n">load_path</span><span class="p">)</span><span class="si">}</span><span class="s2"> (Audio Missing)&quot;</span>
+                <span class="p">)</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">file_label1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">track_names</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">original_audio_found</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">playback_manager</span><span class="o">.</span><span class="n">set_audio</span><span class="p">(</span>
+                    <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y_processed&quot;</span><span class="p">),</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sr&quot;</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">playback_manager</span><span class="o">.</span><span class="n">set_audio</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+            <span class="c1"># Update UI to reflect loaded state (single track mode)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;single&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">update_ui_for_mode</span><span class="p">()</span>  <span class="c1"># This updates UI and clears plots again via plot_manager</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">display_analysis_results</span><span class="p">()</span>  <span class="c1"># Use plot manager to display loaded results</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Analysis Loaded&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Update button states</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">_update_save_button_state</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">_update_toggle_button_state</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">_update_hmm_button_state</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bpm&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;manual_bpm_check&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">app</span><span class="o">.</span><span class="n">manual_bpm_check</span><span class="p">:</span>
+                    <span class="n">app</span><span class="o">.</span><span class="n">manual_bpm_check</span><span class="o">.</span><span class="n">config</span><span class="p">(</span>
+                        <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span>
+                    <span class="p">)</span>  <span class="c1"># Check if widget exists</span>
+                <span class="n">bpm_used</span> <span class="o">=</span> <span class="n">app</span><span class="o">.</span><span class="n">track_data</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bpm&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">app</span><span class="p">,</span> <span class="s2">&quot;manual_bpm_entry_var&quot;</span><span class="p">):</span>
+                    <span class="n">app</span><span class="o">.</span><span class="n">manual_bpm_entry_var</span><span class="o">.</span><span class="n">set</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bpm_used</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bpm_used</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">))</span>
+                        <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                    <span class="p">)</span>  <span class="c1"># Check type</span>
+                <span class="n">app</span><span class="o">.</span><span class="n">update_manual_bpm_state</span><span class="p">()</span>
+
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG FileManager: Load analysis finished successfully.&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;Load Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Failed to load or display analysis file:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">status_label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Load Failed!&quot;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+            <span class="c1"># Reset state on error</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">clear_plots</span><span class="p">()</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">track_data</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">file_path</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">track_names</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s2">&quot;Track 1&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="s2">&quot;Track 2&quot;</span><span class="p">}</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">file_label1</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;No file selected&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">file_label2</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;No file selected&quot;</span><span class="p">)</span>
+            <span class="n">app</span><span class="o">.</span><span class="n">update_ui_for_mode</span><span class="p">()</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

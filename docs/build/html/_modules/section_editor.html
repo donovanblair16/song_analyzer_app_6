@@ -1,0 +1,298 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>section_editor &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=12958129"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">section_editor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for section_editor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># =============================================================================</span>
+<span class="c1"># FILE: section_editor.py</span>
+<span class="c1"># Contains the SectionEditor class (a ttk.Frame) for displaying and</span>
+<span class="c1"># editing section labels and colors in a Treeview using a pop-up dialog.</span>
+<span class="c1"># Includes a color indicator column; row background color removed.</span>
+<span class="c1"># Uses &quot;Body&quot; instead of &quot;Verse&quot;. Adds &quot;Fade Out&quot; label.</span>
+<span class="c1"># Right-click now calls main app&#39;s pop-up method.</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tk</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">ttk</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span> <span class="c1"># Needed for calculating bar number</span>
+
+<span class="c1"># --- Constants ---</span>
+<span class="c1"># These are now primarily defined here and imported by main_app if needed elsewhere</span>
+<span class="n">COLOR_NAME_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Dark Red&quot;</span><span class="p">:</span>   <span class="s1">&#39;#8B0000&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Red&quot;</span><span class="p">:</span>        <span class="s1">&#39;#FF0000&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Orange&quot;</span><span class="p">:</span>     <span class="s1">&#39;#FFA500&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Dark Green&quot;</span><span class="p">:</span> <span class="s1">&#39;#014421&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Light Green&quot;</span><span class="p">:</span><span class="s1">&#39;#7CCD7C&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Light Blue&quot;</span><span class="p">:</span> <span class="s1">&#39;#ADD8E6&#39;</span><span class="p">,</span>
+    <span class="s2">&quot;Fade Out&quot;</span><span class="p">:</span>   <span class="s1">&#39;#8A2BE2&#39;</span> <span class="c1"># BlueViolet for Fade Out</span>
+<span class="p">}</span>
+<span class="n">HEX_TO_COLOR_NAME</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">COLOR_NAME_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+<span class="n">ALLOWED_LABELS</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Intro&quot;</span><span class="p">,</span> <span class="s2">&quot;Body&quot;</span><span class="p">,</span> <span class="s2">&quot;Breakdown&quot;</span><span class="p">,</span> <span class="s2">&quot;Build&quot;</span><span class="p">,</span> <span class="s2">&quot;Drop&quot;</span><span class="p">,</span> <span class="s2">&quot;Outro&quot;</span><span class="p">,</span> <span class="s2">&quot;Fill&quot;</span><span class="p">,</span> <span class="s2">&quot;Fade Out&quot;</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="SectionEditor">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">SectionEditor</span><span class="p">(</span><span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A ttk.Frame containing a Treeview for editing section labels and colors</span>
+<span class="sd">    via a pop-up dialog, and an &#39;Update Sections&#39; button. Includes color indicator column.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SectionEditor.__init__">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master</span><span class="p">,</span> <span class="n">apply_callback</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">app_ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c1"># Added app_ref</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the SectionEditor frame.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            master: The parent widget (likely the editor_outer_frame).</span>
+<span class="sd">            apply_callback (callable): A function to call when the &#39;Update&#39;</span>
+<span class="sd">                                       button is pressed.</span>
+<span class="sd">            app_ref (AudioAnalyzerApp): Reference to the main application instance.</span>
+<span class="sd">            **kwargs: Additional keyword arguments for the ttk.Frame.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">master</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;5&quot;</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_callback</span> <span class="o">=</span> <span class="n">apply_callback</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">app</span> <span class="o">=</span> <span class="n">app_ref</span> <span class="c1"># Store reference to main app</span>
+
+        <span class="c1"># --- Create Widgets ---</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_setup_widgets</span><span class="p">()</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_setup_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates and packs the Treeview, Scrollbar, and Button.&quot;&quot;&quot;</span>
+        <span class="c1"># Treeview for editing</span>
+        <span class="n">tree_frame</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Frame</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="n">tree_frame</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="n">cols</span> <span class="o">=</span> <span class="p">(</span><span class="s1">&#39;Clr&#39;</span><span class="p">,</span> <span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;Start (Bar)&#39;</span><span class="p">,</span> <span class="s1">&#39;Dur (Bars)&#39;</span><span class="p">,</span> <span class="s1">&#39;Label&#39;</span><span class="p">,</span> <span class="s1">&#39;Color&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Treeview</span><span class="p">(</span><span class="n">tree_frame</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">cols</span><span class="p">,</span> <span class="n">show</span><span class="o">=</span><span class="s1">&#39;headings&#39;</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+        <span class="c1"># Define headings and column widths</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s1">&#39;Clr&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">CENTER</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s1">&#39;Clr&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NO</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">CENTER</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NO</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s1">&#39;Start (Bar)&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Start (Bar)&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s1">&#39;Start (Bar)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NO</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s1">&#39;Dur (Bars)&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Dur (Bars)&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s1">&#39;Dur (Bars)&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">70</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NO</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">120</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">YES</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">heading</span><span class="p">(</span><span class="s1">&#39;Color&#39;</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s1">&#39;Color&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">column</span><span class="p">(</span><span class="s1">&#39;Color&#39;</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">stretch</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">YES</span><span class="p">)</span>
+
+        <span class="c1"># Scrollbar</span>
+        <span class="n">vsb</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Scrollbar</span><span class="p">(</span><span class="n">tree_frame</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s2">&quot;vertical&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">yview</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">configure</span><span class="p">(</span><span class="n">yscrollcommand</span><span class="o">=</span><span class="n">vsb</span><span class="o">.</span><span class="n">set</span><span class="p">)</span>
+        <span class="n">vsb</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">RIGHT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">Y</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">BOTH</span><span class="p">,</span> <span class="n">expand</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Define tags for FOREGROUND colors only</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">color_name</span><span class="p">,</span> <span class="n">color_hex</span> <span class="ow">in</span> <span class="n">COLOR_NAME_MAP</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">tag_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;color_</span><span class="si">{</span><span class="n">color_name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;_&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span><span class="p">[</span><span class="n">color_hex</span><span class="p">]</span> <span class="o">=</span> <span class="n">tag_name</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">tag_configure</span><span class="p">(</span><span class="n">tag_name</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="n">color_hex</span><span class="p">)</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG: Configured tag &#39;</span><span class="si">{</span><span class="n">tag_name</span><span class="si">}</span><span class="s2">&#39; with fg=</span><span class="si">{</span><span class="n">color_hex</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">tk</span><span class="o">.</span><span class="n">TclError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Could not configure tag &#39;</span><span class="si">{</span><span class="n">tag_name</span><span class="si">}</span><span class="s2">&#39; - </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">tag_configure</span><span class="p">(</span><span class="s1">&#39;custom_color&#39;</span><span class="p">,</span> <span class="n">foreground</span><span class="o">=</span><span class="s1">&#39;grey&#39;</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;custom_color&#39;</span>
+
+        <span class="c1"># Bind right-click event for editing</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-3&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_cell_edit_start</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-2&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_cell_edit_start</span><span class="p">)</span>
+
+        <span class="c1"># Update button</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Update Sections&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_apply_edits</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SectionEditor.populate">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor.populate">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">populate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Fills the Treeview editor with current section data and applies row color tags.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: Populating...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="n">required_keys</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;section_features&#39;</span><span class="p">,</span> <span class="s1">&#39;semantic_labels&#39;</span><span class="p">,</span> <span class="s1">&#39;label_colors&#39;</span><span class="p">,</span> <span class="s1">&#39;trim_offset_sec&#39;</span><span class="p">,</span> <span class="s1">&#39;seconds_per_bar&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">track_data</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">k</span> <span class="ow">in</span> <span class="n">track_data</span> <span class="ow">and</span> <span class="n">track_data</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">required_keys</span><span class="p">):</span>
+             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Missing data for population.&quot;</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">);</span> <span class="k">return</span>
+
+        <span class="n">features</span> <span class="o">=</span> <span class="n">track_data</span><span class="p">[</span><span class="s1">&#39;section_features&#39;</span><span class="p">];</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">track_data</span><span class="p">[</span><span class="s1">&#39;semantic_labels&#39;</span><span class="p">];</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">track_data</span><span class="p">[</span><span class="s1">&#39;label_colors&#39;</span><span class="p">]</span>
+        <span class="n">trim_offset</span> <span class="o">=</span> <span class="n">track_data</span><span class="p">[</span><span class="s1">&#39;trim_offset_sec&#39;</span><span class="p">];</span> <span class="n">sec_per_bar</span> <span class="o">=</span> <span class="n">track_data</span><span class="p">[</span><span class="s1">&#39;seconds_per_bar&#39;</span><span class="p">];</span> <span class="n">num_sections</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_sections</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_sections</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: Data list length mismatch.&quot;</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">);</span> <span class="k">return</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_sections</span><span class="p">):</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="n">features</span><span class="p">[</span><span class="n">i</span><span class="p">];</span> <span class="n">start_time_abs</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;start_time&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">);</span> <span class="n">duration_bars</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;duration_bars&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="n">current_label</span> <span class="o">=</span> <span class="n">labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;N/A&#39;</span>
+            <span class="n">color_hex</span> <span class="o">=</span> <span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">colors</span><span class="p">)</span> <span class="k">else</span> <span class="s1">&#39;#808080&#39;</span><span class="p">;</span> <span class="n">color_name</span> <span class="o">=</span> <span class="n">HEX_TO_COLOR_NAME</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">color_hex</span><span class="p">,</span> <span class="s2">&quot;Custom&quot;</span><span class="p">)</span>
+            <span class="n">start_bar_str</span> <span class="o">=</span> <span class="s1">&#39;N/A&#39;</span>
+            <span class="k">if</span> <span class="n">sec_per_bar</span> <span class="o">&gt;</span> <span class="mf">1e-6</span><span class="p">:</span> <span class="n">start_bar_num</span> <span class="o">=</span> <span class="nb">round</span><span class="p">((</span><span class="n">start_time_abs</span> <span class="o">-</span> <span class="n">trim_offset</span><span class="p">)</span> <span class="o">/</span> <span class="n">sec_per_bar</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span> <span class="n">start_bar_str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">start_bar_num</span><span class="p">)</span>
+            <span class="n">row_tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">color_hex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">])</span>
+            <span class="n">color_square</span> <span class="o">=</span> <span class="s1">&#39;■&#39;</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">tk</span><span class="o">.</span><span class="n">END</span><span class="p">,</span> <span class="n">iid</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">(</span><span class="n">color_square</span><span class="p">,</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">start_bar_str</span><span class="p">,</span> <span class="n">duration_bars</span><span class="p">,</span> <span class="n">current_label</span><span class="p">,</span> <span class="n">color_name</span><span class="p">),</span> <span class="n">tags</span><span class="o">=</span><span class="p">(</span><span class="n">row_tag</span><span class="p">,))</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error inserting row </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> into treeview: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span><span class="p">);</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Populated with </span><span class="si">{</span><span class="n">num_sections</span><span class="si">}</span><span class="s2"> sections.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SectionEditor.clear">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor.clear">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Clears the Treeview and disables the update button.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: Clearing.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">winfo_exists</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">get_children</span><span class="p">())</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">winfo_exists</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span></div>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_on_cell_edit_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles right-click on the Treeview to trigger the main app&#39;s edit pop-up.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- DEBUG SectionEditor: _on_cell_edit_start triggered by event: </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR SectionEditor: Main app reference not set.&quot;</span><span class="p">);</span> <span class="k">return</span>
+
+        <span class="n">item_id_str</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">identify_row</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">y</span><span class="p">)</span> <span class="c1"># Internal ID (0, 1, 2...)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">item_id_str</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: Click was not on a valid row.&quot;</span><span class="p">);</span> <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">section_index</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">item_id_str</span><span class="p">)</span> <span class="c1"># The item ID is the section index</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Requesting edit pop-up for section index </span><span class="si">{</span><span class="n">section_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Call the main app&#39;s method to show the pop-up</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">app</span><span class="o">.</span><span class="n">_show_section_edit_popup</span><span class="p">(</span><span class="n">section_index</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Could not convert item ID &#39;</span><span class="si">{</span><span class="n">item_id_str</span><span class="si">}</span><span class="s2">&#39; to section index.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calling main app&#39;s edit popup: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_commit_popup_edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">popup</span><span class="p">,</span> <span class="n">item_id</span><span class="p">,</span> <span class="n">label_combo</span><span class="p">,</span> <span class="n">color_combo</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads values from pop-up, updates Treeview, destroys pop-up. (Called by main app&#39;s popup OK button)&quot;&quot;&quot;</span>
+        <span class="n">new_label</span> <span class="o">=</span> <span class="n">label_combo</span><span class="o">.</span><span class="n">get</span><span class="p">();</span> <span class="n">new_color_name</span> <span class="o">=</span> <span class="n">color_combo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Committing pop-up edit for row </span><span class="si">{</span><span class="n">item_id</span><span class="si">}</span><span class="s2">. Label=&#39;</span><span class="si">{</span><span class="n">new_label</span><span class="si">}</span><span class="s2">&#39;, Color=&#39;</span><span class="si">{</span><span class="n">new_color_name</span><span class="si">}</span><span class="s2">&#39;&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Update the Treeview display immediately</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">item_id</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s1">&#39;Label&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">new_label</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">item_id</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="s1">&#39;Color&#39;</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="n">new_color_name</span><span class="p">)</span>
+            <span class="c1"># Update the row tag based on the new color</span>
+            <span class="n">new_color_hex</span> <span class="o">=</span> <span class="n">COLOR_NAME_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">new_color_name</span><span class="p">,</span> <span class="s1">&#39;#808080&#39;</span><span class="p">)</span>
+            <span class="n">new_tag</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">new_color_hex</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">color_tags</span><span class="p">[</span><span class="s1">&#39;default&#39;</span><span class="p">])</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">item_id</span><span class="p">,</span> <span class="n">tags</span><span class="o">=</span><span class="p">(</span><span class="n">new_tag</span><span class="p">,))</span> <span class="c1"># Apply new tag (colors all text)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Treeview display updated for row </span><span class="si">{</span><span class="n">item_id</span><span class="si">}</span><span class="s2"> with tag &#39;</span><span class="si">{</span><span class="n">new_tag</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error updating treeview from pop-up: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> <span class="c1"># Destroy the pop-up window passed from main app</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_trigger_apply_edits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads data from treeview and calls the apply_callback.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: Update button clicked.&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_callback</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR SectionEditor: No apply_callback defined.&quot;</span><span class="p">);</span> <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">all_items</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">get_children</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">all_items</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: No items in tree to apply.&quot;</span><span class="p">);</span> <span class="k">return</span>
+            <span class="n">new_labels</span> <span class="o">=</span> <span class="p">[];</span> <span class="n">new_colors_hex</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">item_id</span> <span class="ow">in</span> <span class="n">all_items</span><span class="p">:</span>
+                 <span class="n">values</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">item</span><span class="p">(</span><span class="n">item_id</span><span class="p">,</span> <span class="s1">&#39;values&#39;</span><span class="p">)</span>
+                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">values</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">6</span><span class="p">:</span> <span class="k">continue</span>
+                 <span class="n">edited_label</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">4</span><span class="p">];</span> <span class="n">edited_color_name</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+                 <span class="k">if</span> <span class="n">edited_label</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ALLOWED_LABELS</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: Invalid label &#39;</span><span class="si">{</span><span class="n">edited_label</span><span class="si">}</span><span class="s2">&#39; found for item </span><span class="si">{</span><span class="n">item_id</span><span class="si">}</span><span class="s2">. Using fallback &#39;Body&#39;.&quot;</span><span class="p">);</span> <span class="n">edited_label</span> <span class="o">=</span> <span class="s2">&quot;Body&quot;</span>
+                 <span class="n">color_hex</span> <span class="o">=</span> <span class="n">COLOR_NAME_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">edited_color_name</span><span class="p">,</span> <span class="s1">&#39;#808080&#39;</span><span class="p">)</span>
+                 <span class="n">new_labels</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">edited_label</span><span class="p">);</span> <span class="n">new_colors_hex</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">color_hex</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Applying </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)</span><span class="si">}</span><span class="s2"> edits via callback.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">apply_callback</span><span class="p">(</span><span class="n">new_labels</span><span class="p">,</span> <span class="n">new_colors_hex</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR SectionEditor: Failed during apply edits trigger: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">);</span> <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

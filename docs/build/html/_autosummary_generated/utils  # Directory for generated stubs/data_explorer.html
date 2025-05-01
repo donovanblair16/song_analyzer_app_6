@@ -1,0 +1,170 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>data_explorer &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">data_explorer</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary_generated/utils  " rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-data_explorer">
+<span id="data-explorer"></span><h1>data_explorer<a class="headerlink" href="#module-data_explorer" title="Link to this heading"></a></h1>
+<p>Provides functions or classes for exploring analysis data.</p>
+<p class="rubric">Classes</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="#data_explorer.DataExplorerApp" title="data_explorer.DataExplorerApp"><code class="xref py py-obj docutils literal notranslate"><span class="pre">DataExplorerApp</span></code></a>(master)</p></td>
+<td><p>A GUI application to scan analysis files for sections meeting specific feature criteria.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py class">
+<dt class="sig sig-object py" id="data_explorer.DataExplorerApp">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">data_explorer.</span></span><span class="sig-name descname"><span class="pre">DataExplorerApp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/data_explorer.html#DataExplorerApp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_explorer.DataExplorerApp" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A GUI application to scan analysis files for sections meeting specific
+feature criteria. Calculates HMM features on-the-fly during scan.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="data_explorer.DataExplorerApp.__init__">
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">master</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/data_explorer.html#DataExplorerApp.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_explorer.DataExplorerApp.__init__" title="Link to this definition"></a></dt>
+<dd><p>Initializes the DataExplorerApp GUI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>master</strong> (<em>tk.Tk</em><em> or </em><em>tk.Toplevel</em>) – The root window or top-level widget.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data_explorer.DataExplorerApp.create_widgets">
+<span class="sig-name descname"><span class="pre">create_widgets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/data_explorer.html#DataExplorerApp.create_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_explorer.DataExplorerApp.create_widgets" title="Link to this definition"></a></dt>
+<dd><p>Creates and lays out all the GUI widgets for the application.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data_explorer.DataExplorerApp.select_folder">
+<span class="sig-name descname"><span class="pre">select_folder</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/data_explorer.html#DataExplorerApp.select_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_explorer.DataExplorerApp.select_folder" title="Link to this definition"></a></dt>
+<dd><p>Opens a dialog to select the folder containing analysis files.</p>
+<p>Sets the folder path, updates the status bar, triggers feature/label
+extraction, and enables the scan button upon successful selection.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data_explorer.DataExplorerApp.extract_features_and_labels">
+<span class="sig-name descname"><span class="pre">extract_features_and_labels</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/data_explorer.html#DataExplorerApp.extract_features_and_labels"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_explorer.DataExplorerApp.extract_features_and_labels" title="Link to this definition"></a></dt>
+<dd><p>Loads the first valid joblib file, runs extract_section_features on it,
+and populates the feature and label lists available for selection in the GUI.</p>
+<p>Updates the feature and label comboboxes and the status bar.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="data_explorer.DataExplorerApp.run_scan">
+<span class="sig-name descname"><span class="pre">run_scan</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/data_explorer.html#DataExplorerApp.run_scan"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#data_explorer.DataExplorerApp.run_scan" title="Link to this definition"></a></dt>
+<dd><p>Scans files in the selected folder based on user criteria.</p>
+<p>Loads each analysis file, runs feature extraction, checks sections
+matching the selected label and feature condition, and displays
+results in the treeview.</p>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

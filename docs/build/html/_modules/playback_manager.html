@@ -1,0 +1,482 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>playback_manager &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=12958129"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">playback_manager</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for playback_manager</h1><div class="highlight"><pre>
+<span></span><span class="c1"># =============================================================================</span>
+<span class="c1"># FILE: playback_manager.py</span>
+<span class="c1"># Contains the PlaybackManager class for handling audio playback,</span>
+<span class="c1"># seeking, pausing, and state management using sounddevice.</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">sounddevice</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">sd</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">threading</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">queue</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+<div class="viewcode-block" id="PlaybackManager">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">PlaybackManager</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Manages audio playback using sounddevice, including state,</span>
+<span class="sd">    seeking, and communication with the main GUI thread.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="PlaybackManager.__init__">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master</span><span class="p">,</span> <span class="n">on_state_change</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">on_position_update</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the PlaybackManager.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            master: The root Tkinter window (for scheduling GUI updates).</span>
+<span class="sd">            on_state_change (callable): Callback function to notify the GUI</span>
+<span class="sd">                                        about playback state changes</span>
+<span class="sd">                                        (e.g., &#39;playing&#39;, &#39;paused&#39;, &#39;stopped&#39;).</span>
+<span class="sd">            on_position_update (callable): Callback function to notify the GUI</span>
+<span class="sd">                                           about playback position updates</span>
+<span class="sd">                                           (passes current_frame).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="o">=</span> <span class="n">master</span> <span class="c1"># Reference to main Tkinter window for scheduling</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span> <span class="o">=</span> <span class="n">on_state_change</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span> <span class="o">=</span> <span class="n">on_position_update</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lock</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Lock</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">queue</span> <span class="o">=</span> <span class="n">queue</span><span class="o">.</span><span class="n">Queue</span><span class="p">()</span> <span class="c1"># For callback -&gt; playhead update loop communication</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="PlaybackManager.set_audio">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.set_audio">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">set_audio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">audio_data</span><span class="p">,</span> <span class="n">sample_rate</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads new audio data for playback.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Setting audio data.&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="c1"># Stop any current playback</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+            <span class="c1"># Ensure audio data is float32 and mono (N,)</span>
+            <span class="k">if</span> <span class="n">audio_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">audio_data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                 <span class="c1"># Convert to mono by averaging if stereo</span>
+                 <span class="k">if</span> <span class="n">audio_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Converting stereo audio to mono for playback.&quot;</span><span class="p">)</span>
+                      <span class="n">audio_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">audio_data</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                 <span class="k">else</span><span class="p">:</span> <span class="c1"># Handle other multi-channel cases if necessary</span>
+                      <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning PlaybackManager: Unsupported channel count </span><span class="si">{</span><span class="n">audio_data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">. Using first channel.&quot;</span><span class="p">)</span>
+                      <span class="n">audio_data</span> <span class="o">=</span> <span class="n">audio_data</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span>
+
+            <span class="c1"># Ensure correct dtype</span>
+            <span class="k">if</span> <span class="n">audio_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">audio_data</span><span class="o">.</span><span class="n">dtype</span> <span class="o">!=</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+                 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG PlaybackManager: Converting audio dtype to float32.&quot;</span><span class="p">)</span>
+                 <span class="n">audio_data</span> <span class="o">=</span> <span class="n">audio_data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span> <span class="o">=</span> <span class="n">audio_data</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span> <span class="o">=</span> <span class="n">sample_rate</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG PlaybackManager: Audio set. Length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="p">)</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="w"> </span><span class="ow">is</span><span class="w"> </span><span class="ow">not</span><span class="w"> </span><span class="kc">None</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;None&#39;</span><span class="si">}</span><span class="s2"> frames, SR: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">(</span><span class="s1">&#39;stopped&#39;</span><span class="p">)</span> <span class="c1"># Notify GUI state changed</span></div>
+
+
+<div class="viewcode-block" id="PlaybackManager.toggle_play_pause">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.toggle_play_pause">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">toggle_play_pause</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Toggles playback between play and pause.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pause</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">play</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="PlaybackManager.play">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.play">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">play</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts or resumes audio playback.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Playback Error: No audio data loaded.&quot;</span><span class="p">)</span>
+            <span class="c1"># Optionally show a message box? Might be better handled in GUI layer</span>
+            <span class="k">return</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Already playing.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Resuming audio stream...&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream resumed.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c1"># Start new stream</span>
+                <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+                    <span class="n">start_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span>
+                    <span class="k">if</span> <span class="n">start_frame</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="p">):</span> <span class="n">start_frame</span> <span class="o">=</span> <span class="mi">0</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="n">start_frame</span> <span class="c1"># Ensure updated if clamped</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG PlaybackManager: Starting new audio stream from frame </span><span class="si">{</span><span class="n">start_frame</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">);</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="n">sd</span><span class="o">.</span><span class="n">OutputStream</span><span class="p">(</span>
+                    <span class="n">samplerate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sample_rate</span><span class="p">,</span>
+                    <span class="n">channels</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="c1"># Assuming mono</span>
+                    <span class="n">callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_audio_callback</span><span class="p">,</span>
+                    <span class="n">blocksize</span><span class="o">=</span><span class="mi">4096</span><span class="p">,</span> <span class="c1"># Buffer size</span>
+                    <span class="n">finished_callback</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stream_finished_callback</span> <span class="c1"># Internal callback</span>
+                <span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: New stream started.&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">(</span><span class="s1">&#39;playing&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_start_playhead_updates</span><span class="p">()</span> <span class="c1"># Start internal loop for position updates</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Playback Error: Failed to start audio stream: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span> <span class="c1"># Ensure clean state on error</span></div>
+
+
+<div class="viewcode-block" id="PlaybackManager.pause">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.pause">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">pause</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Pauses audio playback.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="ow">or</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Not playing or no stream, cannot pause.&quot;</span><span class="p">)</span>
+            <span class="k">return</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Pausing audio stream...&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">stopped</span><span class="p">:</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">stream</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream stopped.&quot;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                 <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream already stopped or doesn&#39;t exist.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stop_playhead_updates</span><span class="p">()</span> <span class="c1"># Stop position updates</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">(</span><span class="s1">&#39;paused&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Pause complete.&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Playback Error: Failed to pause audio stream: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="PlaybackManager.stop">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.stop">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">stop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops audio playback and resets position.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stopping audio stream...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop_playhead_updates</span><span class="p">()</span> <span class="c1"># Stop position updates first</span>
+        <span class="n">stream_to_close</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stream</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stream</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Clear ref early</span>
+        <span class="k">if</span> <span class="n">stream_to_close</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">stream_to_close</span><span class="o">.</span><span class="n">closed</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Calling stream.stop()...&quot;</span><span class="p">)</span>
+                    <span class="n">stream_to_close</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Calling stream.close()...&quot;</span><span class="p">)</span>
+                    <span class="n">stream_to_close</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream stopped and closed.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error stopping/closing stream: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Clear the queue *after* stopping stream</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Clearing playback queue...&quot;</span><span class="p">)</span>
+        <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+            <span class="k">try</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">();</span>
+            <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span> <span class="k">break</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Resetting playback state...&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span> <span class="c1"># Lock before resetting frame</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG PlaybackManager: current_frame reset to 0 (inside lock).&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">(</span><span class="s1">&#39;stopped&#39;</span><span class="p">)</span>
+        <span class="c1"># Notify GUI to hide playhead (position 0)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stop audio finished.&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PlaybackManager.seek">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.seek">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">seek</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_frame</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Sets the playback position to the target frame.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span> <span class="k">return</span>
+
+        <span class="n">audio_length</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="p">)</span>
+        <span class="n">target_frame</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">target_frame</span><span class="p">),</span> <span class="n">audio_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span> <span class="c1"># Clamp</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG PlaybackManager: Seek requested to frame </span><span class="si">{</span><span class="n">target_frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="n">target_frame</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG PlaybackManager: Set current_frame to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span><span class="si">}</span><span class="s2"> (inside lock)&quot;</span><span class="p">)</span>
+
+        <span class="c1"># If paused, seeking should unpause and start playing from new spot</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Was paused during seek, restarting play.&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># Ensure play() starts fresh stream state</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">play</span><span class="p">()</span> <span class="c1"># Restart playback from the new frame</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span><span class="p">:</span>
+            <span class="c1"># If already playing, the callback will pick up the new frame.</span>
+            <span class="c1"># We just need to ensure the playhead update loop is running.</span>
+             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Was playing during seek, callback will handle.&quot;</span><span class="p">)</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_start_playhead_updates</span><span class="p">()</span> <span class="c1"># Make sure loop is active</span>
+             <span class="c1"># Send immediate update for visual feedback</span>
+             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">(</span><span class="n">target_frame</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Was stopped</span>
+             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Was stopped during seek.&quot;</span><span class="p">)</span>
+             <span class="c1"># Update state for buttons, playback will start here if user hits play</span>
+             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">(</span><span class="s1">&#39;stopped&#39;</span><span class="p">)</span>
+             <span class="c1"># Send immediate update for visual feedback</span>
+             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">(</span><span class="n">target_frame</span><span class="p">)</span></div>
+
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_audio_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outdata</span><span class="p">,</span> <span class="n">frames</span><span class="p">,</span> <span class="n">time_info</span><span class="p">,</span> <span class="n">status</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Callback function for sounddevice stream (runs in audio thread).&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">status</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG Callback Status: </span><span class="si">{</span><span class="n">status</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">flush</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span> <span class="c1"># Acquire lock to safely access/update current_frame</span>
+                <span class="n">chunk_start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span>
+                <span class="n">chunk_end</span> <span class="o">=</span> <span class="n">chunk_start</span> <span class="o">+</span> <span class="n">frames</span>
+                <span class="n">remaining_frames</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="p">)</span> <span class="o">-</span> <span class="n">chunk_start</span>
+
+                <span class="k">if</span> <span class="n">remaining_frames</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">chunk</span> <span class="o">=</span> <span class="kc">None</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;finished&#39;</span><span class="p">);</span> <span class="n">should_stop</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">elif</span> <span class="n">remaining_frames</span> <span class="o">&lt;</span> <span class="n">frames</span><span class="p">:</span>
+                    <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="p">[</span><span class="n">chunk_start</span> <span class="p">:</span> <span class="n">chunk_start</span> <span class="o">+</span> <span class="n">remaining_frames</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">+=</span> <span class="n">remaining_frames</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;finished&#39;</span><span class="p">);</span> <span class="n">should_stop</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">chunk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">audio_data</span><span class="p">[</span><span class="n">chunk_start</span> <span class="p">:</span> <span class="n">chunk_end</span><span class="p">]</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">+=</span> <span class="n">frames</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span><span class="p">);</span> <span class="n">should_stop</span> <span class="o">=</span> <span class="kc">False</span>
+
+            <span class="c1"># Process output data outside the lock</span>
+            <span class="k">if</span> <span class="n">chunk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">chunk_2d</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="c1"># Ensure 2D for sounddevice</span>
+                <span class="n">outdata</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk_2d</span><span class="p">)]</span> <span class="o">=</span> <span class="n">chunk_2d</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">chunk_2d</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">frames</span><span class="p">:</span> <span class="n">outdata</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">chunk_2d</span><span class="p">):]</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">outdata</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">should_stop</span><span class="p">:</span> <span class="k">raise</span> <span class="n">sd</span><span class="o">.</span><span class="n">CallbackStop</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;!!! EXCEPTION IN AUDIO CALLBACK: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">outdata</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span> <span class="c1"># Fill with silence on error</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="s1">&#39;finished&#39;</span><span class="p">)</span> <span class="c1"># Try to signal end</span>
+            <span class="k">raise</span> <span class="n">sd</span><span class="o">.</span><span class="n">CallbackStop</span> <span class="c1"># Stop the stream on error</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stream_finished_callback</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Internal callback when sounddevice stream finishes or is stopped.&quot;&quot;&quot;</span>
+        <span class="c1"># This runs in the audio thread</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream Finished Callback Triggered.&quot;</span><span class="p">)</span>
+        <span class="c1"># Use master.after(0) to schedule the GUI update in the main thread</span>
+        <span class="c1"># Check if master exists and hasn&#39;t been destroyed</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">winfo_exists</span><span class="p">():</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_handle_stream_finished_gui</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Master window not available for stream finished handling.&quot;</span><span class="p">)</span>
+
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_handle_stream_finished_gui</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles GUI updates after stream finishes (runs in main thread).&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Handling Stream Finished in GUI Thread.&quot;</span><span class="p">)</span>
+        <span class="c1"># Check if it finished naturally while playing, or was stopped/paused</span>
+        <span class="n">reset_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="o">=</span> <span class="kc">False</span><span class="p">;</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># Always reset flags</span>
+        <span class="k">if</span> <span class="n">reset_frame</span><span class="p">:</span>
+             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream finished naturally, resetting frame.&quot;</span><span class="p">)</span>
+             <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">lock</span><span class="p">:</span>
+                 <span class="bp">self</span><span class="o">.</span><span class="n">current_frame</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream stopped/paused, not resetting frame.&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_stop_playhead_updates</span><span class="p">()</span> <span class="c1"># Ensure updates are stopped</span>
+        <span class="c1"># Notify main app about the state change</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_state_change</span><span class="p">(</span><span class="s1">&#39;stopped&#39;</span><span class="p">)</span>
+        <span class="c1"># Notify main app to hide playhead (position 0) if reset</span>
+        <span class="k">if</span> <span class="n">reset_frame</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Don&#39;t set self.stream = None here, stop() or play() handles it</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stream finished GUI handling complete.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- Playhead Update Loop (Internal to Manager) ---</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_start_playhead_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Starts the loop to update the playhead position.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span><span class="p">:</span>
+             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Starting playhead update loop.&quot;</span><span class="p">)</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_update_playhead</span><span class="p">()</span> <span class="c1"># Start the first update</span>
+        <span class="k">else</span><span class="p">:</span>
+             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Playhead update loop already running.&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_stop_playhead_updates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops the scheduled playhead update loop.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Stopping playhead update loop.&quot;</span><span class="p">)</span>
+            <span class="c1"># Check if master exists before cancelling</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">winfo_exists</span><span class="p">():</span>
+                 <span class="k">try</span><span class="p">:</span>
+                      <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">after_cancel</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span><span class="p">)</span>
+                 <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                      <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error cancelling after_id: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_update_playhead</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Gets position from queue and calls GUI callback.&quot;&quot;&quot;</span>
+        <span class="c1"># print(&quot;DEBUG PlaybackManager: _update_playhead tick&quot;) # Too verbose</span>
+        <span class="n">current_pos_frame</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Get the latest frame from the queue without blocking</span>
+            <span class="k">while</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">empty</span><span class="p">():</span>
+                <span class="n">current_pos_frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">queue</span><span class="o">.</span><span class="n">get_nowait</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">current_pos_frame</span> <span class="o">==</span> <span class="s1">&#39;finished&#39;</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Playhead received &#39;finished&#39; signal in update loop.&quot;</span><span class="p">);</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_stop_playhead_updates</span><span class="p">()</span> <span class="c1"># Stop loop on finished signal</span>
+                    <span class="k">return</span>
+
+            <span class="c1"># If we got a valid frame number, notify the GUI</span>
+            <span class="k">if</span> <span class="n">current_pos_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">:</span>
+                <span class="c1"># print(f&quot;DEBUG PlaybackManager: Notifying GUI of frame {current_pos_frame}&quot;) # Verbose</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">on_position_update</span><span class="p">(</span><span class="n">current_pos_frame</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">queue</span><span class="o">.</span><span class="n">Empty</span><span class="p">:</span>
+             <span class="k">pass</span> <span class="c1"># No update from callback yet, just wait for next cycle</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error in PlaybackManager _update_playhead: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_stop_playhead_updates</span><span class="p">()</span> <span class="c1"># Stop updates on error</span>
+
+        <span class="c1"># Schedule the next update only if playing AND not paused</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_playing</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_paused</span><span class="p">:</span>
+             <span class="c1"># Check if master exists before scheduling</span>
+             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">winfo_exists</span><span class="p">():</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">after</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_playhead</span><span class="p">)</span> <span class="c1"># Update ~20 times/sec</span>
+             <span class="k">else</span><span class="p">:</span>
+                  <span class="bp">self</span><span class="o">.</span><span class="n">playhead_after_id</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># Stop if master is gone</span>
+        <span class="k">else</span><span class="p">:</span> <span class="c1"># Ensure loop stops if paused or stopped externally</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_stop_playhead_updates</span><span class="p">()</span>
+
+    <span class="c1"># --- Cleanup ---</span>
+<div class="viewcode-block" id="PlaybackManager.cleanup">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/playback_manager.html#playback_manager.PlaybackManager.cleanup">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Stops audio and cleans up resources.&quot;&quot;&quot;</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG PlaybackManager: Cleaning up...&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop</span><span class="p">()</span></div>
+</div>
+
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

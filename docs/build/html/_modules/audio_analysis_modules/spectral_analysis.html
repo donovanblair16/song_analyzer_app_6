@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>audio_analysis_modules.spectral_analysis &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">audio_analysis_modules.spectral_analysis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for audio_analysis_modules.spectral_analysis</h1><div class="highlight"><pre>
+<span></span><span class="c1"># /Users/donovanblair/Desktop/song_analyzer_app_6/audio_analysis_modules/spectral_analysis.py</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions for spectral analysis, including stereo width and HPSS decomposition.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">messagebox</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_spec_data</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="p">,</span> <span class="n">trim_offset_sec</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">4096</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculates and returns spectrogram data (magnitude, freqs, times, bands).&quot;&quot;&quot;</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">=</span> <span class="n">times_abs</span> <span class="o">=</span> <span class="n">min_frames</span> <span class="o">=</span> <span class="n">bands</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; Calculating Spectrogram...&quot;</span><span class="p">)</span>
+        <span class="c1"># Calculate Short-Time Fourier Transform (STFT)</span>
+        <span class="n">stft_result</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span><span class="p">)</span>
+        <span class="c1"># Get magnitude spectrogram</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">stft_result</span><span class="p">)</span>
+        <span class="c1"># Ensure finite values</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">spec</span><span class="p">)):</span>
+            <span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span>
+        <span class="c1"># Get frequency bins</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">fft_frequencies</span><span class="p">(</span><span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">)</span>
+        <span class="c1"># Get relative time frames</span>
+        <span class="n">times_rel</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">frames_to_time</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span>
+        <span class="p">)</span>
+        <span class="c1"># Calculate absolute time frames</span>
+        <span class="n">times_abs</span> <span class="o">=</span> <span class="n">times_rel</span> <span class="o">+</span> <span class="n">trim_offset_sec</span>
+        <span class="n">min_frames</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Number of time frames</span>
+        <span class="c1"># Define frequency bands (example)</span>
+        <span class="n">bands</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;Lows (&lt;200 Hz)&quot;</span><span class="p">:</span> <span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s2">&quot;Low-Mids (200–500 Hz)&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&gt;=</span> <span class="mi">200</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">),</span>
+            <span class="s2">&quot;Mids (500–2000 Hz)&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&gt;=</span> <span class="mi">500</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">2000</span><span class="p">),</span>
+            <span class="s2">&quot;High-Mids (2000–5000 Hz)&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&gt;=</span> <span class="mi">2000</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">freqs</span> <span class="o">&lt;</span> <span class="mi">5000</span><span class="p">),</span>
+            <span class="s2">&quot;Highs (&gt;5000 Hz)&quot;</span><span class="p">:</span> <span class="n">freqs</span> <span class="o">&gt;=</span> <span class="mi">5000</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">spec_e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calculating spectrogram: </span><span class="si">{</span><span class="n">spec_e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Return Nones if calculation fails</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="c1"># Return calculated data</span>
+    <span class="k">return</span> <span class="n">spec</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">times_abs</span><span class="p">,</span> <span class="n">min_frames</span><span class="p">,</span> <span class="n">bands</span>
+
+
+<div class="viewcode-block" id="analyze_stereo_and_hpss">
+<a class="viewcode-back" href="../../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/audio_analysis_wrapper.html#audio_analysis_modules.spectral_analysis.analyze_stereo_and_hpss">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_stereo_and_hpss</span><span class="p">(</span><span class="n">track_data</span><span class="p">,</span> <span class="n">calc_stereo</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">calc_hpss</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates stereo width and/or harmonic/percussive separation.</span>
+<span class="sd">    Ensures spectrogram data (&#39;spec&#39;, &#39;freqs&#39;, &#39;times_absolute&#39;) is calculated</span>
+<span class="sd">    and stored in the results if needed.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>  <span class="c1"># Initialize results dict</span>
+    <span class="c1"># Retrieve necessary data from input track_data</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;y_processed&quot;</span><span class="p">)</span>
+    <span class="n">sr</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;sr&quot;</span><span class="p">)</span>
+    <span class="n">hop_length</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;hop_length&quot;</span><span class="p">)</span>
+    <span class="n">trim_offset_sec</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trim_offset_sec&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;file_path&quot;</span><span class="p">)</span>  <span class="c1"># Original file path for stereo loading</span>
+    <span class="c1"># Initialize output variables</span>
+    <span class="n">width_matrix</span> <span class="o">=</span> <span class="n">bands</span> <span class="o">=</span> <span class="n">spec</span> <span class="o">=</span> <span class="n">freqs</span> <span class="o">=</span> <span class="n">times_abs</span> <span class="o">=</span> <span class="n">rms_harm</span> <span class="o">=</span> <span class="n">rms_perc</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">rms_time_abs</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">min_frames</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">n_fft</span> <span class="o">=</span> <span class="mi">4096</span>  <span class="c1"># FFT window size</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Input audio &#39;y_processed&#39; is None.&quot;</span><span class="p">)</span>
+
+        <span class="c1"># --- Ensure Spectrogram Data Exists ---</span>
+        <span class="c1"># Check if spectrogram data was already calculated and passed in track_data</span>
+        <span class="n">spec</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spec&quot;</span><span class="p">)</span>
+        <span class="n">freqs</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;freqs&quot;</span><span class="p">)</span>
+        <span class="n">times_abs</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;times_absolute&quot;</span><span class="p">)</span>
+        <span class="n">bands</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bands&quot;</span><span class="p">)</span>
+        <span class="n">min_frames</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="c1"># Calculate spectrogram if it&#39;s missing AND needed for stereo/hpss</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">calc_stereo</span> <span class="ow">or</span> <span class="n">calc_hpss</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Calculating spectrogram within analyze_stereo_and_hpss...&quot;</span><span class="p">)</span>
+            <span class="n">spec</span><span class="p">,</span> <span class="n">freqs</span><span class="p">,</span> <span class="n">times_abs</span><span class="p">,</span> <span class="n">min_frames</span><span class="p">,</span> <span class="n">bands</span> <span class="o">=</span> <span class="n">_get_spec_data</span><span class="p">(</span>
+                <span class="n">y</span><span class="p">,</span> <span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="p">,</span> <span class="n">trim_offset_sec</span><span class="p">,</span> <span class="n">n_fft</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># If spec calculation fails, cannot proceed with stereo/hpss</span>
+                <span class="n">calc_stereo</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="n">calc_hpss</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: Spectrogram calculation failed. Skipping Stereo/HPSS.&quot;</span><span class="p">)</span>
+        <span class="c1"># Store the spectrogram data (either existing or newly calculated) in results</span>
+        <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Storing/Confirming Spectrogram data in results.&quot;</span><span class="p">)</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;freqs&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">freqs</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;times_absolute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">times_abs</span>  <span class="c1"># Store absolute times</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;bands&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">bands</span>
+        <span class="c1"># --- End Spectrogram Handling ---</span>
+
+        <span class="c1"># --- Calculate Stereo Width ---</span>
+        <span class="k">if</span> <span class="n">calc_stereo</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; Calculating stereo width...&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">spec</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># Check again in case calculation failed above</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; Skipping stereo width: Spectrogram data unavailable.&quot;</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;width_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">y_stereo</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Initialize stereo audio variable</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="c1"># Load stereo audio if file path exists</span>
+                    <span class="k">if</span> <span class="n">file_path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+                        <span class="n">y_stereo</span><span class="p">,</span> <span class="n">sr_stereo</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+                            <span class="n">file_path</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">mono</span><span class="o">=</span><span class="kc">False</span>
+                        <span class="p">)</span>  <span class="c1"># Load as stereo</span>
+                        <span class="c1"># Validate loaded stereo audio</span>
+                        <span class="k">if</span> <span class="n">sr_stereo</span> <span class="o">!=</span> <span class="n">sr</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Stereo sample rate mismatch.&quot;</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">y_stereo</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">y_stereo</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Loaded audio is not stereo.&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="s2">&quot;Warning: Original file path missing or invalid. Cannot calculate stereo width.&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not load valid stereo audio: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">y_stereo</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Ensure it&#39;s None if loading fails</span>
+
+                <span class="k">if</span> <span class="n">y_stereo</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c1"># Calculate STFT for Left and Right channels</span>
+                        <span class="n">spec_L</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                                <span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span>
+                                    <span class="n">y_stereo</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">spec_R</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                                <span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span>
+                                    <span class="n">y_stereo</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span>
+                                <span class="p">)</span>
+                            <span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="c1"># Ensure consistent number of frames between mono spec and L/R specs</span>
+                        <span class="n">current_min_frames</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># Frames in mono spec</span>
+                        <span class="n">c_min</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+                            <span class="n">spec_L</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">spec_R</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">current_min_frames</span>
+                        <span class="p">)</span>
+                        <span class="c1"># Trim if necessary</span>
+                        <span class="k">if</span> <span class="n">c_min</span> <span class="o">&lt;</span> <span class="n">current_min_frames</span><span class="p">:</span>
+                            <span class="nb">print</span><span class="p">(</span>
+                                <span class="sa">f</span><span class="s2">&quot;Warn: Stereo/Mono frame mismatch. Trimming mono spec/times to </span><span class="si">{</span><span class="n">c_min</span><span class="si">}</span><span class="s2">.&quot;</span>
+                            <span class="p">)</span>
+                            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;spec&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[:,</span> <span class="p">:</span><span class="n">c_min</span><span class="p">]</span>
+                            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;times_absolute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">times_abs</span> <span class="o">=</span> <span class="n">times_abs</span><span class="p">[:</span><span class="n">c_min</span><span class="p">]</span>
+                            <span class="n">min_frames</span> <span class="o">=</span> <span class="n">c_min</span>  <span class="c1"># Update frame count</span>
+                        <span class="n">spec_L</span> <span class="o">=</span> <span class="n">spec_L</span><span class="p">[:,</span> <span class="p">:</span><span class="n">c_min</span><span class="p">]</span>
+                        <span class="n">spec_R</span> <span class="o">=</span> <span class="n">spec_R</span><span class="p">[:,</span> <span class="p">:</span><span class="n">c_min</span><span class="p">]</span>
+                        <span class="c1"># Calculate Mid/Side signals</span>
+                        <span class="n">mid</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_L</span> <span class="o">+</span> <span class="n">spec_R</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                        <span class="n">side</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_L</span> <span class="o">-</span> <span class="n">spec_R</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+                        <span class="c1"># Calculate width matrix (Side / Mid ratio), handle division by zero</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;width_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">side</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">mid</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-9</span><span class="p">)</span>
+                        <span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">width_e</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calculating width matrix: </span><span class="si">{</span><span class="n">width_e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="n">results</span><span class="p">[</span><span class="s2">&quot;width_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Set width to None if stereo audio couldn&#39;t be loaded</span>
+                    <span class="n">results</span><span class="p">[</span><span class="s2">&quot;width_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Set width to None if calculation was skipped</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;width_matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># --- Calculate HPSS ---</span>
+        <span class="k">if</span> <span class="n">calc_hpss</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; Calculating HPSS...&quot;</span><span class="p">)</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Perform Harmonic-Percussive Source Separation</span>
+                <span class="n">y_harm</span><span class="p">,</span> <span class="n">y_perc</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">effects</span><span class="o">.</span><span class="n">hpss</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+                <span class="c1"># Calculate RMS for harmonic and percussive components</span>
+                <span class="n">rms_harm</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">rms</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y_harm</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">rms_perc</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">rms</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y_perc</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="c1"># Calculate corresponding time vector (relative)</span>
+                <span class="n">rms_time_rel</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">frames_to_time</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rms_harm</span><span class="p">)),</span> <span class="n">sr</span><span class="o">=</span><span class="n">sr</span><span class="p">,</span> <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span>
+                <span class="p">)</span>
+                <span class="c1"># Ensure RMS vectors match the number of spectrogram frames if available</span>
+                <span class="n">target_len</span> <span class="o">=</span> <span class="n">min_frames</span> <span class="k">if</span> <span class="n">min_frames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">rms_time_rel</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rms_time_rel</span><span class="p">)</span> <span class="o">!=</span> <span class="n">target_len</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Warn: HPSS RMS time mismatch (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">rms_time_rel</span><span class="p">)</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">target_len</span><span class="si">}</span><span class="s2">). Trimming RMS.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">current_len</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rms_time_rel</span><span class="p">),</span> <span class="n">target_len</span><span class="p">)</span>
+                    <span class="n">rms_time_rel</span> <span class="o">=</span> <span class="n">rms_time_rel</span><span class="p">[:</span><span class="n">current_len</span><span class="p">]</span>
+                    <span class="n">rms_harm</span> <span class="o">=</span> <span class="n">rms_harm</span><span class="p">[:</span><span class="n">current_len</span><span class="p">]</span>
+                    <span class="n">rms_perc</span> <span class="o">=</span> <span class="n">rms_perc</span><span class="p">[:</span><span class="n">current_len</span><span class="p">]</span>
+                <span class="c1"># Store results, converting times to absolute</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_harm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">rms_harm</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_perc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">rms_perc</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_time_absolute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">rms_time_rel</span> <span class="o">+</span> <span class="n">trim_offset_sec</span>
+                <span class="p">)</span>  <span class="c1"># Store absolute times</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">hpss_e</span><span class="p">:</span>
+                <span class="c1"># Handle errors during HPSS calculation</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calculating HPSS: </span><span class="si">{</span><span class="n">hpss_e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_harm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_perc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_time_absolute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Set HPSS results to None if calculation was skipped</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_harm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_perc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">results</span><span class="p">[</span><span class="s2">&quot;rms_time_absolute&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Return the results dictionary (potentially updated with spec, width, hpss)</span>
+        <span class="k">return</span> <span class="n">results</span>
+
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="c1"># Catch-all for errors in this function</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- Error in analyze_stereo_and_hpss ---&quot;</span><span class="p">)</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+        <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Stereo/HPSS Analysis Error:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="c1"># Ensure default keys exist on failure</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;width_matrix&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;rms_harm&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;rms_perc&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;rms_time_absolute&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;spec&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;freqs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;times_absolute&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="s2">&quot;bands&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">results</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

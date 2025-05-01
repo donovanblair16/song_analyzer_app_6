@@ -1,0 +1,760 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>audio_analysis_modules.feature_extraction &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">audio_analysis_modules.feature_extraction</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for audio_analysis_modules.feature_extraction</h1><div class="highlight"><pre>
+<span></span><span class="c1"># /Users/donovanblair/Desktop/song_analyzer_app_6/audio_analysis_modules/feature_extraction.py</span>
+
+<span class="sd">&quot;&quot;&quot;Functions for feature extraction from audio sections.</span>
+
+<span class="sd">ADDED: position_context feature calculation.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">scipy.stats</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">librosa</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>  <span class="c1"># Added for more detailed error printing</span>
+
+
+<div class="viewcode-block" id="extract_section_features">
+<a class="viewcode-back" href="../../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/audio_analysis_wrapper.html#audio_analysis_modules.feature_extraction.extract_section_features">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_section_features</span><span class="p">(</span><span class="n">track_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Retrieves section features (as a list of dictionaries) and semantic labels</span>
+<span class="sd">    from the track_data. Calculates and adds features like &#39;relative_position&#39;,</span>
+<span class="sd">    &#39;low_energy_norm&#39;, standard deviations, delta features, crest factor,</span>
+<span class="sd">    spectral slope, &#39;relative_rms&#39;, &#39;rms_trend&#39;, &#39;position_context&#39;, AND</span>
+<span class="sd">    &#39;label_proportion&#39;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        track_data (dict): Dictionary loaded from analysis file, expected</span>
+<span class="sd">                           to contain base data like &#39;section_features&#39;,</span>
+<span class="sd">                           &#39;semantic_labels&#39;, &#39;rms&#39;, &#39;rms_times&#39;, etc.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: A tuple containing (section_features_list_of_dicts, semantic_labels_list).</span>
+<span class="sd">               The first element is a list of dictionaries with calculated features.</span>
+<span class="sd">               The second element is a list of corresponding semantic labels.</span>
+<span class="sd">               Returns ([], []) if essential data is missing or mismatched.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># --- Retrieve necessary base data ---</span>
+    <span class="n">section_features_list_of_dicts</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;section_features&quot;</span><span class="p">,</span> <span class="p">[])</span>
+    <span class="n">semantic_labels_list</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;semantic_labels&quot;</span><span class="p">,</span> <span class="p">[]</span>
+    <span class="p">)</span>  <span class="c1"># Needed for position_context</span>
+    <span class="n">duration_processed</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_processed&quot;</span><span class="p">)</span>
+    <span class="n">low_energy_norm</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;low_energy_norm&quot;</span><span class="p">)</span>
+    <span class="n">low_energy_times</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;low_energy_times&quot;</span><span class="p">)</span>
+    <span class="n">trim_offset_sec</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trim_offset_sec&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">rms_frames</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rms&quot;</span><span class="p">)</span>  <span class="c1"># Frame-based RMS values</span>
+    <span class="n">rms_times</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;rms_times&quot;</span><span class="p">)</span>  <span class="c1"># Corresponding times for RMS frames</span>
+    <span class="n">spectral_centroid_frames</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spectral_centroid_frames&quot;</span><span class="p">)</span>
+    <span class="n">times_absolute</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;times_absolute&quot;</span><span class="p">)</span>  <span class="c1"># Times for spectral frames</span>
+
+    <span class="c1"># --- Initial Validation ---</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">=== DEBUG: Inside extract_section_features ===&quot;</span><span class="p">)</span>  <span class="c1"># DEBUG</span>
+    <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section_features_list_of_dicts</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span>
+        <span class="ow">or</span> <span class="ow">not</span> <span class="n">section_features_list_of_dicts</span>
+    <span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; ERROR: &#39;section_features&#39; missing, empty, or not a list.&quot;</span><span class="p">)</span>
+        <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="c1"># *** Check semantic_labels_list early as it&#39;s needed for position_context ***</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">semantic_labels_list</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; ERROR: &#39;semantic_labels&#39; is not a list.&quot;</span><span class="p">)</span>
+        <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">valid_input</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">section_features_list_of_dicts</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">semantic_labels_list</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot; -&gt; ERROR: Mismatched section data lengths. Features: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">section_features_list_of_dicts</span><span class="p">)</span><span class="si">}</span><span class="s2">, Labels: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">semantic_labels_list</span><span class="p">)</span><span class="si">}</span><span class="s2">.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">valid_input</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">duration_processed</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">duration_processed</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; WARNING: &#39;duration_processed&#39; missing or invalid.&quot;</span><span class="p">)</span>
+        <span class="c1"># Allow continuation, but relative_position might be NaN</span>
+
+    <span class="c1"># *** CRITICAL CHECK for RMS calculation ***</span>
+    <span class="k">if</span> <span class="n">rms_frames</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot; -&gt; FATAL ERROR: Frame-based &#39;rms&#39; data is MISSING from track_data. Cannot calculate avg_rms or relative_rms.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>  <span class="c1"># Cannot proceed without this</span>
+    <span class="k">if</span> <span class="n">rms_times</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot; -&gt; FATAL ERROR: Frame-based &#39;rms_times&#39; data is MISSING from track_data. Cannot calculate avg_rms or relative_rms.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>  <span class="c1"># Cannot proceed without this</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rms_frames</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rms_times</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot; -&gt; FATAL ERROR: &#39;rms&#39; (type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">rms_frames</span><span class="p">)</span><span class="si">}</span><span class="s2">) or &#39;rms_times&#39; (type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">rms_times</span><span class="p">)</span><span class="si">}</span><span class="s2">) is not a numpy array.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">rms_frames</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="n">rms_times</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot; -&gt; FATAL ERROR: Shape mismatch between &#39;rms&#39; (</span><span class="si">{</span><span class="n">rms_frames</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">) and &#39;rms_times&#39; (</span><span class="si">{</span><span class="n">rms_times</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot; -&gt; DEBUG: Found rms data (shape: </span><span class="si">{</span><span class="n">rms_frames</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">) and rms_times (shape: </span><span class="si">{</span><span class="n">rms_times</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">). Trim offset: </span><span class="si">{</span><span class="n">trim_offset_sec</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>  <span class="c1"># DEBUG</span>
+
+    <span class="c1"># Check other optional data</span>
+    <span class="k">if</span> <span class="n">low_energy_norm</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">low_energy_times</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; WARNING: &#39;low_energy_norm&#39; or &#39;low_energy_times&#39; missing.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">spectral_centroid_frames</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">times_absolute</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot; -&gt; WARNING: Frame-based &#39;spectral_centroid_frames&#39; or &#39;times_absolute&#39; missing.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">valid_input</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot; -&gt; Found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">section_features_list_of_dicts</span><span class="p">)</span><span class="si">}</span><span class="s2"> sections. Processing features...&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Calculate relative spectral times ONCE if possible</span>
+    <span class="n">spec_times_rel</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">times_absolute</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">times_absolute</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">spec_times_rel</span> <span class="o">=</span> <span class="n">times_absolute</span> <span class="o">-</span> <span class="n">trim_offset_sec</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Could not calculate spec_times_rel: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Calculate relative RMS times ONCE</span>
+    <span class="n">rms_times_rel</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">rms_times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">rms_times_rel</span> <span class="o">=</span> <span class="n">rms_times</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">trim_offset_sec</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Could not calculate rms_times_rel: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- First Pass: Calculate all avg_rms and find track maximum ---</span>
+    <span class="n">all_section_avg_rms</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">max_track_rms</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Initialize track maximum RMS</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot; -&gt; DEBUG: Starting First Pass (Calculating avg_rms per section)...&quot;</span>
+    <span class="p">)</span>  <span class="c1"># DEBUG</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">section_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">section_features_list_of_dicts</span><span class="p">):</span>
+        <span class="n">current_avg_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Default to NaN</span>
+        <span class="n">start_time_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">end_time_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">start_time_abs</span> <span class="o">=</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start_time&quot;</span><span class="p">)</span>
+            <span class="n">end_time_abs</span> <span class="o">=</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;end_time&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Calculate relative times</span>
+            <span class="k">if</span> <span class="n">start_time_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_time_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">start_time_rel</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">start_time_abs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">trim_offset_sec</span><span class="p">)</span>
+                    <span class="n">end_time_rel</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">end_time_abs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">trim_offset_sec</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">)</span> <span class="k">as</span> <span class="n">time_err</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot; -&gt; DEBUG: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Error converting times: </span><span class="si">{</span><span class="n">time_err</span><span class="si">}</span><span class="s2">. Abs times: </span><span class="si">{</span><span class="n">start_time_abs</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">end_time_abs</span><span class="si">}</span><span class="s2">&quot;</span>
+                    <span class="p">)</span>
+                    <span class="n">start_time_rel</span><span class="p">,</span> <span class="n">end_time_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Ensure NaN on error</span>
+
+            <span class="c1"># Proceed only if relative times are valid</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">start_time_rel</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">end_time_rel</span><span class="p">)</span>
+                <span class="ow">and</span> <span class="n">rms_times_rel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">):</span>  <span class="c1"># Check rms_times_rel exists</span>
+                <span class="c1"># Create mask based on relative times</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">rms_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rms_times_rel</span> <span class="o">&gt;=</span> <span class="n">start_time_rel</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                        <span class="n">rms_times_rel</span> <span class="o">&lt;</span> <span class="n">end_time_rel</span>
+                    <span class="p">)</span>
+
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="nb">isinstance</span><span class="p">(</span><span class="n">rms_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                        <span class="ow">and</span> <span class="n">rms_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">rms_frames</span><span class="o">.</span><span class="n">shape</span>
+                    <span class="p">):</span>
+                        <span class="n">section_rms_frames</span> <span class="o">=</span> <span class="n">rms_frames</span><span class="p">[</span><span class="n">rms_mask</span><span class="p">]</span>
+                        <span class="n">finite_section_rms</span> <span class="o">=</span> <span class="n">section_rms_frames</span><span class="p">[</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">section_rms_frames</span><span class="p">)</span>
+                        <span class="p">]</span>
+
+                        <span class="k">if</span> <span class="n">finite_section_rms</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                            <span class="n">current_avg_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">finite_section_rms</span><span class="p">)</span>
+                            <span class="c1"># Update track maximum if current avg_rms is valid and larger</span>
+                            <span class="k">if</span> <span class="p">(</span>
+                                <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">current_avg_rms</span><span class="p">)</span>
+                                <span class="ow">and</span> <span class="n">current_avg_rms</span> <span class="o">&gt;</span> <span class="n">max_track_rms</span>
+                            <span class="p">):</span>
+                                <span class="n">max_track_rms</span> <span class="o">=</span> <span class="n">current_avg_rms</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Invalid RMS mask generated. Mask type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">rms_mask</span><span class="p">)</span><span class="si">}</span><span class="s2">, Shape: </span><span class="si">{</span><span class="n">rms_mask</span><span class="o">.</span><span class="n">shape</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="nb">isinstance</span><span class="p">(</span><span class="n">rms_mask</span><span class="p">,</span><span class="w"> </span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;N/A&#39;</span><span class="si">}</span><span class="s2">&quot;</span>
+                        <span class="p">)</span>
+                <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; ERROR calculating avg_rms for section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>  <span class="c1"># Print full traceback</span>
+                    <span class="n">current_avg_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Ensure NaN on error</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> data is not a dictionary.&quot;</span><span class="p">)</span>
+            <span class="n">current_avg_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="n">all_section_avg_rms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_avg_rms</span><span class="p">)</span>  <span class="c1"># Store calculated avg_rms (or NaN)</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot; -&gt; DEBUG: First Pass Complete. Max Avg RMS found for track: </span><span class="si">{</span><span class="n">max_track_rms</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+    <span class="c1"># Handle case where max_track_rms is zero or very small to avoid division errors</span>
+    <span class="k">if</span> <span class="n">max_track_rms</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; WARNING: Maximum track RMS is near zero. Relative RMS will be NaN.&quot;</span><span class="p">)</span>
+        <span class="n">max_track_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Set to NaN to propagate NaN in relative calculation</span>
+
+    <span class="c1"># --- Second Pass: Calculate all features including relative_rms ---</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; DEBUG: Starting Second Pass (Calculating all features)...&quot;</span><span class="p">)</span>  <span class="c1"># DEBUG</span>
+    <span class="n">prev_avg_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">prev_avg_centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">section_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">section_features_list_of_dicts</span><span class="p">):</span>
+        <span class="c1"># Ensure dictionary structure exists</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">section_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+            <span class="n">section_dict</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="n">section_features_list_of_dicts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">section_dict</span>
+
+        <span class="c1"># Retrieve pre-calculated avg_rms from the first pass</span>
+        <span class="n">current_avg_rms</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">all_section_avg_rms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_section_avg_rms</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="p">)</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;avg_rms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">current_avg_rms</span>  <span class="c1"># Store/update</span>
+
+        <span class="c1"># Calculate Relative RMS</span>
+        <span class="n">relative_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">current_avg_rms</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">max_track_rms</span><span class="p">):</span>
+            <span class="n">relative_rms</span> <span class="o">=</span> <span class="n">current_avg_rms</span> <span class="o">/</span> <span class="n">max_track_rms</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;relative_rms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relative_rms</span>  <span class="c1"># Store the new feature</span>
+
+        <span class="c1"># --- Calculate other features as before ---</span>
+        <span class="n">start_time_abs</span> <span class="o">=</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start_time&quot;</span><span class="p">)</span>
+        <span class="n">end_time_abs</span> <span class="o">=</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;end_time&quot;</span><span class="p">)</span>
+        <span class="n">start_time_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">end_time_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="n">start_time_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">end_time_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">start_time_rel</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">start_time_abs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">trim_offset_sec</span><span class="p">)</span>
+                <span class="n">end_time_rel</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">end_time_abs</span><span class="p">)</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">trim_offset_sec</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="n">start_time_rel</span><span class="p">,</span> <span class="n">end_time_rel</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Ensure NaN on error</span>
+
+        <span class="n">current_peak_rms</span> <span class="o">=</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;peak_rms&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">current_avg_centroid</span> <span class="o">=</span> <span class="n">section_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spectral_centroid_avg&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+        <span class="c1"># Ensure numeric or NaN</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_peak_rms</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)):</span>
+            <span class="n">current_peak_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">current_avg_centroid</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">number</span><span class="p">)):</span>
+            <span class="n">current_avg_centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+        <span class="c1"># 1. Relative Position</span>
+        <span class="n">relative_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">start_time_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">duration_processed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">duration_processed</span> <span class="o">&gt;</span> <span class="mi">0</span>
+        <span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">relative_position</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">start_time_abs</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">duration_processed</span><span class="p">)</span>
+                <span class="n">relative_position</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="nb">min</span><span class="p">(</span><span class="n">relative_position</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">))</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                <span class="n">relative_position</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;relative_position&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">relative_position</span>
+
+        <span class="c1"># &lt;&lt;&lt; 1b. Position Context (NEW FEATURE) &gt;&gt;&gt;</span>
+        <span class="n">position_context</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Default to low value</span>
+        <span class="n">current_label</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">semantic_labels_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">semantic_labels_list</span><span class="p">)</span> <span class="k">else</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">current_label</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;Intro&quot;</span><span class="p">,</span> <span class="s2">&quot;Outro&quot;</span><span class="p">]:</span>
+            <span class="n">position_context</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="c1"># Optional: Add threshold check as fallback if labels are unreliable</span>
+        <span class="c1"># elif not np.isnan(relative_position):</span>
+        <span class="c1">#     if relative_position &lt; 0.15 or relative_position &gt; 0.85:</span>
+        <span class="c1">#          position_context = 1.0</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;position_context&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">position_context</span>
+
+        <span class="c1"># 2. Average Low-End Energy</span>
+        <span class="n">avg_low_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">low_energy_norm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">low_energy_times</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">start_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">end_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">low_energy_times</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">low_energy_times</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">low_energy_norm</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">le_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">low_energy_times</span> <span class="o">&gt;=</span> <span class="n">start_time_rel</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                    <span class="n">low_energy_times</span> <span class="o">&lt;</span> <span class="n">end_time_rel</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">le_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">le_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">low_energy_norm</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">):</span>
+                    <span class="n">finite_vals</span> <span class="o">=</span> <span class="n">low_energy_norm</span><span class="p">[</span><span class="n">le_mask</span><span class="p">][</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">low_energy_norm</span><span class="p">[</span><span class="n">le_mask</span><span class="p">])</span>
+                    <span class="p">]</span>
+                    <span class="k">if</span> <span class="n">finite_vals</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="n">avg_low_energy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">finite_vals</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Invalid Low Energy mask.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; ERROR calculating low energy for section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;low_energy_norm&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">avg_low_energy</span>
+
+        <span class="c1"># 3. Std Dev of RMS</span>
+        <span class="n">std_dev_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">rms_frames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">rms_times_rel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">start_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">end_time_rel</span><span class="p">)</span>
+        <span class="p">):</span>  <span class="c1"># Use rms_times_rel</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rms_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rms_times_rel</span> <span class="o">&gt;=</span> <span class="n">start_time_rel</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                    <span class="n">rms_times_rel</span> <span class="o">&lt;</span> <span class="n">end_time_rel</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">rms_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">rms_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">rms_frames</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">):</span>
+                    <span class="n">section_rms_frames</span> <span class="o">=</span> <span class="n">rms_frames</span><span class="p">[</span><span class="n">rms_mask</span><span class="p">]</span>
+                    <span class="n">finite_section_rms</span> <span class="o">=</span> <span class="n">section_rms_frames</span><span class="p">[</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">section_rms_frames</span><span class="p">)</span>
+                    <span class="p">]</span>
+                    <span class="k">if</span> <span class="n">finite_section_rms</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">std_dev_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">finite_section_rms</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">finite_section_rms</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">std_dev_rms</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Invalid RMS mask for std dev.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; ERROR calculating RMS std dev for section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;rms_std_dev_section&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">std_dev_rms</span>
+
+        <span class="c1"># 4. Std Dev of Spectral Centroid</span>
+        <span class="n">std_dev_centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">spectral_centroid_frames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">spec_times_rel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">start_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">end_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">spec_times_rel</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">spectral_centroid_frames</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">centroid_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_times_rel</span> <span class="o">&gt;=</span> <span class="n">start_time_rel</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                    <span class="n">spec_times_rel</span> <span class="o">&lt;</span> <span class="n">end_time_rel</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">centroid_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">centroid_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">spectral_centroid_frames</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">):</span>
+                    <span class="n">section_centroid_frames</span> <span class="o">=</span> <span class="n">spectral_centroid_frames</span><span class="p">[</span><span class="n">centroid_mask</span><span class="p">]</span>
+                    <span class="n">finite_section_centroid</span> <span class="o">=</span> <span class="n">section_centroid_frames</span><span class="p">[</span>
+                        <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">section_centroid_frames</span><span class="p">)</span>
+                    <span class="p">]</span>
+                    <span class="k">if</span> <span class="n">finite_section_centroid</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">std_dev_centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">finite_section_centroid</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">finite_section_centroid</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">std_dev_centroid</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Invalid Centroid mask for std dev.&quot;</span>
+                    <span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; ERROR calculating Centroid std dev for section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;centroid_std_dev_section&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">std_dev_centroid</span>
+
+        <span class="c1"># 5. Delta RMS</span>
+        <span class="n">delta_rms</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Default for first section</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">current_avg_rms</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">prev_avg_rms</span><span class="p">):</span>
+                <span class="n">delta_rms</span> <span class="o">=</span> <span class="n">current_avg_rms</span> <span class="o">-</span> <span class="n">prev_avg_rms</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># If current or previous is NaN, delta is NaN</span>
+                <span class="n">delta_rms</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;delta_rms&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta_rms</span>
+
+        <span class="c1"># 6. Delta Centroid</span>
+        <span class="n">delta_centroid</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Default for first section</span>
+        <span class="k">if</span> <span class="n">i</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">current_avg_centroid</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">prev_avg_centroid</span><span class="p">):</span>
+                <span class="n">delta_centroid</span> <span class="o">=</span> <span class="n">current_avg_centroid</span> <span class="o">-</span> <span class="n">prev_avg_centroid</span>
+            <span class="k">else</span><span class="p">:</span>  <span class="c1"># If current or previous is NaN, delta is NaN</span>
+                <span class="n">delta_centroid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;delta_centroid&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">delta_centroid</span>
+
+        <span class="c1"># 7. Crest Factor</span>
+        <span class="n">crest_factor</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">current_peak_rms</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">current_avg_rms</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">current_avg_rms</span> <span class="o">&gt;</span> <span class="mf">1e-9</span><span class="p">:</span>
+                <span class="n">crest_factor</span> <span class="o">=</span> <span class="n">current_peak_rms</span> <span class="o">/</span> <span class="n">current_avg_rms</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">crest_factor</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># Assign 1 if peak exists but avg is near zero</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;crest_factor&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">crest_factor</span>
+
+        <span class="c1"># 8. Spectral Centroid Slope</span>
+        <span class="n">spectral_centroid_slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">spectral_centroid_frames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">spec_times_rel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">start_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">end_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">spec_times_rel</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">spectral_centroid_frames</span><span class="o">.</span><span class="n">shape</span>
+        <span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">centroid_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">spec_times_rel</span> <span class="o">&gt;=</span> <span class="n">start_time_rel</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                    <span class="n">spec_times_rel</span> <span class="o">&lt;</span> <span class="n">end_time_rel</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">centroid_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">centroid_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">spectral_centroid_frames</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">):</span>
+                    <span class="n">centroid_vals</span> <span class="o">=</span> <span class="n">spectral_centroid_frames</span><span class="p">[</span><span class="n">centroid_mask</span><span class="p">]</span>
+                    <span class="n">time_vals</span> <span class="o">=</span> <span class="n">spec_times_rel</span><span class="p">[</span><span class="n">centroid_mask</span><span class="p">]</span>
+                    <span class="n">finite_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">centroid_vals</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">time_vals</span><span class="p">)</span>
+                    <span class="n">centroid_vals</span> <span class="o">=</span> <span class="n">centroid_vals</span><span class="p">[</span><span class="n">finite_mask</span><span class="p">]</span>
+                    <span class="n">time_vals</span> <span class="o">=</span> <span class="n">time_vals</span><span class="p">[</span><span class="n">finite_mask</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">centroid_vals</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">rel_times</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">time_vals</span> <span class="o">-</span> <span class="n">time_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="p">)</span>  <span class="c1"># Time relative to section start</span>
+                        <span class="n">slope</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">linregress</span><span class="p">(</span>
+                            <span class="n">rel_times</span><span class="p">,</span> <span class="n">centroid_vals</span>
+                        <span class="p">)</span>
+                        <span class="n">spectral_centroid_slope</span> <span class="o">=</span> <span class="n">slope</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+                    <span class="k">elif</span> <span class="n">centroid_vals</span><span class="o">.</span><span class="n">size</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">spectral_centroid_slope</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Invalid Centroid mask for slope.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Failed to calculate spectral centroid slope for section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">spectral_centroid_slope</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;spectral_centroid_slope&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">spectral_centroid_slope</span>
+
+        <span class="c1"># 9. RMS Trend (Slope)</span>
+        <span class="n">rms_trend</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Default to NaN</span>
+        <span class="n">raw_slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>  <span class="c1"># Store slope before checking isfinite</span>
+        <span class="n">num_points</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Store number of points used</span>
+        <span class="k">if</span> <span class="p">(</span>
+            <span class="n">rms_frames</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="n">rms_times_rel</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">start_time_rel</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">end_time_rel</span><span class="p">)</span>
+        <span class="p">):</span>  <span class="c1"># Use rms_times_rel</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">rms_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">rms_times_rel</span> <span class="o">&gt;=</span> <span class="n">start_time_rel</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                    <span class="n">rms_times_rel</span> <span class="o">&lt;</span> <span class="n">end_time_rel</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="p">(</span>
+                    <span class="nb">isinstance</span><span class="p">(</span><span class="n">rms_mask</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span>
+                    <span class="ow">and</span> <span class="n">rms_mask</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">rms_frames</span><span class="o">.</span><span class="n">shape</span>
+                <span class="p">):</span>
+                    <span class="n">rms_vals</span> <span class="o">=</span> <span class="n">rms_frames</span><span class="p">[</span><span class="n">rms_mask</span><span class="p">]</span>
+                    <span class="n">time_vals</span> <span class="o">=</span> <span class="n">rms_times_rel</span><span class="p">[</span><span class="n">rms_mask</span><span class="p">]</span>  <span class="c1"># Use relative times</span>
+
+                    <span class="c1"># Filter out NaNs before regression</span>
+                    <span class="n">finite_mask</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">rms_vals</span><span class="p">)</span> <span class="o">&amp;</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">time_vals</span><span class="p">)</span>
+                    <span class="n">rms_vals</span> <span class="o">=</span> <span class="n">rms_vals</span><span class="p">[</span><span class="n">finite_mask</span><span class="p">]</span>
+                    <span class="n">time_vals</span> <span class="o">=</span> <span class="n">time_vals</span><span class="p">[</span><span class="n">finite_mask</span><span class="p">]</span>
+                    <span class="n">num_points</span> <span class="o">=</span> <span class="n">rms_vals</span><span class="o">.</span><span class="n">size</span>  <span class="c1"># Get number of finite points</span>
+
+                    <span class="k">if</span> <span class="n">num_points</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>  <span class="c1"># Need at least 2 finite points</span>
+                        <span class="n">rel_times</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">time_vals</span> <span class="o">-</span> <span class="n">time_vals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                        <span class="p">)</span>  <span class="c1"># Time relative to section start</span>
+                        <span class="n">slope</span><span class="p">,</span> <span class="n">intercept</span><span class="p">,</span> <span class="n">r_value</span><span class="p">,</span> <span class="n">p_value</span><span class="p">,</span> <span class="n">std_err</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">scipy</span><span class="o">.</span><span class="n">stats</span><span class="o">.</span><span class="n">linregress</span><span class="p">(</span><span class="n">rel_times</span><span class="p">,</span> <span class="n">rms_vals</span><span class="p">)</span>
+                        <span class="p">)</span>
+                        <span class="n">raw_slope</span> <span class="o">=</span> <span class="n">slope</span>  <span class="c1"># Store the raw slope</span>
+                        <span class="n">rms_trend</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">slope</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">slope</span><span class="p">)</span> <span class="k">else</span> <span class="mf">0.0</span>
+                        <span class="p">)</span>  <span class="c1"># Use 0 if slope is NaN/Inf</span>
+                    <span class="k">elif</span> <span class="n">num_points</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="n">rms_trend</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Slope is undefined/zero for 0 or 1 point</span>
+                        <span class="n">raw_slope</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Set raw slope to 0 as well</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: Invalid RMS mask for trend.&quot;</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">linreg_err</span><span class="p">:</span>  <span class="c1"># Catch potential errors in linregress</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; -&gt; Warning: Linregress failed for RMS trend in section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">linreg_err</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">rms_trend</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Default to 0 on error</span>
+                <span class="n">raw_slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Failed to calculate RMS trend for section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="n">rms_trend</span> <span class="o">=</span> <span class="mf">0.0</span>
+                <span class="n">raw_slope</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+        <span class="n">section_dict</span><span class="p">[</span><span class="s2">&quot;rms_trend&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rms_trend</span>  <span class="c1"># Store the calculated RMS trend</span>
+
+        <span class="c1"># &lt;&lt;&lt; DEBUG PRINT FOR RMS TREND &gt;&gt;&gt;</span>
+        <span class="c1"># if current_label in [&quot;Build&quot;, &quot;Outro&quot;] or i &lt; 2 or i &gt; len(section_features_list_of_dicts) - 3:</span>
+        <span class="c1">#     print(f&quot; -&gt; DEBUG TREND: Section {i} (Label: {current_label}): Points={num_points}, RawSlope={raw_slope:.6f}, FinalTrend={rms_trend:.6f}&quot;)</span>
+
+        <span class="c1"># Update previous values for next iteration&#39;s delta calculation</span>
+        <span class="n">prev_avg_rms</span> <span class="o">=</span> <span class="n">current_avg_rms</span>  <span class="c1"># Store current (potentially NaN)</span>
+        <span class="n">prev_avg_centroid</span> <span class="o">=</span> <span class="n">current_avg_centroid</span>  <span class="c1"># Store current (potentially NaN)</span>
+
+    <span class="c1"># --- Final Check and Return ---</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; DEBUG: Second Pass Complete.&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">section_features_list_of_dicts</span><span class="p">:</span>
+        <span class="c1"># Check keys of the first valid dictionary found</span>
+        <span class="n">first_valid_dict</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span>
+            <span class="p">(</span><span class="n">d</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">section_features_list_of_dicts</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)),</span> <span class="kc">None</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">first_valid_dict</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot; -&gt; DEBUG: Keys in first section dict after update: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">first_valid_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; DEBUG: No valid section dictionaries found after processing.&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">section_features_list_of_dicts</span><span class="p">,</span> <span class="n">semantic_labels_list</span></div>
+
+
+
+<span class="c1"># Note: calculate_bar_features remains unchanged as it&#39;s not directly used by the section HMM.</span>
+<div class="viewcode-block" id="calculate_bar_features">
+<a class="viewcode-back" href="../../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/audio_analysis_wrapper.html#audio_analysis_modules.feature_extraction.calculate_bar_features">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">calculate_bar_features</span><span class="p">(</span><span class="n">track_data</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculates features averaged over each bar.</span>
+<span class="sd">    Current features: Avg RMS, Avg Spectral Centroid.</span>
+<span class="sd">    Returns features and corresponding labels per bar.</span>
+<span class="sd">    NOTE: This might not be used by the section-based HMM trainer/predictor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- Running calculate_bar_features (NOTE: May be unused by section HMM) ---&quot;</span><span class="p">)</span>
+    <span class="c1"># Retrieve necessary data</span>
+    <span class="n">bar_starts</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bar_starts_absolute&quot;</span><span class="p">)</span>  <span class="c1"># Absolute times</span>
+    <span class="n">bar_rms</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bar_rms_data&quot;</span><span class="p">)</span>
+    <span class="n">section_starts</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;section_starts&quot;</span><span class="p">)</span>  <span class="c1"># Absolute times</span>
+    <span class="n">semantic_labels</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;semantic_labels&quot;</span><span class="p">)</span>
+    <span class="n">spec_centroid</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;spectral_centroid_frames&quot;</span><span class="p">)</span>  <span class="c1"># Frame-based</span>
+    <span class="n">frame_times_abs</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;times_absolute&quot;</span>
+    <span class="p">)</span>  <span class="c1"># Absolute times for spectral features</span>
+    <span class="n">trim_offset</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trim_offset_sec&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">duration_processed</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_processed&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="c1"># --- Validate Inputs ---</span>
+    <span class="n">required_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;bar_starts&quot;</span><span class="p">:</span> <span class="n">bar_starts</span><span class="p">,</span>
+        <span class="s2">&quot;bar_rms&quot;</span><span class="p">:</span> <span class="n">bar_rms</span><span class="p">,</span>
+        <span class="s2">&quot;section_starts&quot;</span><span class="p">:</span> <span class="n">section_starts</span><span class="p">,</span>
+        <span class="s2">&quot;semantic_labels&quot;</span><span class="p">:</span> <span class="n">semantic_labels</span><span class="p">,</span>  <span class="c1"># &quot;spec_centroid&quot;: spec_centroid, # Optional now</span>
+        <span class="s2">&quot;frame_times_abs&quot;</span><span class="p">:</span> <span class="n">frame_times_abs</span><span class="p">,</span>
+        <span class="s2">&quot;duration_processed&quot;</span><span class="p">:</span> <span class="n">duration_processed</span><span class="p">,</span>
+        <span class="s2">&quot;trim_offset&quot;</span><span class="p">:</span> <span class="n">trim_offset</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># Check if essential bar/section data is present</span>
+    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span>
+        <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">required_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;spec_centroid&quot;</span><span class="p">,</span> <span class="s2">&quot;frame_times_abs&quot;</span><span class="p">]</span>
+    <span class="p">):</span>
+        <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">k</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">required_data</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;spec_centroid&quot;</span><span class="p">,</span> <span class="s2">&quot;frame_times_abs&quot;</span><span class="p">]</span>
+        <span class="p">]</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Warning: Missing essential data for bar feature calculation: </span><span class="si">{</span><span class="n">missing</span><span class="si">}</span><span class="s2">. Skipping.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="c1"># Check lengths</span>
+    <span class="n">num_bars</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">bar_starts</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">bar_rms</span><span class="p">)</span> <span class="o">!=</span> <span class="n">num_bars</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Warning: Mismatch between bar_starts (</span><span class="si">{</span><span class="n">num_bars</span><span class="si">}</span><span class="s2">) and bar_rms (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bar_rms</span><span class="p">)</span><span class="si">}</span><span class="s2">). Skipping.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="c1"># Check spectral data consistency only if present</span>
+    <span class="k">if</span> <span class="n">spec_centroid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span>
+        <span class="n">frame_times_abs</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec_centroid</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_times_abs</span><span class="p">)</span>
+    <span class="p">):</span>
+        <span class="n">spec_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">spec_centroid</span><span class="p">)</span> <span class="k">if</span> <span class="n">spec_centroid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="n">time_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame_times_abs</span><span class="p">)</span> <span class="k">if</span> <span class="n">frame_times_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="s2">&quot;N/A&quot;</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Warning: Mismatch/Missing spec_centroid (</span><span class="si">{</span><span class="n">spec_len</span><span class="si">}</span><span class="s2">) or frame_times (</span><span class="si">{</span><span class="n">time_len</span><span class="si">}</span><span class="s2">). Skipping centroid calculation.&quot;</span>
+        <span class="p">)</span>
+        <span class="n">spec_centroid</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Disable centroid calculation if inconsistent</span>
+
+    <span class="c1"># --- Calculate features per bar ---</span>
+    <span class="n">bar_features_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">bar_labels_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">current_section_idx</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Track current section</span>
+
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_bars</span><span class="p">):</span>
+        <span class="n">bar_start_time_abs</span> <span class="o">=</span> <span class="n">bar_starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+        <span class="c1"># Calculate bar end time (absolute)</span>
+        <span class="n">bar_end_time_abs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">bar_starts</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="n">num_bars</span> <span class="k">else</span> <span class="n">duration_processed</span> <span class="o">+</span> <span class="n">trim_offset</span>
+        <span class="p">)</span>
+
+        <span class="c1"># --- Find the semantic label for the current bar ---</span>
+        <span class="c1"># Advance section index while the bar start time is &gt;= the next section start time</span>
+        <span class="k">while</span> <span class="p">(</span>
+            <span class="n">current_section_idx</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">section_starts</span><span class="p">)</span>
+            <span class="ow">and</span> <span class="n">bar_start_time_abs</span> <span class="o">&gt;=</span> <span class="n">section_starts</span><span class="p">[</span><span class="n">current_section_idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+        <span class="p">):</span>
+            <span class="n">current_section_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># Get the label for the determined section index</span>
+        <span class="k">if</span> <span class="n">current_section_idx</span> <span class="o">&gt;=</span> <span class="nb">len</span><span class="p">(</span><span class="n">semantic_labels</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Warning: Section index </span><span class="si">{</span><span class="n">current_section_idx</span><span class="si">}</span><span class="s2"> out of bounds for labels (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">semantic_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">) at bar </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">. Assigning &#39;Unknown&#39;.&quot;</span>
+            <span class="p">)</span>
+            <span class="n">current_label</span> <span class="o">=</span> <span class="s2">&quot;Unknown&quot;</span>
+            <span class="c1"># Decide whether to skip bar or assign Unknown - assigning Unknown for now</span>
+            <span class="c1"># continue # Option: Skip this bar</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">current_label</span> <span class="o">=</span> <span class="n">semantic_labels</span><span class="p">[</span><span class="n">current_section_idx</span><span class="p">]</span>
+
+        <span class="c1"># --- Calculate Features for the Bar ---</span>
+        <span class="c1"># 1. Average RMS (already available per bar)</span>
+        <span class="n">avg_rms_bar</span> <span class="o">=</span> <span class="n">bar_rms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">bar_rms</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+        <span class="c1"># 2. Average Spectral Centroid (if data available)</span>
+        <span class="n">avg_centroid_bar</span> <span class="o">=</span> <span class="mf">0.0</span>  <span class="c1"># Default</span>
+        <span class="k">if</span> <span class="n">spec_centroid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">frame_times_abs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># Find spectral frames within the bar&#39;s absolute time range</span>
+            <span class="n">frame_mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame_times_abs</span> <span class="o">&gt;=</span> <span class="n">bar_start_time_abs</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                <span class="n">frame_times_abs</span> <span class="o">&lt;</span> <span class="n">bar_end_time_abs</span>
+            <span class="p">)</span>
+            <span class="n">frames_in_bar_centroid</span> <span class="o">=</span> <span class="n">spec_centroid</span><span class="p">[</span><span class="n">frame_mask</span><span class="p">]</span>
+            <span class="c1"># Calculate mean only if valid frames exist</span>
+            <span class="k">if</span> <span class="n">frames_in_bar_centroid</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">finite_centroids</span> <span class="o">=</span> <span class="n">frames_in_bar_centroid</span><span class="p">[</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">frames_in_bar_centroid</span><span class="p">)</span>
+                <span class="p">]</span>
+                <span class="k">if</span> <span class="n">finite_centroids</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">avg_centroid_bar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">finite_centroids</span><span class="p">)</span>
+            <span class="c1"># Ensure result is finite, default to 0 otherwise</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">avg_centroid_bar</span><span class="p">):</span>
+                <span class="n">avg_centroid_bar</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="c1"># --- Store features and label ---</span>
+        <span class="c1"># Append the calculated features for this bar</span>
+        <span class="n">bar_features_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">avg_rms_bar</span><span class="p">,</span> <span class="n">avg_centroid_bar</span><span class="p">]</span>
+        <span class="p">)</span>  <span class="c1"># Add more features here if calculated</span>
+        <span class="c1"># Append the corresponding label</span>
+        <span class="n">bar_labels_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_label</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;--- Finished calculate_bar_features: Processed </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">bar_features_list</span><span class="p">)</span><span class="si">}</span><span class="s2"> bars. ---&quot;</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">bar_features_list</span><span class="p">,</span> <span class="n">bar_labels_list</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

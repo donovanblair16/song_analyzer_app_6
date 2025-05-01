@@ -1,0 +1,162 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>audio_analysis_modules.feature_extraction &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">audio_analysis_modules.feature_extraction</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary_generated/audio  " rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-audio_analysis_modules.feature_extraction">
+<span id="audio-analysis-modules-feature-extraction"></span><h1>audio_analysis_modules.feature_extraction<a class="headerlink" href="#module-audio_analysis_modules.feature_extraction" title="Link to this heading"></a></h1>
+<p>Functions for feature extraction from audio sections.</p>
+<p>ADDED: position_context feature calculation.</p>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../audio/audio_analysis_modules.feature_extraction.html#audio_analysis_modules.feature_extraction.calculate_bar_features" title="audio_analysis_modules.feature_extraction.calculate_bar_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">calculate_bar_features</span></code></a>(track_data)</p></td>
+<td><p>Calculates features averaged over each bar.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../audio/audio_analysis_modules.feature_extraction.html#audio_analysis_modules.feature_extraction.extract_section_features" title="audio_analysis_modules.feature_extraction.extract_section_features"><code class="xref py py-obj docutils literal notranslate"><span class="pre">extract_section_features</span></code></a>(track_data)</p></td>
+<td><p>Retrieves section features (as a list of dictionaries) and semantic labels from the track_data.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="audio_analysis_modules.feature_extraction.extract_section_features">
+<span class="sig-prename descclassname"><span class="pre">audio_analysis_modules.feature_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_section_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_analysis_modules/feature_extraction.html#extract_section_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_analysis_modules.feature_extraction.extract_section_features" title="Link to this definition"></a></dt>
+<dd><p>Retrieves section features (as a list of dictionaries) and semantic labels
+from the track_data. Calculates and adds features like ‘relative_position’,
+‘low_energy_norm’, standard deviations, delta features, crest factor,
+spectral slope, ‘relative_rms’, ‘rms_trend’, ‘position_context’, AND
+‘label_proportion’.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>track_data</strong> (<em>dict</em>) – Dictionary loaded from analysis file, expected
+to contain base data like ‘section_features’,
+‘semantic_labels’, ‘rms’, ‘rms_times’, etc.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A tuple containing (section_features_list_of_dicts, semantic_labels_list).</dt><dd><p>The first element is a list of dictionaries with calculated features.
+The second element is a list of corresponding semantic labels.
+Returns ([], []) if essential data is missing or mismatched.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="audio_analysis_modules.feature_extraction.calculate_bar_features">
+<span class="sig-prename descclassname"><span class="pre">audio_analysis_modules.feature_extraction.</span></span><span class="sig-name descname"><span class="pre">calculate_bar_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_analysis_modules/feature_extraction.html#calculate_bar_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_analysis_modules.feature_extraction.calculate_bar_features" title="Link to this definition"></a></dt>
+<dd><p>Calculates features averaged over each bar.
+Current features: Avg RMS, Avg Spectral Centroid.
+Returns features and corresponding labels per bar.
+NOTE: This might not be used by the section-based HMM trainer/predictor.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

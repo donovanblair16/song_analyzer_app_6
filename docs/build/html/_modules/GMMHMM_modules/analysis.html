@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMMHMM_modules.analysis &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">GMMHMM_modules.analysis</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for GMMHMM_modules.analysis</h1><div class="highlight"><pre>
+<span></span><span class="c1"># =============================================================================</span>
+<span class="c1"># FILE: analysis.py</span>
+<span class="c1"># Purpose: Analyze trained GMMHMM models and export results, including</span>
+<span class="c1">#          details for each mixture component.</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">json</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">datetime</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+
+
+<span class="c1"># Helper function for JSON serialization of NumPy types</span>
+<div class="viewcode-block" id="np_encoder">
+<a class="viewcode-back" href="../../_autosummary_generated/gmmhmm/GMMHMM_modules.analysis.html#GMMHMM_modules.analysis.np_encoder">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">np_encoder</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom JSON encoder for NumPy types&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">integer</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">):</span>
+        <span class="c1"># Handle potential NaN/Inf before converting to float</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;NaN&quot;</span>  <span class="c1"># Represent NaN as a string</span>
+        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isinf</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;Infinity&quot;</span> <span class="k">if</span> <span class="n">obj</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;-Infinity&quot;</span>  <span class="c1"># Represent Inf as a string</span>
+        <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>  <span class="c1"># Convert arrays to lists</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">)):</span>
+        <span class="k">return</span> <span class="n">obj</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>  <span class="c1"># Serialize dates/datetimes</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># Attempt default serialization for other types</span>
+        <span class="k">return</span> <span class="n">json</span><span class="o">.</span><span class="n">JSONEncoder</span><span class="p">()</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="c1"># Fallback for types not handled above</span>
+        <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="analyze_trained_gmmhmm">
+<a class="viewcode-back" href="../../_autosummary_generated/gmmhmm/GMMHMM_modules.analysis.html#GMMHMM_modules.analysis.analyze_trained_gmmhmm">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">analyze_trained_gmmhmm</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="n">int_to_label</span><span class="p">,</span> <span class="n">scaler</span><span class="p">,</span> <span class="n">feature_keys</span><span class="p">,</span> <span class="n">feature_weights_vector</span><span class="p">,</span> <span class="n">raw_averages</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Analyzes the trained GMMHMM model to describe state characteristics,</span>
+<span class="sd">    including details for each mixture component within each state.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        model (hmm.GMMHMM): The trained GMMHMM model.</span>
+<span class="sd">        int_to_label (dict): Dictionary mapping state indices to labels.</span>
+<span class="sd">        scaler (StandardScaler): The scaler fitted on the multi-feature data.</span>
+<span class="sd">        feature_keys (list): List of feature names in the correct order.</span>
+<span class="sd">        feature_weights_vector (np.ndarray): NumPy array of weights applied to features.</span>
+<span class="sd">        raw_averages (dict, optional): Dictionary containing raw feature averages by label.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Dictionary containing model analysis information, including state</span>
+<span class="sd">              summaries, mixture details (weights, means, std devs), raw averages,</span>
+<span class="sd">              and transitions. Returns an empty dict if analysis fails significantly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Analyzing Trained GMMHMM (with Mixture Details) ---&quot;</span><span class="p">)</span>
+    <span class="n">analysis_results</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;states&quot;</span><span class="p">:</span> <span class="p">[],</span> <span class="s2">&quot;transitions&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span> <span class="ow">or</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;n_components&quot;</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Invalid or untrained model provided for analysis.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">analysis_results</span>
+
+    <span class="n">n_states</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">n_components</span>
+    <span class="n">n_mix</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">n_mix</span>
+
+    <span class="c1"># Safely get n_features</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;n_features_in_&quot;</span><span class="p">):</span>
+            <span class="n">n_features</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">n_features_in_</span>
+        <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;means_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_features</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s2">&quot;Cannot determine number of features from model.&quot;</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">analysis_results</span>  <span class="c1"># Cannot proceed</span>
+
+    <span class="k">if</span> <span class="n">n_features</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_keys</span><span class="p">)</span> <span class="ow">or</span> <span class="n">n_features</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_weights_vector</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;ERROR: Mismatch in feature counts: Model(</span><span class="si">{</span><span class="n">n_features</span><span class="si">}</span><span class="s2">), Keys(</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">), Weights(</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_weights_vector</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">analysis_results</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model: </span><span class="si">{</span><span class="n">n_states</span><span class="si">}</span><span class="s2"> states, </span><span class="si">{</span><span class="n">n_mix</span><span class="si">}</span><span class="s2"> mixtures, </span><span class="si">{</span><span class="n">n_features</span><span class="si">}</span><span class="s2"> features.&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Features: </span><span class="si">{</span><span class="n">feature_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Weights Applied: </span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">feature_weights_vector</span><span class="p">,</span><span class="w"> </span><span class="mi">4</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="c1"># --- Analyze Learned Parameters (Means, Covariances, Weights) for each Mixture ---</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Analyzing Learned State &amp; Mixture Characteristics...&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span> <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;means_&quot;</span><span class="p">,</span> <span class="s2">&quot;weights_&quot;</span><span class="p">,</span> <span class="s2">&quot;covars_&quot;</span><span class="p">])</span>
+        <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">weights_</span> <span class="ow">is</span> <span class="kc">None</span>
+        <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">covars_</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="s2">&quot;ERROR: Model missing &#39;means_&#39;, &#39;weights_&#39;, or &#39;covars_&#39; attributes. Analysis skipped.&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">analysis_results</span>
+
+    <span class="c1"># Model parameters are in the scaled+weighted space</span>
+    <span class="n">scaled_weighted_means_all</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">means_</span>  <span class="c1"># Shape (n_states, n_mix, n_features)</span>
+    <span class="n">mixture_weights</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">weights_</span>  <span class="c1"># Shape (n_states, n_mix)</span>
+    <span class="n">scaled_weighted_covars_all</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">covars_</span>  <span class="c1"># Shape depends on covariance_type</span>
+
+    <span class="c1"># Validate shapes</span>
+    <span class="k">if</span> <span class="n">scaled_weighted_means_all</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span>
+        <span class="n">n_states</span><span class="p">,</span>
+        <span class="n">n_mix</span><span class="p">,</span>
+        <span class="n">n_features</span><span class="p">,</span>
+    <span class="p">)</span> <span class="ow">or</span> <span class="n">mixture_weights</span><span class="o">.</span><span class="n">shape</span> <span class="o">!=</span> <span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">n_mix</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Unexpected shapes for model means or weights.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">analysis_results</span>
+
+    <span class="c1"># Handle different covariance types to get variances/std_devs</span>
+    <span class="n">scaled_weighted_vars_all</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">covariance_type</span> <span class="o">==</span> <span class="s2">&quot;diag&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">scaled_weighted_covars_all</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">n_mix</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
+            <span class="n">scaled_weighted_vars_all</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">scaled_weighted_covars_all</span>  <span class="c1"># Variances are stored directly</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Unexpected shape for diagonal covariances.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">analysis_results</span>
+    <span class="k">elif</span> <span class="n">model</span><span class="o">.</span><span class="n">covariance_type</span> <span class="o">==</span> <span class="s2">&quot;full&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">scaled_weighted_covars_all</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span>
+            <span class="n">n_states</span><span class="p">,</span>
+            <span class="n">n_mix</span><span class="p">,</span>
+            <span class="n">n_features</span><span class="p">,</span>
+            <span class="n">n_features</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="c1"># Extract diagonal variances from full covariance matrices</span>
+            <span class="n">scaled_weighted_vars_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                <span class="p">[</span>
+                    <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">scaled_weighted_covars_all</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">])</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_mix</span><span class="p">)]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_states</span><span class="p">)</span>
+                <span class="p">]</span>
+            <span class="p">)</span>  <span class="c1"># Shape: (n_states, n_mix, n_features)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR: Unexpected shape for full covariances.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">analysis_results</span>
+    <span class="c1"># Add handling for &#39;tied&#39; or &#39;spherical&#39; if needed, though &#39;diag&#39; is common</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;WARNING: Covariance type &#39;</span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">covariance_type</span><span class="si">}</span><span class="s2">&#39; variance extraction not fully implemented for analysis.&quot;</span>
+        <span class="p">)</span>
+        <span class="c1"># Attempt to use covars directly if shape matches diag, otherwise skip std dev analysis</span>
+        <span class="k">if</span> <span class="n">scaled_weighted_covars_all</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">n_mix</span><span class="p">,</span> <span class="n">n_features</span><span class="p">):</span>
+            <span class="n">scaled_weighted_vars_all</span> <span class="o">=</span> <span class="n">scaled_weighted_covars_all</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">scaled_weighted_vars_all</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Cannot determine variances</span>
+
+    <span class="c1"># --- Process Each State ---</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_states</span><span class="p">):</span>
+        <span class="n">label</span> <span class="o">=</span> <span class="n">int_to_label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;State </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">===== State: &#39;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">&#39; =====&quot;</span><span class="p">)</span>
+
+        <span class="n">state_info</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;name&quot;</span><span class="p">:</span> <span class="n">label</span><span class="p">,</span>
+            <span class="s2">&quot;mixture_details&quot;</span><span class="p">:</span> <span class="p">[],</span>  <span class="c1"># List to hold info for each mixture</span>
+            <span class="s2">&quot;raw_averages&quot;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="p">}</span>
+
+        <span class="c1"># Add raw averages if available</span>
+        <span class="k">if</span> <span class="n">raw_averages</span> <span class="ow">and</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">raw_averages</span><span class="p">:</span>
+            <span class="n">state_info</span><span class="p">[</span><span class="s2">&quot;raw_averages&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">raw_averages</span><span class="p">[</span><span class="n">label</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="p">}</span>
+
+        <span class="c1"># --- Process Each Mixture within the State ---</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_mix</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- Mixture </span><span class="si">{</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
+            <span class="n">mixture_info</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;mixture_index&quot;</span><span class="p">:</span> <span class="n">j</span><span class="p">,</span>
+                <span class="s2">&quot;mixture_weight&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+                <span class="s2">&quot;mean_features_unscaled&quot;</span><span class="p">:</span> <span class="p">{},</span>
+                <span class="s2">&quot;std_dev_features_unscaled&quot;</span><span class="p">:</span> <span class="p">{},</span>
+            <span class="p">}</span>
+
+            <span class="c1"># 1. Mixture Weight</span>
+            <span class="n">mixture_weight</span> <span class="o">=</span> <span class="n">mixture_weights</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="n">mixture_info</span><span class="p">[</span><span class="s2">&quot;mixture_weight&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mixture_weight</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Weight (Prior Probability): </span><span class="si">{</span><span class="n">mixture_weight</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># 2. Mixture Mean (Unscale and Unweight)</span>
+            <span class="n">scaled_weighted_mean_mix</span> <span class="o">=</span> <span class="n">scaled_weighted_means_all</span><span class="p">[</span>
+                <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+            <span class="p">]</span>  <span class="c1"># Shape (n_features,)</span>
+
+            <span class="c1"># Reverse Weighting</span>
+            <span class="n">weights_safe</span> <span class="o">=</span> <span class="n">feature_weights_vector</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">weights_safe</span><span class="p">[</span><span class="n">weights_safe</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># Avoid division by zero</span>
+            <span class="n">scaled_mean_mix</span> <span class="o">=</span> <span class="n">scaled_weighted_mean_mix</span> <span class="o">/</span> <span class="n">weights_safe</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">feature_weights_vector</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;    Warning: Feature weight of 0 detected; unweighted mean value might be inaccurate.&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Reverse Scaling</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c1"># Reshape for scaler (expects 2D array)</span>
+                <span class="n">unscaled_mean_mix</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">inverse_transform</span><span class="p">(</span>
+                    <span class="n">scaled_mean_mix</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Mean Feature Values (Unscaled):&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">feature_keys</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">unscaled_mean_mix</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    - </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">mixture_info</span><span class="p">[</span><span class="s2">&quot;mean_features_unscaled&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    ERROR unscaling mean for mixture </span><span class="si">{</span><span class="n">j</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">mixture_info</span><span class="p">[</span><span class="s2">&quot;mean_features_unscaled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)}</span>
+
+            <span class="c1"># 3. Mixture Standard Deviation (Unscale and Unweight)</span>
+            <span class="k">if</span> <span class="n">scaled_weighted_vars_all</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">scaled_weighted_var_mix</span> <span class="o">=</span> <span class="n">scaled_weighted_vars_all</span><span class="p">[</span>
+                    <span class="n">i</span><span class="p">,</span> <span class="n">j</span>
+                <span class="p">]</span>  <span class="c1"># Shape (n_features,)</span>
+                <span class="c1"># Variance is scaled by weight^2</span>
+                <span class="n">weights_sq_safe</span> <span class="o">=</span> <span class="n">weights_safe</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">scaled_var_mix</span> <span class="o">=</span> <span class="n">scaled_weighted_var_mix</span> <span class="o">/</span> <span class="n">weights_sq_safe</span>
+
+                <span class="c1"># Unscaling variance: var_orig = var_scaled * (scaler_scale**2)</span>
+                <span class="n">scaler_scale_sq</span> <span class="o">=</span> <span class="n">scaler</span><span class="o">.</span><span class="n">scale_</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">unscaled_var_mix</span> <span class="o">=</span> <span class="n">scaled_var_mix</span> <span class="o">*</span> <span class="n">scaler_scale_sq</span>
+
+                <span class="c1"># Get standard deviation (sqrt of variance), handle potential negative variance from numerical issues</span>
+                <span class="n">unscaled_std_dev_mix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                    <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">unscaled_var_mix</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                <span class="p">)</span>  <span class="c1"># Ensure non-negative before sqrt</span>
+
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Feature Standard Deviations (Unscaled):&quot;</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">key</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">feature_keys</span><span class="p">):</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">unscaled_std_dev_mix</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;    - </span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">value</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                    <span class="n">mixture_info</span><span class="p">[</span><span class="s2">&quot;std_dev_features_unscaled&quot;</span><span class="p">][</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;  Feature Standard Deviations: Could not be determined.&quot;</span><span class="p">)</span>
+                <span class="n">mixture_info</span><span class="p">[</span><span class="s2">&quot;std_dev_features_unscaled&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;Could not determine variances&quot;</span>
+                <span class="p">}</span>
+
+            <span class="c1"># Add mixture info to the state&#39;s list</span>
+            <span class="n">state_info</span><span class="p">[</span><span class="s2">&quot;mixture_details&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixture_info</span><span class="p">)</span>
+
+        <span class="c1"># Add the completed state info to the main results</span>
+        <span class="n">analysis_results</span><span class="p">[</span><span class="s2">&quot;states&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">state_info</span><span class="p">)</span>
+
+    <span class="c1"># --- Analyze Transitions (Same as before) ---</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Analyzing Learned Transitions...&quot;</span><span class="p">)</span>
+    <span class="n">transition_info</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;transmat_&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">model</span><span class="o">.</span><span class="n">transmat_</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">transmat_</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">n_states</span><span class="p">,</span> <span class="n">n_states</span><span class="p">):</span>
+            <span class="n">transition_info</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;state_names&quot;</span><span class="p">:</span> <span class="p">[</span>
+                    <span class="n">int_to_label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;State </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_states</span><span class="p">)</span>
+                <span class="p">],</span>
+                <span class="s2">&quot;matrix&quot;</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">transmat_</span><span class="p">,</span>  <span class="c1"># Keep as numpy array for now, convert to list for JSON later</span>
+            <span class="p">}</span>
+            <span class="n">analysis_results</span><span class="p">[</span><span class="s2">&quot;transitions&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">transition_info</span>  <span class="c1"># Store raw matrix for now</span>
+            <span class="p">)</span>
+            <span class="c1"># Print transitions</span>
+            <span class="n">header</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;From </span><span class="se">\\</span><span class="s1"> To&#39;</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2">&quot;</span> <span class="o">+</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+                <span class="p">[</span><span class="sa">f</span><span class="s2">&quot; | </span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">&lt;10</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">transition_info</span><span class="p">[</span><span class="s2">&quot;state_names&quot;</span><span class="p">]]</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">header</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_states</span><span class="p">):</span>
+                <span class="n">row_str</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">transition_info</span><span class="p">[</span><span class="s1">&#39;state_names&#39;</span><span class="p">][</span><span class="n">i</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;12</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_states</span><span class="p">):</span>
+                    <span class="n">row_str</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot; | </span><span class="si">{</span><span class="n">model</span><span class="o">.</span><span class="n">transmat_</span><span class="p">[</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">]</span><span class="si">:</span><span class="s2">&lt;10.3f</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="nb">print</span><span class="p">(</span><span class="n">row_str</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">header</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;WARNING: Transition matrix shape mismatch. Skipping transition analysis.&quot;</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Transition matrix not found in model. Skipping transition analysis.&quot;</span><span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;--- GMMHMM Analysis Complete ---&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">analysis_results</span></div>
+
+
+
+<div class="viewcode-block" id="export_analysis_results">
+<a class="viewcode-back" href="../../_autosummary_generated/gmmhmm/GMMHMM_modules.analysis.html#GMMHMM_modules.analysis.export_analysis_results">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">export_analysis_results</span><span class="p">(</span>
+    <span class="n">analysis_results</span><span class="p">,</span>
+    <span class="n">data_cleaning_info</span><span class="p">,</span>
+    <span class="n">cleaning_settings</span><span class="p">,</span>
+    <span class="n">feature_keys</span><span class="p">,</span>
+    <span class="n">feature_weights_map</span><span class="p">,</span>
+    <span class="n">model_params</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="p">,</span>
+    <span class="n">base_filename</span><span class="p">,</span>
+<span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Exports the model analysis (including mixture details), cleaning info,</span>
+<span class="sd">    and settings to a JSON file.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        analysis_results (dict): Results from analyze_trained_gmmhmm.</span>
+<span class="sd">        data_cleaning_info (dict): Dictionary containing data cleaning summary and details.</span>
+<span class="sd">        cleaning_settings (dict): Dictionary with the cleaning settings used.</span>
+<span class="sd">        feature_keys (list): List of feature names used.</span>
+<span class="sd">        feature_weights_map (dict): Dictionary of feature weights used.</span>
+<span class="sd">        model_params (dict): Dictionary containing HMM parameters (n_mix, min_covar, etc.).</span>
+<span class="sd">        output_dir (str): Directory to save the JSON file.</span>
+<span class="sd">        base_filename (str): Base name for the output file (e.g., &quot;gmmhmm_10f_3m&quot;).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str or None: Path to the exported JSON file, or None on failure.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">--- Exporting Detailed Analysis Results ---&quot;</span><span class="p">)</span>
+    <span class="n">output_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">base_filename</span><span class="si">}</span><span class="s2">_analysis.json&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Create the full export data structure</span>
+    <span class="n">export_data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;export_timestamp&quot;</span><span class="p">:</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span>
+        <span class="s2">&quot;model_base_name&quot;</span><span class="p">:</span> <span class="n">base_filename</span><span class="p">,</span>
+        <span class="s2">&quot;configuration&quot;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s2">&quot;feature_keys&quot;</span><span class="p">:</span> <span class="n">feature_keys</span><span class="p">,</span>
+            <span class="s2">&quot;feature_weights&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="n">k</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">feature_weights_map</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+            <span class="p">},</span>  <span class="c1"># Ensure float</span>
+            <span class="s2">&quot;model_parameters&quot;</span><span class="p">:</span> <span class="n">model_params</span><span class="p">,</span>
+            <span class="s2">&quot;data_cleaning_settings&quot;</span><span class="p">:</span> <span class="n">cleaning_settings</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="s2">&quot;analysis&quot;</span><span class="p">:</span> <span class="n">analysis_results</span><span class="p">,</span>  <span class="c1"># Contains states (with mixture_details) and transitions</span>
+        <span class="s2">&quot;data_cleaning_report&quot;</span><span class="p">:</span> <span class="n">data_cleaning_info</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Convert numpy arrays in transitions matrix to lists for JSON compatibility</span>
+    <span class="c1"># (np_encoder handles arrays within mixture details now)</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">export_data</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">]</span>
+        <span class="ow">and</span> <span class="s2">&quot;transitions&quot;</span> <span class="ow">in</span> <span class="n">export_data</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">]</span>
+        <span class="ow">and</span> <span class="n">export_data</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;transitions&quot;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">export_data</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;transitions&quot;</span><span class="p">][</span><span class="s2">&quot;matrix&quot;</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="n">export_data</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;transitions&quot;</span><span class="p">][</span><span class="s2">&quot;matrix&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">export_data</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span>
+                <span class="s2">&quot;transitions&quot;</span>
+            <span class="p">][</span><span class="s2">&quot;matrix&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+    <span class="c1"># Save to file using the custom encoder</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>  <span class="c1"># Ensure directory exists</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="c1"># Use the custom encoder which handles numpy types within the nested structure</span>
+            <span class="n">json</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">export_data</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">indent</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">np_encoder</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Detailed analysis results successfully exported to: </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">output_path</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">te</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">ERROR: Failed to serialize detailed analysis results to JSON: </span><span class="si">{</span><span class="n">te</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot; -&gt; Check for non-standard data types in the results.&quot;</span><span class="p">)</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">ERROR: Failed to write detailed analysis results file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

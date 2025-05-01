@@ -1,0 +1,6 @@
+[pydeps]
+# Simplify the output visualization
+output = deps.svg
+max_bacon = 2         # Limit dependency depth to make graph smaller
+rankdir = TB          # Top to bottom layout is often clearer
+exclude = __pycache__, completed_analyses

@@ -1,0 +1,192 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GMMHMM_modules.hmm_model &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=12958129"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">GMMHMM_modules.hmm_model</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../../_sources/_autosummary_generated/gmmhmm  " rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-GMMHMM_modules.hmm_model">
+<span id="gmmhmm-modules-hmm-model"></span><h1>GMMHMM_modules.hmm_model<a class="headerlink" href="#module-GMMHMM_modules.hmm_model" title="Link to this heading"></a></h1>
+<p class="rubric">Functions</p>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="../gmmhmm/GMMHMM_modules.hmm_model.html#GMMHMM_modules.hmm_model.prepare_multi_feature_data" title="GMMHMM_modules.hmm_model.prepare_multi_feature_data"><code class="xref py py-obj docutils literal notranslate"><span class="pre">prepare_multi_feature_data</span></code></a>(...)</p></td>
+<td><p>Processes loaded track data to extract features, clean, scale, and prepare for HMM.</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="../gmmhmm/GMMHMM_modules.hmm_model.html#GMMHMM_modules.hmm_model.train_gmmhmm" title="GMMHMM_modules.hmm_model.train_gmmhmm"><code class="xref py py-obj docutils literal notranslate"><span class="pre">train_gmmhmm</span></code></a>(X_scaled, feature_weights_map, ...)</p></td>
+<td><p>Applies weights and trains a GMMHMM model.</p></td>
+</tr>
+</tbody>
+</table>
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM_modules.hmm_model.prepare_multi_feature_data">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM_modules.hmm_model.</span></span><span class="sig-name descname"><span class="pre">prepare_multi_feature_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">all_track_data_with_filenames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cleaning_settings</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM_modules/hmm_model.html#prepare_multi_feature_data"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM_modules.hmm_model.prepare_multi_feature_data" title="Link to this definition"></a></dt>
+<dd><p>Processes loaded track data to extract features, clean, scale, and prepare for HMM.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>all_track_data_with_filenames</strong> (<em>list</em>) – List of tuples, where each tuple
+contains (filename, data_dict).</p></li>
+<li><p><strong>feature_keys</strong> (<em>list</em>) – List of feature names (strings) to use, e.g.,
+[‘spectral_contrast_mean’, ‘chroma_std’].</p></li>
+<li><p><strong>cleaning_settings</strong> (<em>dict</em>) – Dictionary with cleaning parameters. Keys include:
+- ‘enable_outlier_removal’ (bool): Whether to remove outliers.
+- ‘outlier_z_threshold’ (float or None): Z-score threshold for outliers.
+- ‘enable_short_section_removal’ (bool): Whether to remove short sections.
+- ‘short_section_min_bars’ (float or None): Minimum bars for short sections.
+- ‘enable_consistency_filtering’ (bool): Whether to filter based on consistency.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>On success, returns a tuple containing the following elements
+in order:</p>
+<ol class="arabic simple">
+<li><p><strong>X_scaled</strong> (np.ndarray): Scaled feature array (not weighted yet).</p></li>
+<li><p><strong>sequence_lengths</strong> (list): List of sequence lengths for HMM input.</p></li>
+<li><p><strong>int_to_label</strong> (dict): Map from HMM state integer index to label name (str).</p></li>
+<li><p><strong>label_to_int</strong> (dict): Map from label name (str) to HMM state integer index.</p></li>
+<li><p><strong>scaler_multi</strong> (StandardScaler): Fitted scikit-learn StandardScaler object.</p></li>
+<li><p><strong>data_cleaning_info</strong> (dict): Information about data cleaning steps performed.</p></li>
+<li><p><strong>raw_averages</strong> (dict): Raw feature averages by label before scaling.</p></li>
+</ol>
+<p>Returns None on critical failure (e.g., no valid data after cleaning).</p>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="GMMHMM_modules.hmm_model.train_gmmhmm">
+<span class="sig-prename descclassname"><span class="pre">GMMHMM_modules.hmm_model.</span></span><span class="sig-name descname"><span class="pre">train_gmmhmm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X_scaled</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_weights_map</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_keys</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lengths</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_states</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_mix</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">min_covar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transmat_prior</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/GMMHMM_modules/hmm_model.html#train_gmmhmm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#GMMHMM_modules.hmm_model.train_gmmhmm" title="Link to this definition"></a></dt>
+<dd><p>Applies weights and trains a GMMHMM model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X_scaled</strong> (<em>np.ndarray</em>) – The scaled multi-feature data (n_observations, n_features).</p></li>
+<li><p><strong>feature_weights_map</strong> (<em>dict</em>) – Dictionary mapping feature keys to their weights.</p></li>
+<li><p><strong>feature_keys</strong> (<em>list</em>) – Ordered list of feature keys corresponding to columns in X_scaled.</p></li>
+<li><p><strong>lengths</strong> (<em>list</em>) – List of sequence lengths.</p></li>
+<li><p><strong>n_states</strong> (<em>int</em>) – The number of hidden states (labels).</p></li>
+<li><p><strong>n_mix</strong> (<em>int</em>) – The number of Gaussian mixtures per state.</p></li>
+<li><p><strong>min_covar</strong> (<em>float</em>) – Minimum covariance value for regularization.</p></li>
+<li><p><strong>transmat_prior</strong> (<em>np.ndarray</em><em>, </em><em>optional</em>) – Pre-calculated transition matrix to initialize with.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>(trained_model (hmm.GMMHMM or None), feature_weight_vector (np.ndarray))</dt><dd><p>Returns None for model if training fails.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

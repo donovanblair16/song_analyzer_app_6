@@ -1,0 +1,577 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>hmm_predictor &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=12958129"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">Module code</a></li>
+      <li class="breadcrumb-item active">hmm_predictor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for hmm_predictor</h1><div class="highlight"><pre>
+<span></span><span class="c1"># =============================================================================</span>
+<span class="c1"># FILE: hmm_predictor.py</span>
+<span class="c1"># Contains the HMMPredictor class for loading a trained HMM (Gaussian or GMMHMM)</span>
+<span class="c1"># and predicting section labels for new tracks using multiple features.</span>
+<span class="c1"># Uses a fixed color map for HMM prediction results.</span>
+<span class="c1"># FIXED: Changed key for loading feature weights to &#39;feature_weights_vector&#39;.</span>
+<span class="c1"># =============================================================================</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">joblib</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">traceback</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">tkinter</span><span class="w"> </span><span class="kn">import</span> <span class="n">messagebox</span>  <span class="c1"># For showing errors if model loading fails</span>
+
+<span class="c1"># Attempt to import necessary components from other modules</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># This function should return (list_of_dictionaries, list_of_labels)</span>
+    <span class="c1"># The dictionaries MUST contain keys matching FEATURE_KEYS loaded from aux data.</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">audio_analysis_wrapper</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+        <span class="c1"># load_and_preprocess, # Not directly used by predictor</span>
+        <span class="c1"># detect_sections, # Not directly used by predictor</span>
+        <span class="c1"># analyze_chroma_and_clusters, # Not directly used by predictor</span>
+        <span class="c1"># analyze_stereo_and_hpss, # Not directly used by predictor</span>
+        <span class="c1"># results_on_failure, # Not directly used by predictor</span>
+        <span class="c1"># calculate_bar_features, # Not directly used by predictor</span>
+        <span class="n">extract_section_features</span><span class="p">,</span>  <span class="c1"># Crucial for getting features</span>
+    <span class="p">)</span>
+
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="s2">&quot;Successfully imported &#39;extract_section_features&#39; from &#39;audio_analysis_wrapper&#39;.&quot;</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR importing required modules in hmm_predictor.py: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+        <span class="s2">&quot;Import Error&quot;</span><span class="p">,</span> <span class="s2">&quot;HMMPredictor failed to import &#39;extract_section_features&#39;.&quot;</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Define dummy function if necessary for structure testing</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">extract_section_features</span><span class="p">(</span><span class="n">track_data</span><span class="p">):</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Using DUMMY extract_section_features in predictor!&quot;</span><span class="p">)</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s2">&quot;semantic_labels&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;Intro&quot;</span><span class="p">,</span> <span class="s2">&quot;Drop&quot;</span><span class="p">,</span> <span class="s2">&quot;Outro&quot;</span><span class="p">,</span> <span class="s2">&quot;Fill&quot;</span><span class="p">,</span> <span class="s2">&quot;Drop&quot;</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="c1"># Dummy must provide expected keys (adapt if needed based on loaded feature_keys)</span>
+        <span class="n">features</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;avg_rms&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(),</span>
+                <span class="s2">&quot;relative_rms&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(),</span>
+                <span class="s2">&quot;relative_position&quot;</span><span class="p">:</span> <span class="n">i</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">labels</span><span class="p">),</span>
+                <span class="s2">&quot;low_energy_norm&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(),</span>
+                <span class="s2">&quot;rms_std_dev_section&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">,</span>
+                <span class="s2">&quot;centroid_std_dev_section&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s2">&quot;delta_rms&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.1</span><span class="p">,</span>
+                <span class="s2">&quot;delta_centroid&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">,</span>
+                <span class="s2">&quot;rms_trend&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.05</span><span class="p">,</span>
+                <span class="s2">&quot;crest_factor&quot;</span><span class="p">:</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">*</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="s2">&quot;spectral_centroid_slope&quot;</span><span class="p">:</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">)</span> <span class="o">*</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">labels</span>
+
+
+<span class="c1"># Define the fixed color map specifically for HMM results visualization</span>
+<span class="n">HMM_PURPLE_COLOR</span> <span class="o">=</span> <span class="s2">&quot;#8A2BE2&quot;</span>  <span class="c1"># Define Purple locally for clarity</span>
+<span class="n">HMM_RESULT_COLOR_MAP</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;Intro&quot;</span><span class="p">:</span> <span class="s2">&quot;#FF0000&quot;</span><span class="p">,</span>  <span class="c1"># Red</span>
+    <span class="s2">&quot;Outro&quot;</span><span class="p">:</span> <span class="s2">&quot;#FF0000&quot;</span><span class="p">,</span>  <span class="c1"># Red</span>
+    <span class="s2">&quot;Body&quot;</span><span class="p">:</span> <span class="s2">&quot;#014421&quot;</span><span class="p">,</span>  <span class="c1"># Dark Green</span>
+    <span class="s2">&quot;Build&quot;</span><span class="p">:</span> <span class="s2">&quot;#FFA500&quot;</span><span class="p">,</span>  <span class="c1"># Orange</span>
+    <span class="s2">&quot;Drop&quot;</span><span class="p">:</span> <span class="s2">&quot;#8B0000&quot;</span><span class="p">,</span>  <span class="c1"># Dark Red</span>
+    <span class="s2">&quot;Breakdown&quot;</span><span class="p">:</span> <span class="s2">&quot;#ADD8E6&quot;</span><span class="p">,</span>  <span class="c1"># Light Blue</span>
+    <span class="s2">&quot;Fill&quot;</span><span class="p">:</span> <span class="n">HMM_PURPLE_COLOR</span><span class="p">,</span>  <span class="c1"># Purple (May occur if original section was Fill)</span>
+    <span class="s2">&quot;Fade Out&quot;</span><span class="p">:</span> <span class="n">HMM_PURPLE_COLOR</span><span class="p">,</span>  <span class="c1"># Purple (Shouldn&#39;t be predicted by HMM)</span>
+    <span class="s2">&quot;Unknown&quot;</span><span class="p">:</span> <span class="n">HMM_PURPLE_COLOR</span><span class="p">,</span>  <span class="c1"># Purple (If prediction fails for a state)</span>
+<span class="p">}</span>
+<span class="n">HMM_FALLBACK_COLOR</span> <span class="o">=</span> <span class="n">HMM_PURPLE_COLOR</span>  <span class="c1"># Purple for any other unexpected labels</span>
+
+
+<div class="viewcode-block" id="HMMPredictor">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/hmm_predictor.html#hmm_predictor.HMMPredictor">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">HMMPredictor</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Handles loading the trained HMM model (Gaussian or GMM) and auxiliary data,</span>
+<span class="sd">    and predicting section labels for new tracks using multiple features.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="HMMPredictor.__init__">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/hmm_predictor.html#hmm_predictor.HMMPredictor.__init__">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_path</span><span class="p">,</span> <span class="n">aux_data_path</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializes the predictor.</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            model_path (str): Path to the saved HMM model (.joblib).</span>
+<span class="sd">            aux_data_path (str): Path to the saved auxiliary data (map, scaler, keys, weights etc.) (.joblib).</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model_path</span> <span class="o">=</span> <span class="n">model_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">aux_data_path</span> <span class="o">=</span> <span class="n">aux_data_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="c1"># Attributes to load from aux_data</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Scaler fitted on multiple features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">int_to_label</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Map from state index to label name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># List of feature keys used during training (in order)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="kc">None</span>  <span class="c1"># Numpy array of weights applied &lt;&lt;&lt; Will be loaded now</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">labels_ignored</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># List of labels ignored during training</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">is_loaded</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;HMMPredictor initialized. Model path: </span><span class="si">{</span><span class="n">model_path</span><span class="si">}</span><span class="s2">, Aux path: </span><span class="si">{</span><span class="n">aux_data_path</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="HMMPredictor.load_model">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/hmm_predictor.html#hmm_predictor.HMMPredictor.load_model">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">load_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads the HMM model and auxiliary data from files.&quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_loaded</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Model and aux data already loaded.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Attempting to load HMM model and aux data...&quot;</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Check if files exist</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;HMM model file not found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_data_path</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;HMM aux data file not found: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_data_path</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Load the HMM model object (works for GaussianHMM or GMMHMM)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model_path</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Model loaded. Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Load the auxiliary data dictionary</span>
+            <span class="n">aux_data</span> <span class="o">=</span> <span class="n">joblib</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">aux_data_path</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Aux data loaded. Keys: </span><span class="si">{</span><span class="nb">list</span><span class="p">(</span><span class="n">aux_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># Extract required components from aux_data, looking for multi-feature keys</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">int_to_label</span> <span class="o">=</span> <span class="n">aux_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;int_to_label&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span> <span class="o">=</span> <span class="n">aux_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;scaler_multi&quot;</span>
+            <span class="p">)</span>  <span class="c1"># Load the multi-feature scaler</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span> <span class="o">=</span> <span class="n">aux_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;feature_keys&quot;</span>
+            <span class="p">)</span>  <span class="c1"># Load the list of feature keys</span>
+            <span class="c1"># &lt;&lt;&lt; FIX: Load using the correct key from the trainer script &gt;&gt;&gt;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span> <span class="o">=</span> <span class="n">aux_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_weights_vector&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">labels_ignored</span> <span class="o">=</span> <span class="n">aux_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+                <span class="s2">&quot;labels_ignored&quot;</span><span class="p">,</span> <span class="p">[]</span>
+            <span class="p">)</span>  <span class="c1"># Load ignored labels</span>
+
+            <span class="c1"># Validate that all necessary components were loaded</span>
+            <span class="n">missing</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;model&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;scaler_multi&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">int_to_label</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;int_to_label map&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;feature_keys list&quot;</span><span class="p">)</span>
+            <span class="c1"># &lt;&lt;&lt; FIX: Check the correct variable name &gt;&gt;&gt;</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">missing</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot;feature_weights_vector array&quot;</span>
+                <span class="p">)</span>  <span class="c1"># Updated error message slightly</span>
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>  <span class="c1"># Check if the list is not empty</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Loaded HMM auxiliary data is incomplete (</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">missing</span><span class="p">)</span><span class="si">}</span><span class="s2"> missing).&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># Validate scaler and weights</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span><span class="p">,</span> <span class="s2">&quot;transform&quot;</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+                    <span class="s2">&quot;Loaded &#39;scaler_multi&#39; object does not have a &#39;transform&#39; method.&quot;</span>
+                <span class="p">)</span>
+            <span class="c1"># &lt;&lt;&lt; FIX: Check the correct variable name &gt;&gt;&gt;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Loaded &#39;feature_weights_vector&#39; is not a NumPy array.&quot;</span><span class="p">)</span>
+            <span class="c1"># &lt;&lt;&lt; FIX: Check the correct variable name &gt;&gt;&gt;</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Mismatch between feature_keys (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">) and feature_weights_vector (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
+            <span class="c1"># Check model&#39;s expected feature count if possible (might not exist pre-predict)</span>
+            <span class="c1"># Use n_features_in_ if available (hmmlearn &gt;= 0.3.0)</span>
+            <span class="n">model_n_features</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;n_features_in_&quot;</span><span class="p">):</span>
+                <span class="n">model_n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">n_features_in_</span>
+            <span class="k">elif</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;n_features&quot;</span><span class="p">):</span>  <span class="c1"># Older attribute name</span>
+                <span class="n">model_n_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">n_features</span>
+
+            <span class="k">if</span> <span class="n">model_n_features</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">model_n_features</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Mismatch between model&#39;s expected features (</span><span class="si">{</span><span class="n">model_n_features</span><span class="si">}</span><span class="s2">) and loaded feature_keys (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">)</span><span class="si">}</span><span class="s2">).&quot;</span>
+                <span class="p">)</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;DEBUG HMMPredictor: HMM model and multi-feature aux data loaded successfully.&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># Print loaded parameters for verification</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Loaded Feature Keys: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot; -&gt; Loaded Feature Weights: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>  <span class="c1"># Uses the loaded attribute</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Loaded Scaler Means: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span><span class="o">.</span><span class="n">mean_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Loaded Scaler Scales: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span><span class="o">.</span><span class="n">scale_</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Loaded Label Map: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">int_to_label</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Loaded Ignored Labels: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">labels_ignored</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_loaded</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">return</span> <span class="kc">True</span>
+
+        <span class="k">except</span> <span class="ne">FileNotFoundError</span> <span class="k">as</span> <span class="n">fnf_err</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;HMM Load Error&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;Could not find required HMM file(s):</span><span class="se">\n</span><span class="si">{</span><span class="n">fnf_err</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">Please ensure the model was trained and files exist.&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: </span><span class="si">{</span><span class="n">fnf_err</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_loaded</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="kc">False</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;HMM Load Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;An error occurred while loading HMM files:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR loading HMM files: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">is_loaded</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="HMMPredictor.predict">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/hmm_predictor.html#hmm_predictor.HMMPredictor.predict">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track_data</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Runs HMM prediction on the provided track data using multiple features</span>
+<span class="sd">        defined during training (e.g., RMS, position, low-end).</span>
+
+<span class="sd">        Args:</span>
+<span class="sd">            track_data (dict): The dictionary containing analysis results for the track.</span>
+<span class="sd">                               Must contain data needed by extract_section_features.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (hmm_section_starts, hmm_semantic_labels, hmm_label_colors) on success,</span>
+<span class="sd">                   or None on failure. Returns ([], [], []) if no valid sections found.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_loaded</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR HMMPredictor: Model not loaded. Cannot predict.&quot;</span><span class="p">)</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;HMM Error&quot;</span><span class="p">,</span> <span class="s2">&quot;HMM Model not loaded. Cannot predict.&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># Indicate failure clearly</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">DEBUG HMMPredictor: Running prediction...&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">:</span>  <span class="c1"># Check if feature keys were loaded</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;ERROR HMMPredictor: Feature keys not loaded. Cannot prepare data.&quot;</span><span class="p">)</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;HMM Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Feature keys missing from loaded HMM data.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+        <span class="c1"># &lt;&lt;&lt; FIX: Check the correct variable name &gt;&gt;&gt;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;ERROR HMMPredictor: Feature weights not loaded correctly (not an array).&quot;</span>
+            <span class="p">)</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;HMM Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Feature weights missing or invalid in loaded HMM data.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">n_features</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Expecting </span><span class="si">{</span><span class="n">n_features</span><span class="si">}</span><span class="s2"> features: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># 1. Extract Section Feature Dictionaries and Original Labels</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Calling extract_section_features...&quot;</span><span class="p">)</span>
+            <span class="c1"># extract_section_features should return list[dict], list[str]</span>
+            <span class="c1"># The dicts must contain the keys listed in self.feature_keys</span>
+            <span class="n">section_feature_dicts</span><span class="p">,</span> <span class="n">original_section_labels</span> <span class="o">=</span> <span class="n">extract_section_features</span><span class="p">(</span>
+                <span class="n">track_data</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">section_feature_dicts</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">original_section_labels</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Warning HMMPredictor: extract_section_features returned no data.&quot;</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>  <span class="c1"># Return empty lists if no sections extracted</span>
+
+            <span class="c1"># Also need original section start times for alignment later</span>
+            <span class="n">original_section_starts</span> <span class="o">=</span> <span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;section_starts&quot;</span><span class="p">,</span> <span class="p">[])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">original_section_starts</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">section_feature_dicts</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Warning HMMPredictor: Mismatch between section_starts (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">original_section_starts</span><span class="p">)</span><span class="si">}</span><span class="s2">) and extracted features (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">section_feature_dicts</span><span class="p">)</span><span class="si">}</span><span class="s2">). Alignment might be imperfect.&quot;</span>
+                <span class="p">)</span>
+                <span class="c1"># Proceed cautiously, alignment logic below handles this</span>
+
+            <span class="c1"># 2. Prepare the multi-feature sequence for the HMM</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Preparing </span><span class="si">{</span><span class="n">n_features</span><span class="si">}</span><span class="s2">-feature sequence...&quot;</span><span class="p">)</span>
+            <span class="n">feature_vectors_for_hmm</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">indices_of_kept_sections</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="p">[]</span>
+            <span class="p">)</span>  <span class="c1"># Keep track of which original sections we use</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">feature_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">section_feature_dicts</span><span class="p">):</span>
+                <span class="c1"># Basic check if it&#39;s a dictionary</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">feature_dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot; -&gt; Warning: Skipping section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">, item from extract_section_features is not a dict.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Get label safely, default to empty string if index out of bounds</span>
+                <span class="n">label</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">original_section_labels</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">original_section_labels</span><span class="p">)</span>
+                    <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+                <span class="p">)</span>
+
+                <span class="c1"># Skip sections with ignored labels (use loaded ignored labels)</span>
+                <span class="k">if</span> <span class="n">label</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels_ignored</span><span class="p">:</span>
+                    <span class="k">continue</span>
+
+                <span class="c1"># Extract the required features in the correct order</span>
+                <span class="n">current_feature_vector</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">valid_section</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_keys</span><span class="p">:</span>  <span class="c1"># Use loaded feature keys</span>
+                    <span class="n">value</span> <span class="o">=</span> <span class="n">feature_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="c1"># Check if feature exists and is finite</span>
+                    <span class="c1"># Use explicit float conversion to handle potential numpy types</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">float_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">float_val</span><span class="p">):</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Value is None or non-finite&quot;</span><span class="p">)</span>
+                        <span class="n">current_feature_vector</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">float_val</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="ne">TypeError</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">):</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Skipping section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (Label: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">): Missing or non-finite value for feature &#39;</span><span class="si">{</span><span class="n">key</span><span class="si">}</span><span class="s2">&#39;. Value: </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2"> (Type: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+                        <span class="p">)</span>
+                        <span class="n">valid_section</span> <span class="o">=</span> <span class="kc">False</span>
+                        <span class="k">break</span>  <span class="c1"># Stop processing features for this section</span>
+
+                <span class="c1"># If all features were valid, keep the vector and original index</span>
+                <span class="k">if</span> <span class="n">valid_section</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">current_feature_vector</span><span class="p">)</span> <span class="o">==</span> <span class="n">n_features</span><span class="p">:</span>
+                        <span class="n">feature_vectors_for_hmm</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">current_feature_vector</span><span class="p">)</span>
+                        <span class="n">indices_of_kept_sections</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>  <span class="c1"># Should not happen if loop logic is correct</span>
+                        <span class="nb">print</span><span class="p">(</span>
+                            <span class="sa">f</span><span class="s2">&quot; -&gt; WARNING: Skipping section </span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2"> (Label: </span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="s2">): Incorrect feature vector length (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">current_feature_vector</span><span class="p">)</span><span class="si">}</span><span class="s2"> vs </span><span class="si">{</span><span class="n">n_features</span><span class="si">}</span><span class="s2">).&quot;</span>
+                        <span class="p">)</span>
+
+            <span class="c1"># Check if any valid feature vectors were found</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">feature_vectors_for_hmm</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Warning HMMPredictor: No valid feature vectors found in track sections after filtering.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">messagebox</span><span class="o">.</span><span class="n">showwarning</span><span class="p">(</span>
+                    <span class="s2">&quot;HMM Warning&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;No valid sections found for HMM prediction in this track.&quot;</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">return</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>  <span class="c1"># Return empty lists</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Kept </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_vectors_for_hmm</span><span class="p">)</span><span class="si">}</span><span class="s2"> sections for HMM input.&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Convert list of vectors to NumPy array</span>
+            <span class="n">X_raw</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">feature_vectors_for_hmm</span><span class="p">)</span>
+            <span class="c1"># Ensure shape is (n_sections, n_features)</span>
+            <span class="k">if</span> <span class="n">X_raw</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span> <span class="ow">or</span> <span class="n">X_raw</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n_features</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;Prepared feature array has unexpected shape: </span><span class="si">{</span><span class="n">X_raw</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">. Expected (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">feature_vectors_for_hmm</span><span class="p">)</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">n_features</span><span class="si">}</span><span class="s2">)&quot;</span>
+                <span class="p">)</span>
+
+            <span class="c1"># 3. Scale Features using the loaded multi-feature scaler</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Scaling features...&quot;</span><span class="p">)</span>
+            <span class="n">X_scaled</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler_multi</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">X_raw</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Scaled features shape: </span><span class="si">{</span><span class="n">X_scaled</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># 4. Apply Weights using loaded weights</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Applying feature weights (</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span><span class="si">}</span><span class="s2">)...&quot;</span>
+            <span class="p">)</span>
+            <span class="c1"># &lt;&lt;&lt; FIX: Check the correct variable name &gt;&gt;&gt;</span>
+            <span class="n">X_predict</span> <span class="o">=</span> <span class="n">X_scaled</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">feature_weights</span>  <span class="c1"># Element-wise multiplication</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot; -&gt; Final feature shape for prediction: </span><span class="si">{</span><span class="n">X_predict</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+            <span class="c1"># 5. Predict States using the loaded HMM model</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Running HMM model.predict()...&quot;</span><span class="p">)</span>
+            <span class="c1"># model.predict expects (n_samples, n_features)</span>
+            <span class="n">predicted_states_int</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">X_predict</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Predicted </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">predicted_states_int</span><span class="p">)</span><span class="si">}</span><span class="s2"> states.&quot;</span><span class="p">)</span>
+
+            <span class="c1"># 6. Map Predicted State Indices to Labels</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Mapping predicted states to labels...&quot;</span><span class="p">)</span>
+            <span class="n">predicted_labels</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">int_to_label</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">state_int</span><span class="p">,</span> <span class="s2">&quot;Unknown&quot;</span><span class="p">)</span>  <span class="c1"># Use loaded map</span>
+                <span class="k">for</span> <span class="n">state_int</span> <span class="ow">in</span> <span class="n">predicted_states_int</span>
+            <span class="p">]</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Predicted label counts: </span><span class="si">{</span><span class="n">Counter</span><span class="p">(</span><span class="n">predicted_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+            <span class="c1"># 7. Generate Colors for Predicted Labels</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMMPredictor: Generating colors...&quot;</span><span class="p">)</span>
+            <span class="n">predicted_colors</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">HMM_RESULT_COLOR_MAP</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">HMM_FALLBACK_COLOR</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">label</span> <span class="ow">in</span> <span class="n">predicted_labels</span>
+            <span class="p">]</span>
+
+            <span class="c1"># 8. Align predictions back to original section starts</span>
+            <span class="c1"># Use the indices of the sections we actually processed</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;DEBUG HMMPredictor: Aligning predictions to original section starts...&quot;</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">original_section_starts</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="s2">&quot;Warning HMMPredictor: Original &#39;section_starts&#39; not found in track_data. Cannot return aligned starts.&quot;</span>
+                <span class="p">)</span>
+                <span class="n">hmm_section_starts</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_labels</span><span class="p">)</span>  <span class="c1"># Placeholder starts</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Select the start times corresponding to the sections used for prediction</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">hmm_section_starts</span> <span class="o">=</span> <span class="p">[</span>
+                        <span class="n">original_section_starts</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices_of_kept_sections</span>
+                    <span class="p">]</span>
+                <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span>
+                        <span class="s2">&quot;ERROR HMMPredictor: Index error during alignment. Mismatch between original_section_starts and kept indices.&quot;</span>
+                    <span class="p">)</span>
+                    <span class="c1"># Fallback or error handling needed</span>
+                    <span class="n">hmm_section_starts</span> <span class="o">=</span> <span class="n">original_section_starts</span><span class="p">[</span>
+                        <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_labels</span><span class="p">)</span>
+                    <span class="p">]</span>  <span class="c1"># Basic fallback</span>
+
+            <span class="c1"># Ensure lengths match after alignment (should unless error above)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">hmm_section_starts</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_labels</span><span class="p">):</span>
+                <span class="nb">print</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;ERROR HMMPredictor: Final length mismatch after alignment! Starts: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hmm_section_starts</span><span class="p">)</span><span class="si">}</span><span class="s2">, Labels: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">predicted_labels</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+                <span class="c1"># Handle error: e.g., truncate to shortest length</span>
+                <span class="n">min_final_len</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">hmm_section_starts</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">predicted_labels</span><span class="p">))</span>
+                <span class="n">hmm_section_starts</span> <span class="o">=</span> <span class="n">hmm_section_starts</span><span class="p">[:</span><span class="n">min_final_len</span><span class="p">]</span>
+                <span class="n">predicted_labels</span> <span class="o">=</span> <span class="n">predicted_labels</span><span class="p">[:</span><span class="n">min_final_len</span><span class="p">]</span>
+                <span class="n">predicted_colors</span> <span class="o">=</span> <span class="n">predicted_colors</span><span class="p">[:</span><span class="n">min_final_len</span><span class="p">]</span>
+
+            <span class="n">hmm_semantic_labels</span> <span class="o">=</span> <span class="n">predicted_labels</span>
+            <span class="n">hmm_label_colors</span> <span class="o">=</span> <span class="n">predicted_colors</span>
+
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;DEBUG HMMPredictor: Prediction successful. Returning </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">hmm_semantic_labels</span><span class="p">)</span><span class="si">}</span><span class="s2"> sections.&quot;</span>
+            <span class="p">)</span>
+            <span class="k">return</span> <span class="n">hmm_section_starts</span><span class="p">,</span> <span class="n">hmm_semantic_labels</span><span class="p">,</span> <span class="n">hmm_label_colors</span>
+
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Catch-all for any unexpected errors during prediction</span>
+            <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span>
+                <span class="s2">&quot;HMM Prediction Error&quot;</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;An unexpected error occurred during HMM prediction:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR during HMM prediction: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="k">return</span> <span class="kc">None</span>  <span class="c1"># Indicate failure</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
