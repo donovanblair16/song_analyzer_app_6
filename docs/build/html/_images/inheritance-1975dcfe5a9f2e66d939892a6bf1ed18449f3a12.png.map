@@ -1,0 +1,11 @@
+<map id="inheritancec0930200a4" name="inheritancec0930200a4">
+<area shape="rect" id="node1" href="_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp" target="_top" title="Main application class for the Audio Analyzer Tool GUI." alt="" coords="10,157,138,184"/>
+<area shape="rect" id="node2" title="Internal class." alt="" coords="191,107,283,133"/>
+<area shape="rect" id="node6" title="Toplevel widget, e.g. for dialogs." alt="" coords="331,81,403,108"/>
+<area shape="rect" id="node3" title="Internal class." alt="" coords="38,107,110,133"/>
+<area shape="rect" id="node4" href="_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp" target="_top" title="A GUI application to scan analysis files for sections meeting specific" alt="" coords="14,56,134,83"/>
+<area shape="rect" id="node5" href="_autosummary_generated/gmmhmm/GMMHMM_modules.gui.html#GMMHMM_modules.gui.FeatureSelectionDialog" target="_top" title="A Tkinter dialog for selecting features, weights, HMM parameters," alt="" coords="451,56,607,83"/>
+<area shape="rect" id="node7" href="_autosummary_generated/gmmhmm/GMMHMM_modules.gui.html#GMMHMM_modules.gui.ModelAnalysisDialog" target="_top" title="A Tkinter dialog to display the results of the GMMHMM analysis," alt="" coords="458,107,601,133"/>
+<area shape="rect" id="node8" title="Provides functions for the communication with the window manager." alt="" coords="201,56,273,83"/>
+<area shape="rect" id="node9" href="_autosummary_generated/utils/find_outro_problem.TransitionFinderApp.html#find_outro_problem.TransitionFinderApp" target="_top" title="A GUI application to scan analysis files for specific label transitions" alt="" coords="5,5,143,32"/>
+</map>

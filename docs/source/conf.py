@@ -37,6 +37,8 @@ extensions = [
     "sphinx.ext.napoleon",  # Support for Google and NumPy style docstrings
     "sphinx.ext.viewcode",  # Add links to highlighted source code
     "sphinx.ext.autosummary",  # Generate summary tables for modules
+    "sphinx.ext.inheritance_diagram",  # Generate class inheritance diagrams (needs Graphviz)
+    "sphinx.ext.graphviz",  # Embed Graphviz DOT language diagrams (needs Graphviz)
     # Add other extensions here if needed, e.g. 'sphinx.ext.githubpages'
 ]
 
@@ -48,7 +50,7 @@ napoleon_google_docstring = True  # Set to True if using Google style docstrings
 napoleon_numpy_docstring = False  # Set to False if using Google style docstrings
 napoleon_include_init_with_doc = True  # Include docstrings for __init__ methods
 
-# Autodoc default settings (ADDED)
+# Autodoc default settings
 # This ensures that members (methods, etc.) are documented by default
 # when autosummary generates stub pages for classes/modules.
 autodoc_default_options = {
@@ -75,10 +77,14 @@ exclude_patterns = []
 # a list of builtin themes.
 #
 html_theme = "sphinx_rtd_theme"
-# Commenting out the duplicate line below as only one theme can be active
-# html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# -- Options for Graphviz ----------------------------------------------------
+# You might need to tell Sphinx where the Graphviz executables are if they
+# aren't in your system's PATH. Uncomment and set the path if needed.
+# graphviz_dot = '/usr/local/bin/dot' # Example path for macOS with Homebrew
+# graphviz_output_format = 'svg' # 'png' or 'svg', SVG is usually better for web

@@ -1,0 +1,180 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Project Architecture &mdash; song_analyzer_app_6 6.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/graphviz.css?v=4ae1632d" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=12958129"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Core Root Modules" href="core_root_modules.html" />
+    <link rel="prev" title="Welcome to song_analyzer_app_6’s documentation!" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            song_analyzer_app_6
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Overview:</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Project Architecture</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#class-inheritance">Class Inheritance</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-dependencies-simplified">Module Dependencies (Simplified)</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="core_root_modules.html">Core Root Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="data_components.html">Data Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gui_components.html">Main GUI Components</a></li>
+<li class="toctree-l1"><a class="reference internal" href="utility_programs.html">Utility Programs</a></li>
+<li class="toctree-l1"><a class="reference internal" href="file_io_playback.html">Save, Load, and Playback</a></li>
+<li class="toctree-l1"><a class="reference internal" href="dead_modules.html">Dead Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="gmmhmm_submodules.html">GMMHMM Sub-Modules</a></li>
+<li class="toctree-l1"><a class="reference internal" href="audio_analysis_submodules.html">Audio Analysis Sub-Modules</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">song_analyzer_app_6</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Project Architecture</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/architecture.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="project-architecture">
+<h1>Project Architecture<a class="headerlink" href="#project-architecture" title="Link to this heading"></a></h1>
+<p>This page provides diagrams visualizing the structure of the application.</p>
+<section id="class-inheritance">
+<h2>Class Inheritance<a class="headerlink" href="#class-inheritance" title="Link to this heading"></a></h2>
+<p>This diagram shows the inheritance relationships between the main application classes.
+<em>(Note: Requires Graphviz engine to be installed)</em></p>
+<div class="graphviz"><img src="_images/inheritance-1975dcfe5a9f2e66d939892a6bf1ed18449f3a12.png" alt="Inheritance diagram of main_app.AudioAnalyzerApp, find_outro_problem.TransitionFinderApp, data_explorer.DataExplorerApp, GMMHMM_modules.gui.FeatureSelectionDialog, GMMHMM_modules.gui.ModelAnalysisDialog" usemap="#inheritancec0930200a4" class="inheritance graphviz" /></div>
+<map id="inheritancec0930200a4" name="inheritancec0930200a4">
+<area shape="rect" id="node1" href="_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp" target="_top" title="Main application class for the Audio Analyzer Tool GUI." alt="" coords="10,157,138,184"/>
+<area shape="rect" id="node4" href="_autosummary_generated/utils%20%20%23%20Directory%20for%20generated%20stubs/data_explorer.html#data_explorer.DataExplorerApp" target="_top" title="A GUI application to scan analysis files for sections meeting specific" alt="" coords="14,56,134,83"/>
+<area shape="rect" id="node5" href="_autosummary_generated/gmmhmm/GMMHMM_modules.gui.html#GMMHMM_modules.gui.FeatureSelectionDialog" target="_top" title="A Tkinter dialog for selecting features, weights, HMM parameters," alt="" coords="451,56,607,83"/>
+<area shape="rect" id="node7" href="_autosummary_generated/gmmhmm/GMMHMM_modules.gui.html#GMMHMM_modules.gui.ModelAnalysisDialog" target="_top" title="A Tkinter dialog to display the results of the GMMHMM analysis," alt="" coords="458,107,601,133"/>
+<area shape="rect" id="node9" href="_autosummary_generated/utils/find_outro_problem.TransitionFinderApp.html#find_outro_problem.TransitionFinderApp" target="_top" title="A GUI application to scan analysis files for specific label transitions" alt="" coords="5,5,143,32"/>
+</map><p><em>Note: This diagram might be simple if these classes only inherit directly from base objects or standard library classes like tk.Toplevel.</em></p>
+</section>
+<section id="module-dependencies-simplified">
+<h2>Module Dependencies (Simplified)<a class="headerlink" href="#module-dependencies-simplified" title="Link to this heading"></a></h2>
+<p>This diagram shows some key import relationships between modules.
+<em>(Note: Requires Graphviz engine to be installed)</em></p>
+<div class="graphviz"><img src="_images/graphviz-ca3cf9958b5f271f7bc134d734167cc59f2bb10c.png" alt="digraph dependencies {
+   rankdir=LR; /* Layout left-to-right */
+   node [shape=box, style=&quot;rounded,filled&quot;, fillcolor=lightblue]; /* Node style */
+   edge [color=gray40]; /* Edge style */
+
+   /* Nodes (Modules) */
+   main_app [label=&quot;main_app.py&quot;];
+   gui_builder [label=&quot;gui_builder.py&quot;];
+   plot_manager [label=&quot;plot_manager.py&quot;];
+   file_manager [label=&quot;file_manager.py&quot;];
+   playback_manager [label=&quot;playback_manager.py&quot;];
+   section_editor [label=&quot;section_editor.py&quot;];
+   hmm_predictor [label=&quot;hmm_predictor.py&quot;];
+   audio_analysis_wrapper [label=&quot;audio_analysis_wrapper.py&quot;];
+   gmmhmm_modules [label=&quot;GMMHMM_modules&quot;, shape=folder, fillcolor=lightyellow];
+   audio_analysis_modules [label=&quot;audio_analysis_modules&quot;, shape=folder, fillcolor=lightyellow];
+   run_gmmhmm_trainer [label=&quot;run_gmmhmm_trainer.py&quot;];
+   # Add other important modules if needed
+
+   /* Edges (Imports/Usage - Add more based on your code) */
+   main_app -&gt; gui_builder;
+   main_app -&gt; plot_manager;
+   main_app -&gt; file_manager;
+   main_app -&gt; playback_manager;
+   main_app -&gt; section_editor;
+   main_app -&gt; hmm_predictor;
+   main_app -&gt; audio_analysis_wrapper;
+
+   audio_analysis_wrapper -&gt; audio_analysis_modules;
+   hmm_predictor -&gt; gmmhmm_modules;
+   run_gmmhmm_trainer -&gt; gmmhmm_modules;
+
+   # You can add more specific edges if desired, e.g.:
+   # plot_manager -&gt; audio_plotting;
+}" class="graphviz" /></div>
+<p><em>Note: This is a manually created representation. For a fully automated dependency graph, specific analysis tools or scripts are usually needed.</em></p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="Welcome to song_analyzer_app_6’s documentation!" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="core_root_modules.html" class="btn btn-neutral float-right" title="Core Root Modules" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Donovan Blair.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

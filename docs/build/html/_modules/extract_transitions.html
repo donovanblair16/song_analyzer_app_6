@@ -8,6 +8,7 @@
   <title>extract_transitions &mdash; song_analyzer_app_6 6.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
@@ -39,7 +40,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Overview:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../architecture.html">Project Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../core_root_modules.html">Core Root Modules</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../data_components.html">Data Components</a></li>
@@ -76,7 +81,21 @@
            <div itemprop="articleBody">
              
   <h1>Source code for extract_transitions</h1><div class="highlight"><pre>
-<span></span><span class="c1"># =============================================================================</span>
+<span></span><span class="sd">&quot;&quot;&quot; </span>
+<span class="sd">This script processes &#39;Perfect&#39; analysis files to extract and visualize </span>
+<span class="sd">transition matrices for state transitions in music tracks.</span>
+<span class="sd">It loads the analysis files, counts state transitions, calculates   </span>
+<span class="sd">probabilities, applies smoothing, and saves the transition matrix.</span>
+<span class="sd">The script is designed to be run in a specific environment where the</span>
+<span class="sd">analysis files are stored in a predefined directory structure.</span>
+<span class="sd">It also includes error handling and logging for better debugging.</span>
+<span class="sd">The script is modular, with functions for loading data,</span>
+<span class="sd">extracting transitions, creating matrices, applying smoothing,</span>
+<span class="sd">visualizing results, and saving the final matrix.</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c1"># =============================================================================</span>
 <span class="c1"># FILE: extract_transitions.py</span>
 <span class="c1"># Purpose: Load &#39;Perfect&#39; analysis files, count state transitions,</span>
 <span class="c1">#          calculate probabilities, apply smoothing, visualize,</span>

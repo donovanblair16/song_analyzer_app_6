@@ -11,6 +11,11 @@ extracting features, and building models related to song structure.
 
 This documentation provides an overview of the project's modules and usage.
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Overview:
+
+   architecture
 
 .. toctree::
    :maxdepth: 2

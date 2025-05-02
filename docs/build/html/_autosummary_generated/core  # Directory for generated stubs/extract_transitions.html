@@ -9,6 +9,7 @@
   <title>extract_transitions &mdash; song_analyzer_app_6 6.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../../_static/graphviz.css?v=4ae1632d" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
@@ -42,7 +43,11 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Overview:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../architecture.html">Project Architecture</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="reference internal" href="../../core_root_modules.html">Core Root Modules</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="main_app.html">main_app</a></li>
@@ -96,6 +101,16 @@
              
   <section id="module-extract_transitions">
 <span id="extract-transitions"></span><h1>extract_transitions<a class="headerlink" href="#module-extract_transitions" title="Link to this heading"></a></h1>
+<p>This script processes ‘Perfect’ analysis files to extract and visualize
+transition matrices for state transitions in music tracks.
+It loads the analysis files, counts state transitions, calculates
+probabilities, applies smoothing, and saves the transition matrix.
+The script is designed to be run in a specific environment where the
+analysis files are stored in a predefined directory structure.
+It also includes error handling and logging for better debugging.
+The script is modular, with functions for loading data,
+extracting transitions, creating matrices, applying smoothing,
+visualizing results, and saving the final matrix.</p>
 <p class="rubric">Functions</p>
 <table class="autosummary longtable docutils align-default">
 <tbody>
