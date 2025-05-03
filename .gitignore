@@ -1,0 +1,51 @@
+# Completed analyses folder (as specifically requested)
+completed_analyses/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Audio files and data
+*.wav
+*.mp3
+*.flac
+*.aiff
+*.ogg
+*.npz
+*.npy
+
+# IDE specific files
+.vscode/
+.idea/
+*.sublime-*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Cache directories
+*_pycache_/
+.mypy_cache/
+
+# Local data that shouldn't be shared
+*.sqlite3
+*.db
+
+# HMM model checkpoints/data that can be regenerated
+hmm_model/checkpoints/
