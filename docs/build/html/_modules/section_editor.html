@@ -138,6 +138,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_setup_widgets</span><span class="p">()</span></div>
 
 
+<div class="viewcode-block" id="SectionEditor._setup_widgets">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor._setup_widgets">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_setup_widgets</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates and packs the Treeview, Scrollbar, and Button.&quot;&quot;&quot;</span>
         <span class="c1"># Treeview for editing</span>
@@ -174,7 +176,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-3&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_cell_edit_start</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">tree</span><span class="o">.</span><span class="n">bind</span><span class="p">(</span><span class="s2">&quot;&lt;Button-2&gt;&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_cell_edit_start</span><span class="p">)</span>
 
         <span class="c1"># Update button</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Update Sections&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_apply_edits</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Button</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Update Sections&quot;</span><span class="p">,</span> <span class="n">command</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_trigger_apply_edits</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">pady</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="SectionEditor.populate">
 <a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor.populate">[docs]</a>
@@ -215,6 +218,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">winfo_exists</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">update_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">DISABLED</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="SectionEditor._on_cell_edit_start">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor._on_cell_edit_start">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_on_cell_edit_start</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles right-click on the Treeview to trigger the main app&#39;s edit pop-up.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- DEBUG SectionEditor: _on_cell_edit_start triggered by event: </span><span class="si">{</span><span class="n">event</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
@@ -232,8 +237,11 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error: Could not convert item ID &#39;</span><span class="si">{</span><span class="n">item_id_str</span><span class="si">}</span><span class="s2">&#39; to section index.&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error calling main app&#39;s edit popup: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="SectionEditor._commit_popup_edit">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor._commit_popup_edit">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_commit_popup_edit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">popup</span><span class="p">,</span> <span class="n">item_id</span><span class="p">,</span> <span class="n">label_combo</span><span class="p">,</span> <span class="n">color_combo</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads values from pop-up, updates Treeview, destroys pop-up. (Called by main app&#39;s popup OK button)&quot;&quot;&quot;</span>
         <span class="n">new_label</span> <span class="o">=</span> <span class="n">label_combo</span><span class="o">.</span><span class="n">get</span><span class="p">();</span> <span class="n">new_color_name</span> <span class="o">=</span> <span class="n">color_combo</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
@@ -249,8 +257,11 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Treeview display updated for row </span><span class="si">{</span><span class="n">item_id</span><span class="si">}</span><span class="s2"> with tag &#39;</span><span class="si">{</span><span class="n">new_tag</span><span class="si">}</span><span class="s2">&#39;.&quot;</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error updating treeview from pop-up: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="n">popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> <span class="c1"># Destroy the pop-up window passed from main app</span>
+        <span class="n">popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> <span class="c1"># Destroy the pop-up window passed from main app</span></div>
 
+
+<div class="viewcode-block" id="SectionEditor._trigger_apply_edits">
+<a class="viewcode-back" href="../_autosummary_generated/data%20%20%23%20Directory%20for%20generated%20stubs/section_editor.html#section_editor.SectionEditor._trigger_apply_edits">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_trigger_apply_edits</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Reads data from treeview and calls the apply_callback.&quot;&quot;&quot;</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG SectionEditor: Update button clicked.&quot;</span><span class="p">)</span>
@@ -269,6 +280,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG SectionEditor: Applying </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">new_labels</span><span class="p">)</span><span class="si">}</span><span class="s2"> edits via callback.&quot;</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">apply_callback</span><span class="p">(</span><span class="n">new_labels</span><span class="p">,</span> <span class="n">new_colors_hex</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR SectionEditor: Failed during apply edits trigger: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">);</span> <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+</div>
 
 
 </pre></div>

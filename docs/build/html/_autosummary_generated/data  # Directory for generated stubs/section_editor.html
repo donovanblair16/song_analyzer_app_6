@@ -55,8 +55,12 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">section_editor</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#section_editor.SectionEditor"><code class="docutils literal notranslate"><span class="pre">SectionEditor</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor.__init__"><code class="docutils literal notranslate"><span class="pre">SectionEditor.__init__()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor._setup_widgets"><code class="docutils literal notranslate"><span class="pre">SectionEditor._setup_widgets()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor.populate"><code class="docutils literal notranslate"><span class="pre">SectionEditor.populate()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor.clear"><code class="docutils literal notranslate"><span class="pre">SectionEditor.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor._on_cell_edit_start"><code class="docutils literal notranslate"><span class="pre">SectionEditor._on_cell_edit_start()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor._commit_popup_edit"><code class="docutils literal notranslate"><span class="pre">SectionEditor._commit_popup_edit()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#section_editor.SectionEditor._trigger_apply_edits"><code class="docutils literal notranslate"><span class="pre">SectionEditor._trigger_apply_edits()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -131,6 +135,12 @@ button is pressed.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="section_editor.SectionEditor._setup_widgets">
+<span class="sig-name descname"><span class="pre">_setup_widgets</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/section_editor.html#SectionEditor._setup_widgets"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#section_editor.SectionEditor._setup_widgets" title="Link to this definition"></a></dt>
+<dd><p>Creates and packs the Treeview, Scrollbar, and Button.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="section_editor.SectionEditor.populate">
 <span class="sig-name descname"><span class="pre">populate</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/section_editor.html#SectionEditor.populate"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#section_editor.SectionEditor.populate" title="Link to this definition"></a></dt>
 <dd><p>Fills the Treeview editor with current section data and applies row color tags.</p>
@@ -140,6 +150,24 @@ button is pressed.</p></li>
 <dt class="sig sig-object py" id="section_editor.SectionEditor.clear">
 <span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/section_editor.html#SectionEditor.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#section_editor.SectionEditor.clear" title="Link to this definition"></a></dt>
 <dd><p>Clears the Treeview and disables the update button.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="section_editor.SectionEditor._on_cell_edit_start">
+<span class="sig-name descname"><span class="pre">_on_cell_edit_start</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/section_editor.html#SectionEditor._on_cell_edit_start"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#section_editor.SectionEditor._on_cell_edit_start" title="Link to this definition"></a></dt>
+<dd><p>Handles right-click on the Treeview to trigger the main app’s edit pop-up.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="section_editor.SectionEditor._commit_popup_edit">
+<span class="sig-name descname"><span class="pre">_commit_popup_edit</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">popup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">item_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">label_combo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">color_combo</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/section_editor.html#SectionEditor._commit_popup_edit"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#section_editor.SectionEditor._commit_popup_edit" title="Link to this definition"></a></dt>
+<dd><p>Reads values from pop-up, updates Treeview, destroys pop-up. (Called by main app’s popup OK button)</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="section_editor.SectionEditor._trigger_apply_edits">
+<span class="sig-name descname"><span class="pre">_trigger_apply_edits</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/section_editor.html#SectionEditor._trigger_apply_edits"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#section_editor.SectionEditor._trigger_apply_edits" title="Link to this definition"></a></dt>
+<dd><p>Reads data from treeview and calls the apply_callback.</p>
 </dd></dl>
 
 </dd></dl>

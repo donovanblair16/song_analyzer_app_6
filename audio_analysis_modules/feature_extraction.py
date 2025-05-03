@@ -2,14 +2,17 @@
 
 """Functions for feature extraction from audio sections.
 
+MODIFIED: For sections labeled "Drop", RMS-based features (avg_rms, relative_rms,
+          rms_std_dev_section, rms_trend) are calculated using only the
+          first 75% of the section's duration to mitigate the effect of quieter tails.
 ADDED: position_context feature calculation.
-
 """
 
 import numpy as np
 import scipy.stats
 import librosa
 import traceback  # Added for more detailed error printing
+from collections import Counter  # Added for label_proportion calculation
 
 
 def extract_section_features(track_data):
@@ -18,6 +21,8 @@ def extract_section_features(track_data):
     'low_energy_norm', standard deviations, delta features, crest factor,
     spectral slope, 'relative_rms', 'rms_trend', 'position_context', AND
     'label_proportion'.
+
+    MODIFICATION: RMS features for "Drop" sections use only the first 75% duration.
 
     Args:
         track_data (dict): Dictionary loaded from analysis file, expected
@@ -34,20 +39,20 @@ def extract_section_features(track_data):
 
     # --- Retrieve necessary base data ---
     section_features_list_of_dicts = track_data.get("section_features", [])
-    semantic_labels_list = track_data.get(
-        "semantic_labels", []
-    )  # Needed for position_context
+    semantic_labels_list = track_data.get("semantic_labels", [])
     duration_processed = track_data.get("duration_processed")
     low_energy_norm = track_data.get("low_energy_norm")
     low_energy_times = track_data.get("low_energy_times")
     trim_offset_sec = track_data.get("trim_offset_sec", 0)
-    rms_frames = track_data.get("rms")  # Frame-based RMS values
-    rms_times = track_data.get("rms_times")  # Corresponding times for RMS frames
+    rms_frames = track_data.get("rms")
+    rms_times = track_data.get("rms_times")
     spectral_centroid_frames = track_data.get("spectral_centroid_frames")
-    times_absolute = track_data.get("times_absolute")  # Times for spectral frames
+    times_absolute = track_data.get(
+        "times_absolute"
+    )  # Absolute times for spectral frames
 
     # --- Initial Validation ---
-    print(f"\n=== DEBUG: Inside extract_section_features ===")  # DEBUG
+    print(f"\n=== DEBUG: Inside extract_section_features ===")
     valid_input = True
     if (
         not isinstance(section_features_list_of_dicts, list)
@@ -55,7 +60,6 @@ def extract_section_features(track_data):
     ):
         print(" -> ERROR: 'section_features' missing, empty, or not a list.")
         valid_input = False
-    # *** Check semantic_labels_list early as it's needed for position_context ***
     if not isinstance(semantic_labels_list, list):
         print(" -> ERROR: 'semantic_labels' is not a list.")
         valid_input = False
@@ -66,34 +70,25 @@ def extract_section_features(track_data):
         valid_input = False
     if duration_processed is None or duration_processed <= 0:
         print(" -> WARNING: 'duration_processed' missing or invalid.")
-        # Allow continuation, but relative_position might be NaN
 
-    # *** CRITICAL CHECK for RMS calculation ***
-    if rms_frames is None:
+    if rms_frames is None or rms_times is None:
         print(
-            " -> FATAL ERROR: Frame-based 'rms' data is MISSING from track_data. Cannot calculate avg_rms or relative_rms."
-        )
-        return [], []  # Cannot proceed without this
-    if rms_times is None:
-        print(
-            " -> FATAL ERROR: Frame-based 'rms_times' data is MISSING from track_data. Cannot calculate avg_rms or relative_rms."
-        )
-        return [], []  # Cannot proceed without this
-    if not isinstance(rms_frames, np.ndarray) or not isinstance(rms_times, np.ndarray):
-        print(
-            f" -> FATAL ERROR: 'rms' (type: {type(rms_frames)}) or 'rms_times' (type: {type(rms_times)}) is not a numpy array."
+            " -> FATAL ERROR: Frame-based 'rms' or 'rms_times' data is MISSING. Cannot calculate RMS features."
         )
         return [], []
-    if rms_frames.shape != rms_times.shape:
+    if (
+        not isinstance(rms_frames, np.ndarray)
+        or not isinstance(rms_times, np.ndarray)
+        or rms_frames.shape != rms_times.shape
+    ):
         print(
-            f" -> FATAL ERROR: Shape mismatch between 'rms' ({rms_frames.shape}) and 'rms_times' ({rms_times.shape})."
+            f" -> FATAL ERROR: Invalid 'rms' ({rms_frames.shape if isinstance(rms_frames, np.ndarray) else type(rms_frames)}) or 'rms_times' ({rms_times.shape if isinstance(rms_times, np.ndarray) else type(rms_times)}) data."
         )
         return [], []
     print(
         f" -> DEBUG: Found rms data (shape: {rms_frames.shape}) and rms_times (shape: {rms_times.shape}). Trim offset: {trim_offset_sec}"
-    )  # DEBUG
+    )
 
-    # Check other optional data
     if low_energy_norm is None or low_energy_times is None:
         print(" -> WARNING: 'low_energy_norm' or 'low_energy_times' missing.")
     if spectral_centroid_frames is None or times_absolute is None:
@@ -103,65 +98,80 @@ def extract_section_features(track_data):
 
     if not valid_input:
         return [], []
-
     print(
         f" -> Found {len(section_features_list_of_dicts)} sections. Processing features..."
     )
 
-    # Calculate relative spectral times ONCE if possible
+    # Calculate relative times ONCE
     spec_times_rel = None
     if times_absolute is not None and isinstance(times_absolute, np.ndarray):
         try:
-            spec_times_rel = times_absolute - trim_offset_sec
+            spec_times_rel = times_absolute - float(
+                trim_offset_sec
+            )  # Ensure float conversion
         except Exception as e:
             print(f" -> WARNING: Could not calculate spec_times_rel: {e}")
 
-    # Calculate relative RMS times ONCE
     rms_times_rel = None
     if rms_times is not None:
         try:
-            rms_times_rel = rms_times.astype(float) - float(trim_offset_sec)
+            rms_times_rel = rms_times.astype(float) - float(
+                trim_offset_sec
+            )  # Ensure float conversion
         except Exception as e:
             print(f" -> WARNING: Could not calculate rms_times_rel: {e}")
 
-    # --- First Pass: Calculate all avg_rms and find track maximum ---
+    # --- First Pass: Calculate avg_rms (potentially modified for Drops) and find track maximum ---
     all_section_avg_rms = []
-    max_track_rms = 0.0  # Initialize track maximum RMS
-    print(
-        " -> DEBUG: Starting First Pass (Calculating avg_rms per section)..."
-    )  # DEBUG
+    max_track_rms = 0.0
+    print(" -> DEBUG: Starting First Pass (Calculating avg_rms per section)...")
 
     for i, section_dict in enumerate(section_features_list_of_dicts):
-        current_avg_rms = np.nan  # Default to NaN
-        start_time_rel = np.nan
-        end_time_rel = np.nan
+        current_avg_rms = np.nan
+        start_time_rel, end_time_rel = np.nan, np.nan
+        current_label = (
+            semantic_labels_list[i] if i < len(semantic_labels_list) else None
+        )
 
         if isinstance(section_dict, dict):
             start_time_abs = section_dict.get("start_time")
             end_time_abs = section_dict.get("end_time")
 
-            # Calculate relative times
             if start_time_abs is not None and end_time_abs is not None:
                 try:
                     start_time_rel = float(start_time_abs) - float(trim_offset_sec)
                     end_time_rel = float(end_time_abs) - float(trim_offset_sec)
                 except (ValueError, TypeError) as time_err:
                     print(
-                        f" -> DEBUG: Section {i}: Error converting times: {time_err}. Abs times: {start_time_abs}, {end_time_abs}"
+                        f" -> DEBUG: Section {i}: Error converting times: {time_err}."
                     )
-                    start_time_rel, end_time_rel = np.nan, np.nan  # Ensure NaN on error
+                    start_time_rel, end_time_rel = np.nan, np.nan
 
-            # Proceed only if relative times are valid
+            # *** MODIFICATION START: Determine end time for RMS calculation ***
+            rms_calc_end_time_rel = end_time_rel  # Default to full section end time
+            if (
+                current_label == "Drop"
+                and not np.isnan(start_time_rel)
+                and not np.isnan(end_time_rel)
+                and end_time_rel > start_time_rel
+            ):
+                section_duration_rel = end_time_rel - start_time_rel
+                rms_calc_end_time_rel = start_time_rel + (section_duration_rel * 0.75)
+                # Optional Debug Print:
+                # print(f"   -> DEBUG Drop RMS Time: Section {i}, Full End={end_time_rel:.3f}, RMS End={rms_calc_end_time_rel:.3f}")
+            # *** MODIFICATION END ***
+
+            # Proceed only if times are valid
             if (
                 not np.isnan(start_time_rel)
-                and not np.isnan(end_time_rel)
+                and not np.isnan(rms_calc_end_time_rel)
                 and rms_times_rel is not None
-            ):  # Check rms_times_rel exists
-                # Create mask based on relative times
+            ):
                 try:
+                    # Use rms_calc_end_time_rel for the mask
                     rms_mask = (rms_times_rel >= start_time_rel) & (
-                        rms_times_rel < end_time_rel
-                    )
+                        rms_times_rel < rms_calc_end_time_rel
+                    )  # Use potentially shorter end time
 
                     if (
                         isinstance(rms_mask, np.ndarray)
@@ -171,82 +181,132 @@ def extract_section_features(track_data):
                         finite_section_rms = section_rms_frames[
                             np.isfinite(section_rms_frames)
                         ]
-
                         if finite_section_rms.size > 0:
                             current_avg_rms = np.mean(finite_section_rms)
-                            # Update track maximum if current avg_rms is valid and larger
                             if (
                                 np.isfinite(current_avg_rms)
                                 and current_avg_rms > max_track_rms
                             ):
                                 max_track_rms = current_avg_rms
                     else:
-                        print(
-                            f" -> WARNING: Section {i}: Invalid RMS mask generated. Mask type: {type(rms_mask)}, Shape: {rms_mask.shape if isinstance(rms_mask, np.ndarray) else 'N/A'}"
-                        )
+                        print(f" -> WARNING: Section {i}: Invalid RMS mask generated.")
                 except Exception as e:
                     print(f" -> ERROR calculating avg_rms for section {i}: {e}")
-                    traceback.print_exc()  # Print full traceback
-                    current_avg_rms = np.nan  # Ensure NaN on error
+                    traceback.print_exc()
+                    current_avg_rms = np.nan
         else:
             print(f" -> WARNING: Section {i} data is not a dictionary.")
             current_avg_rms = np.nan
 
-        all_section_avg_rms.append(current_avg_rms)  # Store calculated avg_rms (or NaN)
+        all_section_avg_rms.append(current_avg_rms)
 
     print(
         f" -> DEBUG: First Pass Complete. Max Avg RMS found for track: {max_track_rms:.4f}"
     )
-    # Handle case where max_track_rms is zero or very small to avoid division errors
     if max_track_rms < 1e-9:
         print(" -> WARNING: Maximum track RMS is near zero. Relative RMS will be NaN.")
-        max_track_rms = np.nan  # Set to NaN to propagate NaN in relative calculation
+        max_track_rms = np.nan
 
     # --- Second Pass: Calculate all features including relative_rms ---
-    print(" -> DEBUG: Starting Second Pass (Calculating all features)...")  # DEBUG
+    print(" -> DEBUG: Starting Second Pass (Calculating all features)...")
     prev_avg_rms = np.nan
     prev_avg_centroid = np.nan
 
     for i, section_dict in enumerate(section_features_list_of_dicts):
-        # Ensure dictionary structure exists
         if not isinstance(section_dict, dict):
             section_dict = {}
             section_features_list_of_dicts[i] = section_dict
 
-        # Retrieve pre-calculated avg_rms from the first pass
+        current_label = (
+            semantic_labels_list[i] if i < len(semantic_labels_list) else None
+        )
         current_avg_rms = (
             all_section_avg_rms[i] if i < len(all_section_avg_rms) else np.nan
         )
-        section_dict["avg_rms"] = current_avg_rms  # Store/update
+        section_dict["avg_rms"] = current_avg_rms  # Store potentially modified avg_rms
 
-        # Calculate Relative RMS
+        # Calculate Relative RMS using the potentially modified avg_rms
         relative_rms = np.nan
         if not np.isnan(current_avg_rms) and not np.isnan(max_track_rms):
             relative_rms = current_avg_rms / max_track_rms
-        section_dict["relative_rms"] = relative_rms  # Store the new feature
+        section_dict["relative_rms"] = relative_rms
 
-        # --- Calculate other features as before ---
+        # --- Calculate other features ---
         start_time_abs = section_dict.get("start_time")
         end_time_abs = section_dict.get("end_time")
-        start_time_rel = np.nan
-        end_time_rel = np.nan
+        start_time_rel, end_time_rel = np.nan, np.nan
         if start_time_abs is not None and end_time_abs is not None:
             try:
                 start_time_rel = float(start_time_abs) - float(trim_offset_sec)
                 end_time_rel = float(end_time_abs) - float(trim_offset_sec)
             except (ValueError, TypeError):
-                start_time_rel, end_time_rel = np.nan, np.nan  # Ensure NaN on error
+                start_time_rel, end_time_rel = np.nan, np.nan
 
-        current_peak_rms = section_dict.get("peak_rms", np.nan)
-        current_avg_centroid = section_dict.get("spectral_centroid_avg", np.nan)
+        # *** MODIFICATION START: Determine end time for RMS calculations (Std Dev, Trend) ***
+        rms_calc_end_time_rel = end_time_rel  # Default
+        if (
+            current_label == "Drop"
+            and not np.isnan(start_time_rel)
+            and not np.isnan(end_time_rel)
+            and end_time_rel > start_time_rel
+        ):
+            section_duration_rel = end_time_rel - start_time_rel
+            rms_calc_end_time_rel = start_time_rel + (section_duration_rel * 0.75)
+        # *** MODIFICATION END ***
 
-        # Ensure numeric or NaN
-        if not isinstance(current_peak_rms, (int, float, np.number)):
-            current_peak_rms = np.nan
-        if not isinstance(current_avg_centroid, (int, float, np.number)):
-            current_avg_centroid = np.nan
+        # Use full section duration (end_time_rel) for non-RMS features unless specified otherwise
+        section_end_time_rel = end_time_rel
 
-        # 1. Relative Position
+        # Peak RMS is calculated over full section usually (less affected by tail)
+        current_peak_rms = np.nan
+        if (
+            rms_frames is not None
+            and rms_times_rel is not None
+            and not np.isnan(start_time_rel)
+            and not np.isnan(section_end_time_rel)
+        ):
+            full_rms_mask = (rms_times_rel >= start_time_rel) & (
+                rms_times_rel < section_end_time_rel
+            )
+            if (
+                isinstance(full_rms_mask, np.ndarray)
+                and full_rms_mask.shape == rms_frames.shape
+            ):
+                full_section_rms = rms_frames[full_rms_mask][
+                    np.isfinite(rms_frames[full_rms_mask])
+                ]
+                if full_section_rms.size > 0:
+                    current_peak_rms = np.max(full_section_rms)
+        section_dict["peak_rms"] = (
+            current_peak_rms  # Store peak calculated over full section
+        )
+
+        # Spectral Centroid Avg is calculated over full section
+        current_avg_centroid = np.nan
+        if (
+            spectral_centroid_frames is not None
+            and spec_times_rel is not None
+            and not np.isnan(start_time_rel)
+            and not np.isnan(section_end_time_rel)
+            and spec_times_rel.shape == spectral_centroid_frames.shape
+        ):
+            centroid_mask = (spec_times_rel >= start_time_rel) & (
+                spec_times_rel < section_end_time_rel
+            )
+            if (
+                isinstance(centroid_mask, np.ndarray)
+                and centroid_mask.shape == spectral_centroid_frames.shape
+            ):
+                section_centroid_vals = spectral_centroid_frames[centroid_mask][
+                    np.isfinite(spectral_centroid_frames[centroid_mask])
+                ]
+                if section_centroid_vals.size > 0:
+                    current_avg_centroid = np.mean(section_centroid_vals)
+        section_dict["spectral_centroid_avg"] = (
+            current_avg_centroid  # Store centroid calculated over full section
+        )
+
+        # 1. Relative Position (uses full section start)
         relative_position = np.nan
         if (
             start_time_abs is not None
@@ -260,33 +320,26 @@ def extract_section_features(track_data):
                 relative_position = np.nan
         section_dict["relative_position"] = relative_position
 
-        # <<< 1b. Position Context (NEW FEATURE) >>>
-        position_context = 0.0  # Default to low value
-        current_label = (
-            semantic_labels_list[i] if i < len(semantic_labels_list) else None
-        )
+        # 1b. Position Context
+        position_context = 0.0
         if current_label in ["Intro", "Outro"]:
             position_context = 1.0
-        # Optional: Add threshold check as fallback if labels are unreliable
-        # elif not np.isnan(relative_position):
-        #     if relative_position < 0.15 or relative_position > 0.85:
-        #          position_context = 1.0
         section_dict["position_context"] = position_context
 
-        # 2. Average Low-End Energy
+        # 2. Average Low-End Energy (uses full section duration)
         avg_low_energy = np.nan
         if (
             low_energy_norm is not None
             and low_energy_times is not None
             and not np.isnan(start_time_rel)
-            and not np.isnan(end_time_rel)
+            and not np.isnan(section_end_time_rel)
             and isinstance(low_energy_times, np.ndarray)
             and low_energy_times.shape == low_energy_norm.shape
         ):
             try:
                 le_mask = (low_energy_times >= start_time_rel) & (
-                    low_energy_times < end_time_rel
-                )
+                    low_energy_times < section_end_time_rel
+                )  # Use full duration
                 if (
                     isinstance(le_mask, np.ndarray)
                     and le_mask.shape == low_energy_norm.shape
@@ -302,18 +355,18 @@ def extract_section_features(track_data):
                 print(f" -> ERROR calculating low energy for section {i}: {e}")
         section_dict["low_energy_norm"] = avg_low_energy
 
-        # 3. Std Dev of RMS
+        # 3. Std Dev of RMS (uses potentially shorter duration for Drops)
         std_dev_rms = np.nan
         if (
             rms_frames is not None
             and rms_times_rel is not None
             and not np.isnan(start_time_rel)
-            and not np.isnan(end_time_rel)
-        ):  # Use rms_times_rel
+            and not np.isnan(rms_calc_end_time_rel)
+        ):
             try:
                 rms_mask = (rms_times_rel >= start_time_rel) & (
-                    rms_times_rel < end_time_rel
-                )
+                    rms_times_rel < rms_calc_end_time_rel
+                )  # Use potentially shorter end time
                 if (
                     isinstance(rms_mask, np.ndarray)
                     and rms_mask.shape == rms_frames.shape
@@ -332,19 +385,19 @@ def extract_section_features(track_data):
                 print(f" -> ERROR calculating RMS std dev for section {i}: {e}")
         section_dict["rms_std_dev_section"] = std_dev_rms
 
-        # 4. Std Dev of Spectral Centroid
+        # 4. Std Dev of Spectral Centroid (uses full section duration)
         std_dev_centroid = np.nan
         if (
             spectral_centroid_frames is not None
             and spec_times_rel is not None
             and not np.isnan(start_time_rel)
-            and not np.isnan(end_time_rel)
+            and not np.isnan(section_end_time_rel)
             and spec_times_rel.shape == spectral_centroid_frames.shape
         ):
             try:
                 centroid_mask = (spec_times_rel >= start_time_rel) & (
-                    spec_times_rel < end_time_rel
-                )
+                    spec_times_rel < section_end_time_rel
+                )  # Use full duration
                 if (
                     isinstance(centroid_mask, np.ndarray)
                     and centroid_mask.shape == spectral_centroid_frames.shape
@@ -365,46 +418,48 @@ def extract_section_features(track_data):
                 print(f" -> ERROR calculating Centroid std dev for section {i}: {e}")
         section_dict["centroid_std_dev_section"] = std_dev_centroid
 
-        # 5. Delta RMS
-        delta_rms = 0.0  # Default for first section
+        # 5. Delta RMS (uses the potentially modified avg_rms)
+        delta_rms = 0.0
         if i > 0:
             if not np.isnan(current_avg_rms) and not np.isnan(prev_avg_rms):
                 delta_rms = current_avg_rms - prev_avg_rms
-            else:  # If current or previous is NaN, delta is NaN
+            else:
                 delta_rms = np.nan
         section_dict["delta_rms"] = delta_rms
 
-        # 6. Delta Centroid
-        delta_centroid = 0.0  # Default for first section
+        # 6. Delta Centroid (uses full section avg_centroid)
+        delta_centroid = 0.0
         if i > 0:
             if not np.isnan(current_avg_centroid) and not np.isnan(prev_avg_centroid):
                 delta_centroid = current_avg_centroid - prev_avg_centroid
-            else:  # If current or previous is NaN, delta is NaN
+            else:
                 delta_centroid = np.nan
         section_dict["delta_centroid"] = delta_centroid
 
-        # 7. Crest Factor
+        # 7. Crest Factor (uses potentially modified avg_rms and full section peak_rms)
         crest_factor = np.nan
         if not np.isnan(current_peak_rms) and not np.isnan(current_avg_rms):
             if current_avg_rms > 1e-9:
                 crest_factor = current_peak_rms / current_avg_rms
             else:
-                crest_factor = 1.0  # Assign 1 if peak exists but avg is near zero
+                crest_factor = (
+                    1.0  # Avoid division by zero if avg is tiny but peak exists
+                )
         section_dict["crest_factor"] = crest_factor
 
-        # 8. Spectral Centroid Slope
+        # 8. Spectral Centroid Slope (uses full section duration)
         spectral_centroid_slope = np.nan
         if (
             spectral_centroid_frames is not None
             and spec_times_rel is not None
             and not np.isnan(start_time_rel)
-            and not np.isnan(end_time_rel)
+            and not np.isnan(section_end_time_rel)
             and spec_times_rel.shape == spectral_centroid_frames.shape
         ):
             try:
                 centroid_mask = (spec_times_rel >= start_time_rel) & (
-                    spec_times_rel < end_time_rel
-                )
+                    spec_times_rel < section_end_time_rel
+                )  # Use full duration
                 if (
                     isinstance(centroid_mask, np.ndarray)
                     and centroid_mask.shape == spectral_centroid_frames.shape
@@ -415,9 +470,7 @@ def extract_section_features(track_data):
                     centroid_vals = centroid_vals[finite_mask]
                     time_vals = time_vals[finite_mask]
                     if centroid_vals.size > 1:
-                        rel_times = (
-                            time_vals - time_vals[0]
-                        )  # Time relative to section start
+                        rel_times = time_vals - time_vals[0]
                         slope, _, _, _, _ = scipy.stats.linregress(
                             rel_times, centroid_vals
                         )
@@ -433,89 +486,88 @@ def extract_section_features(track_data):
                 spectral_centroid_slope = 0.0
         section_dict["spectral_centroid_slope"] = spectral_centroid_slope
 
-        # 9. RMS Trend (Slope)
-        rms_trend = np.nan  # Default to NaN
-        raw_slope = np.nan  # Store slope before checking isfinite
-        num_points = 0  # Store number of points used
+        # 9. RMS Trend (Slope) (uses potentially shorter duration for Drops)
+        rms_trend = np.nan
         if (
             rms_frames is not None
             and rms_times_rel is not None
             and not np.isnan(start_time_rel)
-            and not np.isnan(end_time_rel)
-        ):  # Use rms_times_rel
+            and not np.isnan(rms_calc_end_time_rel)
+        ):
             try:
                 rms_mask = (rms_times_rel >= start_time_rel) & (
-                    rms_times_rel < end_time_rel
-                )
+                    rms_times_rel < rms_calc_end_time_rel
+                )  # Use potentially shorter end time
                 if (
                     isinstance(rms_mask, np.ndarray)
                     and rms_mask.shape == rms_frames.shape
                 ):
                     rms_vals = rms_frames[rms_mask]
-                    time_vals = rms_times_rel[rms_mask]  # Use relative times
-
-                    # Filter out NaNs before regression
+                    time_vals = rms_times_rel[rms_mask]
                     finite_mask = np.isfinite(rms_vals) & np.isfinite(time_vals)
                     rms_vals = rms_vals[finite_mask]
                     time_vals = time_vals[finite_mask]
-                    num_points = rms_vals.size  # Get number of finite points
-
-                    if num_points > 1:  # Need at least 2 finite points
-                        rel_times = (
-                            time_vals - time_vals[0]
-                        )  # Time relative to section start
-                        slope, intercept, r_value, p_value, std_err = (
-                            scipy.stats.linregress(rel_times, rms_vals)
-                        )
-                        raw_slope = slope  # Store the raw slope
-                        rms_trend = (
-                            slope if np.isfinite(slope) else 0.0
-                        )  # Use 0 if slope is NaN/Inf
-                    elif num_points <= 1:
-                        rms_trend = 0.0  # Slope is undefined/zero for 0 or 1 point
-                        raw_slope = 0.0  # Set raw slope to 0 as well
+                    if rms_vals.size > 1:
+                        rel_times = time_vals - time_vals[0]
+                        slope, _, _, _, _ = scipy.stats.linregress(rel_times, rms_vals)
+                        rms_trend = slope if np.isfinite(slope) else 0.0
+                    elif rms_vals.size <= 1:
+                        rms_trend = 0.0
                 else:
                     print(f" -> WARNING: Section {i}: Invalid RMS mask for trend.")
-            except ValueError as linreg_err:  # Catch potential errors in linregress
+            except ValueError as linreg_err:
                 print(
                     f" -> Warning: Linregress failed for RMS trend in section {i}: {linreg_err}"
                 )
-                rms_trend = 0.0  # Default to 0 on error
-                raw_slope = np.nan
+                rms_trend = 0.0
             except Exception as e:
                 print(
                     f" -> WARNING: Failed to calculate RMS trend for section {i}: {e}"
                 )
                 rms_trend = 0.0
-                raw_slope = np.nan
-        section_dict["rms_trend"] = rms_trend  # Store the calculated RMS trend
-
-        # <<< DEBUG PRINT FOR RMS TREND >>>
-        # if current_label in ["Build", "Outro"] or i < 2 or i > len(section_features_list_of_dicts) - 3:
-        #     print(f" -> DEBUG TREND: Section {i} (Label: {current_label}): Points={num_points}, RawSlope={raw_slope:.6f}, FinalTrend={rms_trend:.6f}")
+        section_dict["rms_trend"] = rms_trend
 
         # Update previous values for next iteration's delta calculation
-        prev_avg_rms = current_avg_rms  # Store current (potentially NaN)
-        prev_avg_centroid = current_avg_centroid  # Store current (potentially NaN)
+        prev_avg_rms = current_avg_rms
+        prev_avg_centroid = current_avg_centroid
 
-    # --- Final Check and Return ---
-    print(f" -> DEBUG: Second Pass Complete.")
-    if section_features_list_of_dicts:
-        # Check keys of the first valid dictionary found
-        first_valid_dict = next(
-            (d for d in section_features_list_of_dicts if isinstance(d, dict)), None
-        )
-        if first_valid_dict:
-            print(
-                f" -> DEBUG: Keys in first section dict after update: {list(first_valid_dict.keys())}"
+    # --- Calculate Label Proportion (after iterating through all sections) ---
+    print(" -> Calculating Label Proportion...")
+    total_sections = len(semantic_labels_list)
+    if total_sections > 0:
+        label_counts = Counter(semantic_labels_list)  # Use Counter for efficiency
+        for i, section_dict in enumerate(section_features_list_of_dicts):
+            current_label = (
+                semantic_labels_list[i] if i < len(semantic_labels_list) else None
             )
-        else:
-            print(" -> DEBUG: No valid section dictionaries found after processing.")
+            if current_label and isinstance(section_dict, dict):
+                proportion = label_counts.get(current_label, 0) / total_sections
+                section_dict["label_proportion"] = proportion
+            elif isinstance(section_dict, dict):
+                section_dict["label_proportion"] = (
+                    np.nan
+                )  # Assign NaN if label is missing
+    else:
+        # Assign NaN if there are no sections
+        for section_dict in section_features_list_of_dicts:
+            if isinstance(section_dict, dict):
+                section_dict["label_proportion"] = np.nan
+
+    print(f" -> DEBUG: Second Pass Complete.")
+    first_valid_dict = next(
+        (d for d in section_features_list_of_dicts if isinstance(d, dict)), None
+    )
+    if first_valid_dict:
+        print(
+            f" -> DEBUG: Keys in first section dict after update: {list(first_valid_dict.keys())}"
+        )
+    else:
+        print(" -> DEBUG: No valid section dictionaries found after processing.")
 
     return section_features_list_of_dicts, semantic_labels_list
 
 
-# Note: calculate_bar_features remains unchanged as it's not directly used by the section HMM.
+# Note: calculate_bar_features remains unchanged
 def calculate_bar_features(track_data):
     """
     Calculates features averaged over each bar.
@@ -593,21 +645,24 @@ def calculate_bar_features(track_data):
 
         # --- Find the semantic label for the current bar ---
         # Advance section index while the bar start time is >= the next section start time
-        while (
-            current_section_idx + 1 < len(section_starts)
-            and bar_start_time_abs >= section_starts[current_section_idx + 1]
-        ):
-            current_section_idx += 1
-        # Get the label for the determined section index
-        if current_section_idx >= len(semantic_labels):
-            print(
-                f"Warning: Section index {current_section_idx} out of bounds for labels ({len(semantic_labels)}) at bar {i}. Assigning 'Unknown'."
-            )
-            current_label = "Unknown"
-            # Decide whether to skip bar or assign Unknown - assigning Unknown for now
-            # continue # Option: Skip this bar
+        if (
+            section_starts is not None and semantic_labels is not None
+        ):  # Check if section data exists
+            while (
+                current_section_idx + 1 < len(section_starts)
+                and bar_start_time_abs >= section_starts[current_section_idx + 1]
+            ):
+                current_section_idx += 1
+            # Get the label for the determined section index
+            if current_section_idx >= len(semantic_labels):
+                print(
+                    f"Warning: Section index {current_section_idx} out of bounds for labels ({len(semantic_labels)}) at bar {i}. Assigning 'Unknown'."
+                )
+                current_label = "Unknown"
+            else:
+                current_label = semantic_labels[current_section_idx]
         else:
-            current_label = semantic_labels[current_section_idx]
+            current_label = "Unknown"  # Default if no section data
 
         # --- Calculate Features for the Bar ---
         # 1. Average RMS (already available per bar)

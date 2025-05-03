@@ -56,6 +56,10 @@
 <li class="toctree-l3"><a class="reference internal" href="#audio_plotting.parse_freq_string"><code class="docutils literal notranslate"><span class="pre">parse_freq_string()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#audio_plotting.time_to_bar_formatter"><code class="docutils literal notranslate"><span class="pre">time_to_bar_formatter()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#audio_plotting.generate_structure_summary"><code class="docutils literal notranslate"><span class="pre">generate_structure_summary()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio_plotting._add_section_lines"><code class="docutils literal notranslate"><span class="pre">_add_section_lines()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio_plotting._add_section_labels_text"><code class="docutils literal notranslate"><span class="pre">_add_section_labels_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio_plotting._add_bar_axis"><code class="docutils literal notranslate"><span class="pre">_add_bar_axis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#audio_plotting._plot_feature_per_section"><code class="docutils literal notranslate"><span class="pre">_plot_feature_per_section()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#audio_plotting.plot_waveform"><code class="docutils literal notranslate"><span class="pre">plot_waveform()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#audio_plotting.plot_energy_balance_features"><code class="docutils literal notranslate"><span class="pre">plot_energy_balance_features()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#audio_plotting.plot_timbre_texture_features"><code class="docutils literal notranslate"><span class="pre">plot_timbre_texture_features()</span></code></a></li>
@@ -174,6 +178,30 @@
 <dt class="sig sig-object py" id="audio_plotting.generate_structure_summary">
 <span class="sig-prename descclassname"><span class="pre">audio_plotting.</span></span><span class="sig-name descname"><span class="pre">generate_structure_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">features</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_plotting.html#generate_structure_summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_plotting.generate_structure_summary" title="Link to this definition"></a></dt>
 <dd><p>Generates a summarized structure string (e.g., Intro 16 Bars - Drop 32 Bars).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="audio_plotting._add_section_lines">
+<span class="sig-prename descclassname"><span class="pre">audio_plotting.</span></span><span class="sig-name descname"><span class="pre">_add_section_lines</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_plotting.html#_add_section_lines"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_plotting._add_section_lines" title="Link to this definition"></a></dt>
+<dd><p>Adds vertical lines at section boundaries.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="audio_plotting._add_section_labels_text">
+<span class="sig-prename descclassname"><span class="pre">audio_plotting.</span></span><span class="sig-name descname"><span class="pre">_add_section_labels_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_plotting.html#_add_section_labels_text"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_plotting._add_section_labels_text" title="Link to this definition"></a></dt>
+<dd><p>Adds section text labels above or below the plot area.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="audio_plotting._add_bar_axis">
+<span class="sig-prename descclassname"><span class="pre">audio_plotting.</span></span><span class="sig-name descname"><span class="pre">_add_bar_axis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_plotting.html#_add_bar_axis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_plotting._add_bar_axis" title="Link to this definition"></a></dt>
+<dd><p>Adds a secondary x-axis showing bar numbers at the specified location (‘top’ or ‘bottom’).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="audio_plotting._plot_feature_per_section">
+<span class="sig-prename descclassname"><span class="pre">audio_plotting.</span></span><span class="sig-name descname"><span class="pre">_plot_feature_per_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">feature_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_label</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title_part</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/audio_plotting.html#_plot_feature_per_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#audio_plotting._plot_feature_per_section" title="Link to this definition"></a></dt>
+<dd><p>Helper to draw a step plot of a feature calculated per section.</p>
 </dd></dl>
 
 <dl class="py function">

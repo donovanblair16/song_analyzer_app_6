@@ -64,6 +64,12 @@
 <li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager.pause"><code class="docutils literal notranslate"><span class="pre">PlaybackManager.pause()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager.stop"><code class="docutils literal notranslate"><span class="pre">PlaybackManager.stop()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager.seek"><code class="docutils literal notranslate"><span class="pre">PlaybackManager.seek()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager._audio_callback"><code class="docutils literal notranslate"><span class="pre">PlaybackManager._audio_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager._stream_finished_callback"><code class="docutils literal notranslate"><span class="pre">PlaybackManager._stream_finished_callback()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager._handle_stream_finished_gui"><code class="docutils literal notranslate"><span class="pre">PlaybackManager._handle_stream_finished_gui()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager._start_playhead_updates"><code class="docutils literal notranslate"><span class="pre">PlaybackManager._start_playhead_updates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager._stop_playhead_updates"><code class="docutils literal notranslate"><span class="pre">PlaybackManager._stop_playhead_updates()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager._update_playhead"><code class="docutils literal notranslate"><span class="pre">PlaybackManager._update_playhead()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#playback_manager.PlaybackManager.cleanup"><code class="docutils literal notranslate"><span class="pre">PlaybackManager.cleanup()</span></code></a></li>
 </ul>
 </li>
@@ -170,6 +176,42 @@ about playback position updates
 <dt class="sig sig-object py" id="playback_manager.PlaybackManager.seek">
 <span class="sig-name descname"><span class="pre">seek</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">target_frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager.seek"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager.seek" title="Link to this definition"></a></dt>
 <dd><p>Sets the playback position to the target frame.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="playback_manager.PlaybackManager._audio_callback">
+<span class="sig-name descname"><span class="pre">_audio_callback</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">outdata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frames</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_info</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">status</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager._audio_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager._audio_callback" title="Link to this definition"></a></dt>
+<dd><p>Callback function for sounddevice stream (runs in audio thread).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="playback_manager.PlaybackManager._stream_finished_callback">
+<span class="sig-name descname"><span class="pre">_stream_finished_callback</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager._stream_finished_callback"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager._stream_finished_callback" title="Link to this definition"></a></dt>
+<dd><p>Internal callback when sounddevice stream finishes or is stopped.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="playback_manager.PlaybackManager._handle_stream_finished_gui">
+<span class="sig-name descname"><span class="pre">_handle_stream_finished_gui</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager._handle_stream_finished_gui"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager._handle_stream_finished_gui" title="Link to this definition"></a></dt>
+<dd><p>Handles GUI updates after stream finishes (runs in main thread).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="playback_manager.PlaybackManager._start_playhead_updates">
+<span class="sig-name descname"><span class="pre">_start_playhead_updates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager._start_playhead_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager._start_playhead_updates" title="Link to this definition"></a></dt>
+<dd><p>Starts the loop to update the playhead position.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="playback_manager.PlaybackManager._stop_playhead_updates">
+<span class="sig-name descname"><span class="pre">_stop_playhead_updates</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager._stop_playhead_updates"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager._stop_playhead_updates" title="Link to this definition"></a></dt>
+<dd><p>Stops the scheduled playhead update loop.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="playback_manager.PlaybackManager._update_playhead">
+<span class="sig-name descname"><span class="pre">_update_playhead</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/playback_manager.html#PlaybackManager._update_playhead"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#playback_manager.PlaybackManager._update_playhead" title="Link to this definition"></a></dt>
+<dd><p>Gets position from queue and calls GUI callback.</p>
 </dd></dl>
 
 <dl class="py method">

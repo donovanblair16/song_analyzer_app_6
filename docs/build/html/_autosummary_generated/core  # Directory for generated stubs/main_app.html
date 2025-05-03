@@ -70,12 +70,35 @@
 <li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.show_hmm_var"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.show_hmm_var</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.style"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.style</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.__init__"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.__init__()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.update_manual_bpm_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.update_manual_bpm_state()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.update_ui_for_mode"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.update_ui_for_mode()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.update_analyze_button_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.update_analyze_button_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerapp.ui_manager.update_manual_bpm_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_manual_bpm_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerapp.ui_manager.update_ui_for_mode"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_ui_for_mode()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerapp.ui_manager.update_analyze_button_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_analyze_button_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._update_save_button_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_save_button_state</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerapp.ui_manager.update_hmm_button_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_hmm_button_state()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.run_analysis"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.run_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._analyze_single_track"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._analyze_single_track()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.update_plots_with_manual_bpm"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.update_plots_with_manual_bpm()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerapp.ui_manager.update_playback_buttons_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_playback_buttons_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._update_playhead_display"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._update_playhead_display()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._redraw_canvas"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._redraw_canvas()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._toggle_label_view"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._toggle_label_view()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerapp.ui_manager.update_toggle_button_state"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerapp.ui_manager.update_toggle_button_state()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._on_waveform_click"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._on_waveform_click()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._show_section_edit_popup"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._show_section_edit_popup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._trigger_merge"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._trigger_merge()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._merge_section"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._merge_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._show_split_section_popup"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._show_split_section_popup()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._commit_split"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._commit_split()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._commit_split_by_bar"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._commit_split_by_bar()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._split_section"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._split_section()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._recalculate_section_features"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._recalculate_section_features()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._save_analysis"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._save_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._load_analysis"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._load_analysis()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._ask_save_status"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._ask_save_status()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp.select_file"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp.select_file()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._apply_section_edits_from_editor"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._apply_section_edits_from_editor()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._trigger_hmm_prediction"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._trigger_hmm_prediction()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#main_app.AudioAnalyzerApp._on_closing"><code class="docutils literal notranslate"><span class="pre">AudioAnalyzerApp._on_closing()</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -349,27 +372,44 @@ the initial UI state.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp.update_manual_bpm_state">
-<span class="sig-name descname"><span class="pre">update_manual_bpm_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp.update_manual_bpm_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp.update_manual_bpm_state" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerapp.ui_manager.update_manual_bpm_state">
+<span class="sig-name descname"><span class="pre">update_manual_bpm_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerapp.ui_manager.update_manual_bpm_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerapp.ui_manager.update_manual_bpm_state" title="Link to this definition"></a></dt>
 <dd><p>Enables or disables the manual BPM entry and update button.</p>
 <p>The controls are enabled only if the ‘Use Manual BPM’ checkbox is checked
 AND analysis data exists for track 1.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp.update_ui_for_mode">
-<span class="sig-name descname"><span class="pre">update_ui_for_mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp.update_ui_for_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp.update_ui_for_mode" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerapp.ui_manager.update_ui_for_mode">
+<span class="sig-name descname"><span class="pre">update_ui_for_mode</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerapp.ui_manager.update_ui_for_mode"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerapp.ui_manager.update_ui_for_mode" title="Link to this definition"></a></dt>
 <dd><p>Updates UI elements visibility and state based on Single/Compare mode.</p>
 <p>Shows/hides Track 2 controls, resets data, updates button labels,
 clears plots, and resets various UI states when the mode changes.</p>
 </dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp.update_analyze_button_state">
-<span class="sig-name descname"><span class="pre">update_analyze_button_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp.update_analyze_button_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp.update_analyze_button_state" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerapp.ui_manager.update_analyze_button_state">
+<span class="sig-name descname"><span class="pre">update_analyze_button_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerapp.ui_manager.update_analyze_button_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerapp.ui_manager.update_analyze_button_state" title="Link to this definition"></a></dt>
 <dd><p>Enables or disables the ‘Analyze’ button based on file selection(s).</p>
 <p>Requires Track 1 file in single mode, or both Track 1 and Track 2 files
 in compare mode. Also updates save and HMM button states.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._update_save_button_state">
+<span class="sig-name descname"><span class="pre">_update_save_button_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._update_save_button_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._update_save_button_state" title="Link to this definition"></a></dt>
+<dd><p>Enables the ‘Save Analysis’ button.</p>
+<p>Enabled only when in ‘single’ mode and analysis data exists for Track 1.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerapp.ui_manager.update_hmm_button_state">
+<span class="sig-name descname"><span class="pre">_update_hmm_button_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerapp.ui_manager.update_hmm_button_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerapp.ui_manager.update_hmm_button_state" title="Link to this definition"></a></dt>
+<dd><p>Enables/disables HMM Predict and Show HMM buttons.</p>
+<p>Predict button is enabled if in single mode, track data exists, and the
+required GMM-HMM model and auxiliary files are found.
+Show HMM button is enabled if HMM prediction results already exist in the
+current track data.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -397,6 +437,36 @@ initial analysis. Defaults to False.</p></li>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._analyze_single_track">
+<span class="sig-name descname"><span class="pre">_analyze_single_track</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_num</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">manual_bpm_override</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._analyze_single_track"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._analyze_single_track" title="Link to this definition"></a></dt>
+<dd><p>Runs the complete analysis pipeline for a single track.</p>
+<p>This involves loading, preprocessing, tempo estimation (potentially overridden),
+section detection, chroma analysis, clustering, labeling, HPSS, stereo width,
+low-end energy, dynamic range, and calculation of various derived features.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>track_num</strong> (<em>int</em>) – The track number (1 or 2) to analyze.</p></li>
+<li><p><strong>manual_bpm_override</strong> (<em>float</em><em>, </em><em>optional</em>) – If provided, overrides the
+automatic BPM detection. Defaults to None.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dictionary containing all analysis results for the track,</dt><dd><p>or None if a critical error occurs during processing.
+Keys include ‘y_processed’, ‘sr’, ‘bpm’, ‘section_starts’,
+‘semantic_labels’, ‘section_features’, etc.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="main_app.AudioAnalyzerApp.update_plots_with_manual_bpm">
 <span class="sig-name descname"><span class="pre">update_plots_with_manual_bpm</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp.update_plots_with_manual_bpm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp.update_plots_with_manual_bpm" title="Link to this definition"></a></dt>
 <dd><p>Validates the manual BPM input from the GUI and triggers re-analysis.</p>
@@ -407,9 +477,312 @@ buttons during re-analysis.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerapp.ui_manager.update_playback_buttons_state">
+<span class="sig-name descname"><span class="pre">_update_playback_buttons_state_from_manager</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">state</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerapp.ui_manager.update_playback_buttons_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerapp.ui_manager.update_playback_buttons_state" title="Link to this definition"></a></dt>
+<dd><p>Updates the Play/Pause and Stop button states based on PlaybackManager state.</p>
+<p>This method is intended as a callback function passed to the PlaybackManager.
+It receives the new playback state and updates the GUI accordingly.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>state</strong> (<em>str</em>) – The new playback state (‘playing’, ‘paused’, ‘stopped’).</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._update_playhead_display">
+<span class="sig-name descname"><span class="pre">_update_playhead_display</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">frame</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._update_playhead_display"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._update_playhead_display" title="Link to this definition"></a></dt>
+<dd><p>Updates the position of the vertical playhead line on the waveform plot.</p>
+<p>This method is intended as a callback function passed to the PlaybackManager.
+It receives the current playback frame index, converts it to time, adjusts
+for any trim offset, and updates the x-data of the Matplotlib line object
+representing the playhead. It then requests a canvas redraw.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>frame</strong> (<em>int</em><em> or </em><em>None</em>) – The current audio frame index being played, or None
+if playback is stopped or position is unknown.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._redraw_canvas">
+<span class="sig-name descname"><span class="pre">_redraw_canvas</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._redraw_canvas"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._redraw_canvas" title="Link to this definition"></a></dt>
+<dd><p>Requests an idle redraw of the Matplotlib canvas for the waveform plot.</p>
+<p>Safely attempts to find the canvas widget associated with the ‘Waveform’
+plot and schedules a redraw. Handles potential errors during redraw.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._toggle_label_view">
+<span class="sig-name descname"><span class="pre">_toggle_label_view</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._toggle_label_view"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._toggle_label_view" title="Link to this definition"></a></dt>
+<dd><p>Switches the waveform plot labels between final and pre-cleanup versions.</p>
+<p>Reads the state of <cite>show_pre_cleanup_labels_var</cite>, triggers a replotting
+of the analysis results via PlotManager, and updates the state of the
+toggle button itself. Also ensures the save button state is updated,
+as saving might depend on the viewed labels.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerapp.ui_manager.update_toggle_button_state">
+<span class="sig-name descname"><span class="pre">_update_toggle_button_state</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerapp.ui_manager.update_toggle_button_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerapp.ui_manager.update_toggle_button_state" title="Link to this definition"></a></dt>
+<dd><p>Updates the state of the ‘Toggle Labels’ button.</p>
+<p>Enabled only if track 1 data exists, pre-cleanup labels are available,
+the mode is ‘single’, and the HMM results are not currently being shown.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._on_waveform_click">
+<span class="sig-name descname"><span class="pre">_on_waveform_click</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">event</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._on_waveform_click"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._on_waveform_click" title="Link to this definition"></a></dt>
+<dd><p>Handles mouse clicks on the waveform plot axes.</p>
+<p>Routes the click event to different actions based on the button pressed
+and modifier keys (Shift).</p>
+<ul class="simple">
+<li><p>Left-Click: Seeks playback position (only in single mode).</p></li>
+<li><p>Shift + Left-Click: Initiates the section split process (single mode, not HMM view).</p></li>
+<li><p>Right-Click: Opens the section edit/merge pop-up (single mode, not HMM view).</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>event</strong> (<em>matplotlib.backend_bases.MouseEvent</em>) – The Matplotlib mouse event.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._show_section_edit_popup">
+<span class="sig-name descname"><span class="pre">_show_section_edit_popup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">event</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._show_section_edit_popup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._show_section_edit_popup" title="Link to this definition"></a></dt>
+<dd><p>Creates and displays a modal pop-up dialog for editing or merging a section.</p>
+<p>Retrieves current label and color for the selected section index,
+creates a Toplevel window with Comboboxes for label/color selection,
+and buttons to apply edits or trigger merges with adjacent sections.
+Positions the popup near the mouse click event if provided.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section_index</strong> (<em>int</em>) – The zero-based index of the section to edit/merge.</p></li>
+<li><p><strong>event</strong> (<em>matplotlib.backend_bases.MouseEvent</em><em>, </em><em>optional</em>) – The mouse click
+event that triggered the popup, used for positioning. Defaults to None.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._trigger_merge">
+<span class="sig-name descname"><span class="pre">_trigger_merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">popup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direction</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._trigger_merge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._trigger_merge" title="Link to this definition"></a></dt>
+<dd><p>Handles the click event from the merge buttons in the edit popup.</p>
+<p>Determines the correct boundary index to remove based on the direction
+(‘prev’ or ‘next’) and calls the main <cite>_merge_section</cite> method. Closes
+the popup window first.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>popup</strong> (<em>tk.Toplevel</em>) – The popup window widget to destroy.</p></li>
+<li><p><strong>section_index</strong> (<em>int</em>) – The index of the section that was right-clicked.</p></li>
+<li><p><strong>direction</strong> (<em>str</em>) – Either ‘prev’ or ‘next’, indicating merge direction.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._merge_section">
+<span class="sig-name descname"><span class="pre">_merge_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">remove_boundary_index</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._merge_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._merge_section" title="Link to this definition"></a></dt>
+<dd><p>Merges two adjacent sections by removing the specified boundary.</p>
+<p>Removes the start time at <cite>remove_boundary_index</cite> and the corresponding
+label, color, and feature dictionary at that index. Updates the end time
+and duration of the preceding section. Recalculates features for the
+newly merged section. Clears any existing HMM results. Updates plots
+and UI state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>remove_boundary_index</strong> (<em>int</em>) – The index of the section start time
+(boundary) to remove. This corresponds
+to the index of the <em>second</em> section
+in the pair being merged.</p>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Operates directly on the <cite>self.track_data[1]</cite> dictionary.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._show_split_section_popup">
+<span class="sig-name descname"><span class="pre">_show_split_section_popup</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clicked_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._show_split_section_popup"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._show_split_section_popup" title="Link to this definition"></a></dt>
+<dd><p>Creates and displays a modal pop-up for splitting a section based on bar number.</p>
+<p>Calculates the bar number corresponding to the <cite>clicked_time</cite> and the
+bar range of the target section. Presents an entry field pre-filled with
+the clicked bar number, allowing the user to adjust it before confirming
+the split.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section_index</strong> (<em>int</em>) – The zero-based index of the section to split.</p></li>
+<li><p><strong>clicked_time</strong> (<em>float</em>) – The absolute time (in seconds) where the user clicked.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._commit_split">
+<span class="sig-name descname"><span class="pre">_commit_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">popup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">time_var</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._commit_split"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._commit_split" title="Link to this definition"></a></dt>
+<dd><p>Validates the split time entered in the (older, time-based) split popup and calls _split_section.</p>
+<p>This method is likely deprecated if the bar-based popup is used, but kept
+for potential backward compatibility or alternative implementations.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>popup</strong> (<em>tk.Toplevel</em>) – The popup window widget.</p></li>
+<li><p><strong>section_index</strong> (<em>int</em>) – The zero-based index of the section to split.</p></li>
+<li><p><strong>time_var</strong> (<em>tk.StringVar</em>) – The Tkinter variable holding the entered split time string.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._commit_split_by_bar">
+<span class="sig-name descname"><span class="pre">_commit_split_by_bar</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">popup</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bar_var</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seconds_per_bar</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">trim_offset</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._commit_split_by_bar"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._commit_split_by_bar" title="Link to this definition"></a></dt>
+<dd><p>Validates the split bar number from the popup, converts it to time, and calls _split_section.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>popup</strong> (<em>tk.Toplevel</em>) – The popup window widget.</p></li>
+<li><p><strong>section_index</strong> (<em>int</em>) – The zero-based index of the section to split.</p></li>
+<li><p><strong>bar_var</strong> (<em>tk.StringVar</em>) – The Tkinter variable holding the entered bar number string.</p></li>
+<li><p><strong>seconds_per_bar</strong> (<em>float</em>) – The duration of one bar in seconds.</p></li>
+<li><p><strong>trim_offset</strong> (<em>float</em>) – The trim offset of the audio file in seconds.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._split_section">
+<span class="sig-name descname"><span class="pre">_split_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">section_index</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">split_time</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._split_section"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._split_section" title="Link to this definition"></a></dt>
+<dd><p>Splits a section at the given absolute time point.</p>
+<p>Modifies the <cite>track_data[1]</cite> dictionary by:
+1. Inserting the <cite>split_time</cite> into the <cite>section_starts</cite> list.
+2. Duplicating the label, color, and feature dictionary for the split section.
+3. Updating the end time/duration of the first part of the split section.
+4. Updating the start time/duration/index of the second part (newly inserted section).
+5. Updating the indices of all subsequent sections.
+6. Recalculating features for both newly formed sections using <cite>_recalculate_section_features</cite>.
+7. Clearing any existing HMM results.
+8. Refreshing plots and UI state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>section_index</strong> (<em>int</em>) – The zero-based index of the section to split.</p></li>
+<li><p><strong>split_time</strong> (<em>float</em>) – The absolute time (in seconds) at which to split.</p></li>
+</ul>
+</dd>
+</dl>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Operates directly on the <cite>self.track_data[1]</cite> dictionary.</p>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._recalculate_section_features">
+<span class="sig-name descname"><span class="pre">_recalculate_section_features</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">section_idx</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._recalculate_section_features"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._recalculate_section_features" title="Link to this definition"></a></dt>
+<dd><p>Recalculates various features for a specific section index.</p>
+<p>This helper method is used after a merge or split operation to update
+the feature dictionary for a section whose boundaries have changed.
+It extracts the necessary frame-level data (RMS, spectrogram, etc.)
+from the main <cite>track_data</cite> based on the section’s updated start and
+end times and computes aggregate features like averages, standard
+deviations, ratios, and trends.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>track_data</strong> (<em>dict</em>) – The main track data dictionary containing frame-level
+features and the <cite>section_features</cite> list.</p></li>
+<li><p><strong>section_idx</strong> (<em>int</em>) – The zero-based index within the <cite>section_features</cite>
+list for which to recalculate features.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><dl class="simple">
+<dt>A dictionary containing the recalculated feature values</dt><dd><p>(e.g., ‘avg_rms’, ‘spectral_centroid_avg’, etc.). Returns
+None if the section index is invalid or a critical error
+occurs during calculation. Feature values will be NaN if
+underlying data is missing or calculation fails for that
+specific feature.</p>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._save_analysis">
+<span class="sig-name descname"><span class="pre">_save_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._save_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._save_analysis" title="Link to this definition"></a></dt>
+<dd><p>Saves the current analysis results for Track 1 via FileManager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._load_analysis">
+<span class="sig-name descname"><span class="pre">_load_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._load_analysis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._load_analysis" title="Link to this definition"></a></dt>
+<dd><p>Loads a previously saved analysis file via FileManager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._ask_save_status">
+<span class="sig-name descname"><span class="pre">_ask_save_status</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parent</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._ask_save_status"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._ask_save_status" title="Link to this definition"></a></dt>
+<dd><p>Asks the user if they want to save changes via FileManager.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="main_app.AudioAnalyzerApp.select_file">
 <span class="sig-name descname"><span class="pre">select_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">track_num</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp.select_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp.select_file" title="Link to this definition"></a></dt>
 <dd><p>Opens a file dialog to select an audio file via FileManager.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._apply_section_edits_from_editor">
+<span class="sig-name descname"><span class="pre">_apply_section_edits_from_editor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">new_labels</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_colors_hex</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._apply_section_edits_from_editor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._apply_section_edits_from_editor" title="Link to this definition"></a></dt>
+<dd><p>Applies label and color edits made in the SectionEditor to the track data.</p>
+<p>This method is called by the SectionEditor instance when the user confirms
+their edits. It updates the <cite>semantic_labels</cite>, <cite>label_colors</cite>, and the
+<cite>original_label</cite> within the <cite>section_features</cite> list in <cite>track_data[1]</cite>.
+It also clears any existing HMM results, refreshes plots, and updates UI state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>new_labels</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – The list of updated section labels.</p></li>
+<li><p><strong>new_colors_hex</strong> (<em>list</em><em>[</em><em>str</em><em>]</em>) – The list of updated section color hex codes.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._trigger_hmm_prediction">
+<span class="sig-name descname"><span class="pre">_trigger_hmm_prediction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._trigger_hmm_prediction"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._trigger_hmm_prediction" title="Link to this definition"></a></dt>
+<dd><p>Initiates HMM-based section prediction for the analyzed track.</p>
+<p>Called when the ‘Run HMM Prediction’ button is clicked. It ensures
+track data is loaded, loads the HMM model via HMMPredictor, runs the
+prediction, stores the results in separate keys within <cite>track_data[1]</cite>,
+updates the UI state (status bar, buttons), and refreshes the plots
+to show the HMM results.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="main_app.AudioAnalyzerApp._on_closing">
+<span class="sig-name descname"><span class="pre">_on_closing</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../../_modules/main_app.html#AudioAnalyzerApp._on_closing"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#main_app.AudioAnalyzerApp._on_closing" title="Link to this definition"></a></dt>
+<dd><p>Handles the window close event (clicking the ‘X’ button).</p>
+<p>Ensures the audio playback stream is stopped and cleaned up properly
+before destroying the main Tkinter window.</p>
 </dd></dl>
 
 </dd></dl>

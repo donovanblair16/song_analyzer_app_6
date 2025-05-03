@@ -62,11 +62,11 @@ class FileManager:
             # Use plot manager methods
             app.plot_manager.clear_plots()
             app.plot_manager.add_placeholder_labels()
-            app.update_analyze_button_state()
+            app.ui_manager.update_analyze_button_state()
             app.use_manual_bpm.set(False)
             if hasattr(app, "manual_bpm_check") and app.manual_bpm_check:
                 app.manual_bpm_check.config(state=tk.DISABLED)
-            app.update_manual_bpm_state()
+            app.ui_manager.update_manual_bpm_state()
             if app.toggle_labels_button:
                 app.toggle_labels_button.config(state=tk.DISABLED)
             if app.save_button:
@@ -86,8 +86,8 @@ class FileManager:
             if app.mode.get() == "single" and track_num == 1:
                 app.track_data[2] = None  # Clear track 2 if in single mode
 
-            app._update_hmm_button_state()  # Ensure HMM buttons are disabled
-            app._update_playback_buttons_state_from_manager("stopped")
+            app.ui_manager.update_hmm_button_state()  # Ensure HMM buttons are disabled
+            app.ui_manager.update_playback_buttons_state("stopped")
         else:
             label = app.file_label1 if track_num == 1 else app.file_label2
             if label:
@@ -307,14 +307,14 @@ class FileManager:
 
             # Update UI to reflect loaded state (single track mode)
             app.mode.set("single")
-            app.update_ui_for_mode()  # This updates UI and clears plots again via plot_manager
+            app.ui_manager.update_ui_for_mode()  # This updates UI and clears plots again via plot_manager
             app.plot_manager.display_analysis_results()  # Use plot manager to display loaded results
             app.status_label.config(text="Analysis Loaded", foreground="green")
 
             # Update button states
-            app._update_save_button_state()
-            app._update_toggle_button_state()
-            app._update_hmm_button_state()
+            app.ui_manager.update_save_button_state
+            app.ui_manager.update_toggle_button_state()
+            app.ui_manager.update_hmm_button_state()
             if app.track_data[1].get("bpm"):
                 if hasattr(app, "manual_bpm_check") and app.manual_bpm_check:
                     app.manual_bpm_check.config(
@@ -327,7 +327,7 @@ class FileManager:
                         if isinstance(bpm_used, (int, float, np.number))
                         else ""
                     )  # Check type
-                app.update_manual_bpm_state()
+                app.ui_manager.update_manual_bpm_state()
 
             print("DEBUG FileManager: Load analysis finished successfully.")
 
@@ -344,4 +344,4 @@ class FileManager:
             app.track_names = {1: "Track 1", 2: "Track 2"}
             app.file_label1.config(text="No file selected")
             app.file_label2.config(text="No file selected")
-            app.update_ui_for_mode()
+            app.ui_manager.update_ui_for_mode()

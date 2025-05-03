@@ -11,6 +11,7 @@ import tkinter as tk
 from tkinter import ttk
 import traceback
 import numpy as np # Needed for calculating bar number
+from debug_utils import debug_print
 
 # --- Constants ---
 # These are now primarily defined here and imported by main_app if needed elsewhere
@@ -52,6 +53,8 @@ class SectionEditor(ttk.Frame):
 
     def _setup_widgets(self):
         """Creates and packs the Treeview, Scrollbar, and Button."""
+        debug_print("INITIALIZATION", "Setting up SectionEditor widgets")
+
         # Treeview for editing
         tree_frame = ttk.Frame(self)
         tree_frame.pack(fill=tk.BOTH, expand=True)
@@ -71,6 +74,8 @@ class SectionEditor(ttk.Frame):
         vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview); self.tree.configure(yscrollcommand=vsb.set)
         vsb.pack(side=tk.RIGHT, fill=tk.Y); self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        debug_print("INITIALIZATION", f"Setting up color tags for {len(COLOR_NAME_MAP)} colors")
+
         # Define tags for FOREGROUND colors only
         self.color_tags = {}
         for color_name, color_hex in COLOR_NAME_MAP.items():
@@ -78,15 +83,28 @@ class SectionEditor(ttk.Frame):
             self.color_tags[color_hex] = tag_name
             try:
                 self.tree.tag_configure(tag_name, foreground=color_hex)
-                print(f"DEBUG: Configured tag '{tag_name}' with fg={color_hex}")
-            except tk.TclError as e: print(f"Warning: Could not configure tag '{tag_name}' - {e}")
-        self.tree.tag_configure('custom_color', foreground='grey'); self.color_tags['default'] = 'custom_color'
+                debug_print(
+                    "INITIALIZATION", f"Configured tag '{tag_name}' with fg={color_hex}"
+                )
+            except tk.TclError as e: 
+                debug_print(
+                    "INITIALIZATION",
+                    f"Error: Could not configure tag '{tag_name}' - {e}",
+                )
+
+        self.tree.tag_configure('custom_color', foreground='grey')
+        self.color_tags['default'] = 'custom_color'
+        debug_print("INITIALIZATION", "Added default 'custom_color' tag")
 
         # Bind right-click event for editing
-        self.tree.bind("<Button-3>", self._on_cell_edit_start); self.tree.bind("<Button-2>", self._on_cell_edit_start)
+        self.tree.bind("<Button-3>", self._on_cell_edit_start)
+        self.tree.bind("<Button-2>", self._on_cell_edit_start)
+        debug_print("INITIALIZATION", "Bound edit events to mouse buttons 2 and 3")
 
         # Update button
-        self.update_button = ttk.Button(self, text="Update Sections", command=self._trigger_apply_edits, state=tk.DISABLED); self.update_button.pack(pady=5)
+        self.update_button = ttk.Button(self, text="Update Sections", command=self._trigger_apply_edits, state=tk.DISABLED)
+        self.update_button.pack(pady=5)
+        debug_print("INITIALIZATION", "SectionEditor widgets setup complete")
 
     def populate(self, track_data):
         """Fills the Treeview editor with current section data and applies row color tags."""
@@ -94,7 +112,7 @@ class SectionEditor(ttk.Frame):
         self.clear()
         required_keys = ['section_features', 'semantic_labels', 'label_colors', 'trim_offset_sec', 'seconds_per_bar']
         if not track_data or not all(k in track_data and track_data[k] is not None for k in required_keys):
-             print(f"DEBUG SectionEditor: Missing data for population."); self.update_button.config(state=tk.DISABLED); return
+            print(f"DEBUG SectionEditor: Missing data for population."); self.update_button.config(state=tk.DISABLED); return
 
         features = track_data['section_features']; labels = track_data['semantic_labels']; colors = track_data['label_colors']
         trim_offset = track_data['trim_offset_sec']; sec_per_bar = track_data['seconds_per_bar']; num_sections = len(features)
@@ -112,7 +130,8 @@ class SectionEditor(ttk.Frame):
             color_square = '■'
             try:
                 self.tree.insert('', tk.END, iid=i, values=(color_square, i + 1, start_bar_str, duration_bars, current_label, color_name), tags=(row_tag,))
-            except Exception as e: print(f"Error inserting row {i} into treeview: {e}")
+            except Exception as e:
+                print(f"Error inserting row {i} into treeview: {e}")
         self.update_button.config(state=tk.NORMAL); print(f"DEBUG SectionEditor: Populated with {num_sections} sections.")
 
     def clear(self):
@@ -166,13 +185,14 @@ class SectionEditor(ttk.Frame):
             if not all_items: print("DEBUG SectionEditor: No items in tree to apply."); return
             new_labels = []; new_colors_hex = []
             for item_id in all_items:
-                 values = self.tree.item(item_id, 'values')
-                 if len(values) < 6: continue
-                 edited_label = values[4]; edited_color_name = values[5]
-                 if edited_label not in ALLOWED_LABELS: print(f"Warning: Invalid label '{edited_label}' found for item {item_id}. Using fallback 'Body'."); edited_label = "Body"
-                 color_hex = COLOR_NAME_MAP.get(edited_color_name, '#808080')
-                 new_labels.append(edited_label); new_colors_hex.append(color_hex)
+                values = self.tree.item(item_id, 'values')
+                if len(values) < 6: continue
+                edited_label = values[4]; edited_color_name = values[5]
+                if edited_label not in ALLOWED_LABELS: print(f"Warning: Invalid label '{edited_label}' found for item {item_id}. Using fallback 'Body'."); edited_label = "Body"
+                color_hex = COLOR_NAME_MAP.get(edited_color_name, '#808080')
+                new_labels.append(edited_label); new_colors_hex.append(color_hex)
             print(f"DEBUG SectionEditor: Applying {len(new_labels)} edits via callback.")
             self.apply_callback(new_labels, new_colors_hex)
-        except Exception as e: print(f"ERROR SectionEditor: Failed during apply edits trigger: {e}"); traceback.print_exc()
-
+        except Exception as e:
+            print(f"ERROR SectionEditor: Failed during apply edits trigger: {e}")
+            traceback.print_exc()

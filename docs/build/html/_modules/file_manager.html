@@ -184,6 +184,8 @@
                 <span class="n">label</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Selection cancelled.&quot;</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="FileManager._ask_save_status">
+<a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager._ask_save_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_ask_save_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates a modal dialog asking user to classify the save.&quot;&quot;&quot;</span>
         <span class="n">dialog</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">Toplevel</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
@@ -230,7 +232,8 @@
         <span class="p">)</span>
         <span class="n">wip_btn</span><span class="o">.</span><span class="n">pack</span><span class="p">(</span><span class="n">side</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">LEFT</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
         <span class="n">parent</span><span class="o">.</span><span class="n">wait_window</span><span class="p">(</span><span class="n">dialog</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">status_var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">status_var</span><span class="o">.</span><span class="n">get</span><span class="p">()</span></div>
+
 
 <div class="viewcode-block" id="FileManager.save_analysis">
 <a class="viewcode-back" href="../_autosummary_generated/io%20%20%23%20Directory%20for%20generated%20stubs/file_manager.html#file_manager.FileManager.save_analysis">[docs]</a>

@@ -9,6 +9,7 @@
 # Fixed SyntaxErrors in _analyze_single_track and run_analysis.
 # Fixed ImportError by defining _recalculate_section_features as a class method.
 # Fixed AttributeError for checking Shift key in _on_waveform_click.
+# IMPLEMENTED: Section shifting functionality via dialog box.
 # =============================================================================
 
 """
@@ -20,7 +21,8 @@ It integrates functionalities from various other modules within the project.
 """
 
 import tkinter as tk
-from tkinter import ttk, filedialog, messagebox
+# Added simpledialog, though using Toplevel for custom layout
+from tkinter import ttk, filedialog, messagebox, simpledialog
 import matplotlib.pyplot as plt # Keep for plt.close('all')
 import os
 import traceback
@@ -34,6 +36,20 @@ import math # Added for isnan check
 import librosa # For audio analysis, needed by merge recalc
 import librosa.display # For audio analysis, needed by merge recalc
 import copy # Needed for deepcopy during split
+from debug_utils import debug_print, debug_timing, function_trace
+from main_app_config import (
+    ANALYSIS_BASE_FOLDER,
+    PROJECT_BASE_FOLDER,
+    HMM_OUTPUT_FOLDER,
+    PERFECT_SUBFOLDER,
+    WIP_SUBFOLDER,
+    GMMHMM_MODEL_PATH,
+    GMMHMM_AUX_PATH,
+    N_FEATURES_EXPECTED,
+    N_MIXTURES_EXPECTED,
+    CLEANING_FLAGS_EXPECTED,
+    MIN_SPLIT_SECTION_DURATION_SEC,
+)
 
 # --- Import functions/classes from other modules ---
 try:
@@ -56,6 +72,9 @@ try:
     from plot_manager import PlotManager
     # *** Import the new FileManager ***
     from file_manager import FileManager
+    from section_manager import SectionManager
+    from ui_state_manager import UIStateManager
+
 
 except ImportError as e:
     print(f"Import Error: {e}\n"
@@ -69,42 +88,6 @@ except ImportError as e:
     except tk.TclError:
         pass
     exit()
-
-# --- Constants ---
-# Base folder paths
-# *** Ensure these paths are correct for your system ***
-ANALYSIS_BASE_FOLDER = "/Users/donovanblair/Desktop/song_analyzer_app_6/completed_analyses"  # <-- CORRECTED PATH
-PROJECT_BASE_FOLDER = os.path.dirname(
-    ANALYSIS_BASE_FOLDER
-)  # This should update correctly now
-HMM_OUTPUT_FOLDER = os.path.join(
-    PROJECT_BASE_FOLDER, "hmm_model"
-)  # This should update correctly now
-
-# Subfolder names (used by FileManager/SectionEditor)
-PERFECT_SUBFOLDER = "Perfect"
-WIP_SUBFOLDER = "WIP"
-
-# *** Paths for the GMMHMM model and auxiliary data ***
-# *** Make sure these match the output filenames in gmm_hmm_trainer.py ***
-# Set N_FEATURES and N_MIXTURES based on the trainer script used
-N_FEATURES_EXPECTED = 7 # Set based on the latest trainer (10 features)
-N_MIXTURES_EXPECTED = 1 # Set based on the latest trainer (3 mixtures)
-# *** ADD a variable for the cleaning flags used in the desired model ***
-CLEANING_FLAGS_EXPECTED = "out_sh_con"  # Set to match the filename flags
-
-# Construct the filename parts
-feature_str = f"{N_FEATURES_EXPECTED}f"
-mixture_str = f"{N_MIXTURES_EXPECTED}m"
-# *** Construct the base filename including the cleaning flags ***
-base_filename = f"gmmhmm_{feature_str}_{mixture_str}_{CLEANING_FLAGS_EXPECTED}"
-
-# Construct the full paths using the base filename
-GMMHMM_MODEL_PATH = os.path.join(HMM_OUTPUT_FOLDER, f"{base_filename}_model.joblib")
-GMMHMM_AUX_PATH = os.path.join(HMM_OUTPUT_FOLDER, f"{base_filename}_aux.joblib")
-
-# Minimum section duration allowed after a split (in seconds)
-MIN_SPLIT_SECTION_DURATION_SEC = 1.0 # Adjust as needed
 
 
 # --- Tkinter GUI Application Class ---
@@ -172,16 +155,22 @@ class AudioAnalyzerApp:
         self.manual_bpm_entry = None; self.update_bpm_button = None
         self.section_editor = None; self.waveform_summary_label = None
         self.playhead_line = None # Matplotlib line object for playback position
+        self.shift_sections_button = None # Placeholder for the new button
+
+        # --- Initialize UI State Manager BEFORE creating other managers ---
+        from ui_state_manager import UIStateManager
+        self.ui_manager = UIStateManager(self)
 
         # --- Instantiate Managers ---
         self.playback_manager = PlaybackManager(
             master=self.master,
-            on_state_change=self._update_playback_buttons_state_from_manager,
-            on_position_update=self._update_playhead_display
+            on_state_change=self.ui_manager.update_playback_buttons_state,
+            on_position_update=self._update_playhead_display,
         )
         self.plot_manager = PlotManager(self) # Pass app instance for access
         self.hmm_predictor = HMMPredictor(GMMHMM_MODEL_PATH, GMMHMM_AUX_PATH)
         self.file_manager = FileManager(self) # Pass app instance
+        self.section_manager = SectionManager(self) # Pass app instance
 
         # --- Tkinter Control Variables ---
         self.mode = tk.StringVar(value="single") # 'single' or 'compare'
@@ -202,151 +191,13 @@ class AudioAnalyzerApp:
         build_gui(self) # Call the external function to populate the GUI
 
         # --- Initial UI State ---
-        self.update_ui_for_mode()
-        self.update_manual_bpm_state()
+        self.ui_manager.update_ui_for_mode()
+        self.ui_manager.update_manual_bpm_state()
 
     # --- GUI Building Methods Removed (Moved to gui_builder.py) ---
     # --- Plot Management Methods Removed (Moved to plot_manager.py) ---
     # --- File Operation Methods Removed (Moved to file_manager.py) ---
-
-    # --- UI Update Methods (Remain in main app) ---
-    def update_manual_bpm_state(self):
-        """Enables or disables the manual BPM entry and update button.
-
-        The controls are enabled only if the 'Use Manual BPM' checkbox is checked
-        AND analysis data exists for track 1.
-        """
-        analysis_done = bool(self.track_data.get(1)) # Check if track 1 data exists
-        state = tk.NORMAL if self.use_manual_bpm.get() and analysis_done else tk.DISABLED
-        # Check if widgets exist before configuring (robustness)
-        if hasattr(self, 'manual_bpm_entry') and self.manual_bpm_entry:
-            self.manual_bpm_entry.config(state=state)
-        if hasattr(self, 'update_bpm_button') and self.update_bpm_button:
-            self.update_bpm_button.config(state=state)
-
-    def update_ui_for_mode(self):
-        """Updates UI elements visibility and state based on Single/Compare mode.
-
-        Shows/hides Track 2 controls, resets data, updates button labels,
-        clears plots, and resets various UI states when the mode changes.
-        """
-        mode = self.mode.get(); is_compare = mode == "compare"
-        analyze_btn_text = "Analyze & Compare" if is_compare else "Analyze Track"
-        bpm_label_text = "Manual Tempo (Track 1)" if is_compare else "Manual Tempo"
-
-        # Update button text and frame label
-        if hasattr(self, 'analyze_button') and self.analyze_button:
-            self.analyze_button.config(text=analyze_btn_text)
-        if hasattr(self, 'manual_bpm_frame') and self.manual_bpm_frame:
-            self.manual_bpm_frame.config(text=bpm_label_text)
-
-        # Show/hide Track 2 controls
-        if hasattr(self, 'select_button2') and self.select_button2 and hasattr(self, 'file_label2') and self.file_label2:
-            if is_compare:
-                self.select_button2.grid()
-                self.file_label2.grid()
-            else:
-                # Hide and reset Track 2 data if switching away from compare mode
-                self.select_button2.grid_remove()
-                self.file_label2.grid_remove()
-                self.file_path[2] = None
-                self.track_data[2] = None
-                if self.file_label2: self.file_label2.config(text="No file selected")
-
-        # Reset states and plots
-        self.playback_manager.stop()
-        self.update_analyze_button_state()
-        self.plot_manager.clear_plots()
-        self.plot_manager.add_placeholder_labels()
-        if hasattr(self, 'manual_bpm_check') and self.manual_bpm_check:
-            self.manual_bpm_check.config(state=tk.DISABLED) # Disable until analysis
-        self.update_manual_bpm_state()
-        if self.toggle_labels_button:
-            self.toggle_labels_button.config(state=tk.DISABLED)
-        if self.section_editor:
-            self.section_editor.clear()
-            self.section_editor.update_button.config(state=tk.DISABLED)
-        self.show_pre_cleanup_labels_var.set(False)
-        self.show_hmm_var.set(False)
-        self._update_playback_buttons_state_from_manager('stopped') # Reset playback buttons
-
-    def update_analyze_button_state(self):
-        """Enables or disables the 'Analyze' button based on file selection(s).
-
-        Requires Track 1 file in single mode, or both Track 1 and Track 2 files
-        in compare mode. Also updates save and HMM button states.
-        """
-        mode = self.mode.get(); state = tk.DISABLED
-        if mode == "single" and self.file_path.get(1):
-            state = tk.NORMAL
-        elif mode == "compare" and self.file_path.get(1) and self.file_path.get(2):
-            state = tk.NORMAL
-
-        if hasattr(self, 'analyze_button') and self.analyze_button:
-            self.analyze_button.config(state=state)
-
-        # Update dependent buttons
-        self._update_save_button_state()
-        self._update_hmm_button_state()
-
-    def _update_save_button_state(self):
-        """Enables the 'Save Analysis' button.
-
-        Enabled only when in 'single' mode and analysis data exists for Track 1.
-        """
-        state = tk.DISABLED
-        if self.mode.get() == "single" and self.track_data.get(1):
-            state = tk.NORMAL
-        if self.save_button:
-            self.save_button.config(state=state)
-
-    def _update_hmm_button_state(self):
-        """Enables/disables HMM Predict and Show HMM buttons.
-
-        Predict button is enabled if in single mode, track data exists, and the
-        required GMM-HMM model and auxiliary files are found.
-        Show HMM button is enabled if HMM prediction results already exist in the
-        current track data.
-        """
-        predict_state = tk.DISABLED
-        show_state = tk.DISABLED
-        print("DEBUG HMM Button Update: Checking state...") # DEBUG PRINT
-
-        # Check mode and track data
-        is_single_mode = self.mode.get() == 'single'
-        has_track_data = bool(self.track_data.get(1))
-        print(f" -> Single Mode: {is_single_mode}, Has Track 1 Data: {has_track_data}") # DEBUG PRINT
-
-        if is_single_mode and has_track_data:
-            # Check if the GMMHMM model files exist
-            print(f" -> Checking Model Path: {GMMHMM_MODEL_PATH}") # DEBUG
-            print(f" -> Checking Aux Path:   {GMMHMM_AUX_PATH}") # DEBUG
-            model_exists = os.path.exists(GMMHMM_MODEL_PATH)
-            aux_exists = os.path.exists(GMMHMM_AUX_PATH)
-            print(f" -> Model Exists: {model_exists}, Aux Exists: {aux_exists}") # DEBUG PRINT
-
-            if model_exists and aux_exists:
-                print(" -> Enabling Predict Button.") # DEBUG PRINT
-                predict_state = tk.NORMAL
-            else:
-                print(f"INFO: GMMHMM model/aux files not found. Predict button disabled.")
-                # Keep predict_state as DISABLED
-
-            # Check if HMM results already exist in track_data to enable Show HMM button
-            if 'hmm_section_starts' in self.track_data[1]:
-                show_state = tk.NORMAL
-                print(" -> Enabling Show HMM Button (results found).") # DEBUG PRINT
-            else:
-                 print(" -> Disabling Show HMM Button (no results found).") # DEBUG PRINT
-                 # Keep show_state as DISABLED
-
-        # Apply states to buttons if they exist
-        if hasattr(self, 'hmm_predict_button') and self.hmm_predict_button:
-            self.hmm_predict_button.config(state=predict_state)
-        if hasattr(self, 'show_hmm_button') and self.show_hmm_button:
-            self.show_hmm_button.config(state=show_state)
-
-        print("DEBUG HMM Button Update: Finished.") # DEBUG PRINT
+    # --- UI Update Methods (Remain in main app) --- moved to ui_state_manager.py
 
     # --- Analysis Orchestration (Remains in main app) ---
     def run_analysis(self, is_update=False, manual_bpm_val=None):
@@ -386,9 +237,10 @@ class AudioAnalyzerApp:
             self.track_data = {1: None, 2: None} # Clear previous data
             if self.toggle_labels_button: self.toggle_labels_button.config(state=tk.DISABLED)
             if self.save_button: self.save_button.config(state=tk.DISABLED)
+            if self.shift_sections_button: self.shift_sections_button.config(state=tk.DISABLED) # Disable shift button
             self.show_pre_cleanup_labels_var.set(False)
             self.show_hmm_var.set(False)
-            self._update_hmm_button_state()
+            self.ui_manager.update_hmm_button_state()
         else:
             # Re-analysis (BPM update) checks
             self.playback_manager.stop()
@@ -403,9 +255,10 @@ class AudioAnalyzerApp:
             # Reset relevant UI states for re-analysis
             if self.toggle_labels_button: self.toggle_labels_button.config(state=tk.DISABLED)
             if self.save_button: self.save_button.config(state=tk.DISABLED)
+            if self.shift_sections_button: self.shift_sections_button.config(state=tk.DISABLED) # Disable shift button
             self.show_pre_cleanup_labels_var.set(False)
             self.show_hmm_var.set(False)
-            self._update_hmm_button_state()
+            self.ui_manager.update_hmm_button_state()
 
         # --- Run Analysis Core Logic ---
         try:
@@ -443,10 +296,11 @@ class AudioAnalyzerApp:
             self.plot_manager.add_placeholder_labels()
             plt.close('all')
             if hasattr(self.manual_bpm_check, 'config'): self.manual_bpm_check.config(state=tk.DISABLED)
-            self.update_manual_bpm_state()
-            self._update_playback_buttons_state_from_manager('stopped')
-            self._update_save_button_state()
-            self._update_hmm_button_state()
+            self.ui_manager.update_manual_bpm_state()
+            self.ui_manager.update_playback_buttons_state('stopped')
+            self.ui_manager.update_save_button_state()
+            self.ui_manager.update_hmm_button_state()
+            if self.shift_sections_button: self.shift_sections_button.config(state=tk.DISABLED) # Ensure shift button disabled
             return # Stop execution
 
         # --- Post-Analysis UI Updates ---
@@ -456,22 +310,25 @@ class AudioAnalyzerApp:
 
         # Enable relevant controls now that analysis is done
         if self.track_data.get(1):
-             if hasattr(self.manual_bpm_check, 'config'): self.manual_bpm_check.config(state=tk.NORMAL)
-             # Set manual BPM entry to the detected value after initial analysis
-             if not is_update:
-                 bpm_used = self.track_data[1].get('bpm', '')
-                 self.manual_bpm_entry_var.set(f"{bpm_used:.2f}" if isinstance(bpm_used, (int, float)) else "")
-             # Enable label toggle if pre-cleanup labels exist
-             if self.toggle_labels_button and self.track_data[1].get('labels_before_cleanup'):
-                 self.toggle_labels_button.config(state=tk.NORMAL)
-             elif self.toggle_labels_button:
-                 self.toggle_labels_button.config(state=tk.DISABLED) # Disable if no pre-cleanup data
-             # Enable section editor update button in single mode
-             if self.section_editor and mode == "single":
-                 self.section_editor.update_button.config(state=tk.NORMAL)
+            if hasattr(self.manual_bpm_check, 'config'): self.manual_bpm_check.config(state=tk.NORMAL)
+            # Set manual BPM entry to the detected value after initial analysis
+            if not is_update:
+                bpm_used = self.track_data[1].get('bpm', '')
+                self.manual_bpm_entry_var.set(f"{bpm_used:.2f}" if isinstance(bpm_used, (int, float)) else "")
+            # Enable label toggle if pre-cleanup labels exist
+            if self.toggle_labels_button and self.track_data[1].get('labels_before_cleanup'):
+                self.toggle_labels_button.config(state=tk.NORMAL)
+            elif self.toggle_labels_button:
+                self.toggle_labels_button.config(state=tk.DISABLED) # Disable if no pre-cleanup data
+            # Enable section editor update button in single mode
+            if self.section_editor and mode == "single":
+                self.section_editor.update_button.config(state=tk.NORMAL)
+            # Enable shift button in single mode
+            if self.shift_sections_button and mode == "single":
+                self.shift_sections_button.config(state=tk.NORMAL)
 
-        self.update_manual_bpm_state() # Re-evaluate manual bpm entry state
-        self.update_analyze_button_state() # Updates save/HMM buttons too
+        self.ui_manager.update_manual_bpm_state() # Re-evaluate manual bpm entry state
+        self.ui_manager.update_analyze_button_state() # Updates save/HMM buttons too
         print("Analysis/Update process finished.")
 
     def _analyze_single_track(self, track_num, manual_bpm_override=None):
@@ -574,12 +431,12 @@ class AudioAnalyzerApp:
             # Run if checkbox is checked OR if sections were detected (needed for feature calc)
             run_chroma_step = self.analysis_vars['chroma'].get() or (results.get("section_starts") is not None)
             if run_chroma_step:
-                 if results.get("section_starts") is not None:
-                     print(f" Step 3: Running Chroma/Cluster/Label Analysis...")
-                     results.update(analyze_chroma_and_clusters(results)) # Updates results dict in place
-                 else:
-                     print(" Step 3: Skipping Chroma/Labeling (Sections missing).")
-                     results.update(results_on_failure(None)) # Ensure default keys exist
+                if results.get("section_starts") is not None:
+                    print(f" Step 3: Running Chroma/Cluster/Label Analysis...")
+                    results.update(analyze_chroma_and_clusters(results)) # Updates results dict in place
+                else:
+                    print(" Step 3: Skipping Chroma/Labeling (Sections missing).")
+                    results.update(results_on_failure(None)) # Ensure default keys exist
             else:
                 print(f" Step 3: Skipping Chroma/Labeling (Checkbox unchecked).")
                 results.update(results_on_failure(results.get("section_starts"))) # Ensure default keys exist
@@ -700,33 +557,7 @@ class AudioAnalyzerApp:
         # Trigger analysis, passing the manual BPM value
         self.run_analysis(is_update=True, manual_bpm_val=bpm_val)
 
-    # --- Playback GUI Update Callbacks ---
-    def _update_playback_buttons_state_from_manager(self, state):
-        """Updates the Play/Pause and Stop button states based on PlaybackManager state.
-
-        This method is intended as a callback function passed to the PlaybackManager.
-        It receives the new playback state and updates the GUI accordingly.
-
-        Args:
-            state (str): The new playback state ('playing', 'paused', 'stopped').
-        """
-        # print(f"DEBUG GUI: Playback state changed to: {state}") # Verbose
-        is_playing = (state == 'playing')
-        is_paused = (state == 'paused')
-        # Determine if audio data is loaded and we are in single mode
-        can_play = (self.playback_manager.audio_data is not None and
-                    self.playback_manager.sample_rate is not None and
-                    self.mode.get() == "single")
-
-        play_pause_state = tk.NORMAL if can_play else tk.DISABLED
-        stop_state = tk.NORMAL if (is_playing or is_paused) else tk.DISABLED
-
-        # Update button text and state if the buttons exist
-        if self.play_pause_button:
-            self.play_pause_button.config(state=play_pause_state,
-                                          text="Pause" if is_playing else "Play")
-        if self.stop_button:
-            self.stop_button.config(state=stop_state)
+    # --- Method to Update Playhead Display ---
 
     def _update_playhead_display(self, frame):
         """Updates the position of the vertical playhead line on the waveform plot.
@@ -788,23 +619,8 @@ class AudioAnalyzerApp:
         # Re-display results; PlotManager checks the show_pre_cleanup_labels_var
         self.plot_manager.display_analysis_results()
         # Update button states based on the new view
-        self._update_toggle_button_state()
-        self._update_save_button_state()
-
-    def _update_toggle_button_state(self):
-         """Updates the state of the 'Toggle Labels' button.
-
-         Enabled only if track 1 data exists, pre-cleanup labels are available,
-         the mode is 'single', and the HMM results are not currently being shown.
-         """
-         state = tk.DISABLED
-         if (self.track_data.get(1) and
-             self.track_data[1].get('labels_before_cleanup') and
-             self.mode.get() == 'single' and
-             not self.show_hmm_var.get()): # Disable if showing HMM
-             state = tk.NORMAL
-         if self.toggle_labels_button:
-             self.toggle_labels_button.config(state=state)
+        self.ui_manager.update_toggle_button_state()
+        self.ui_manager.update_save_button_state()
 
     # --- Waveform Click Handler (Seek, Edit, Split Functionality) ---
     def _on_waveform_click(self, event):
@@ -935,7 +751,6 @@ class AudioAnalyzerApp:
                 self._redraw_canvas()
         # else: print(f"DEBUG CLICK HANDLER: Ignored button {event.button}.") # Verbose
 
-
     # --- Section Edit Pop-up Method ---
     def _show_section_edit_popup(self, section_index, event=None):
         """Creates and displays a modal pop-up dialog for editing or merging a section.
@@ -1047,7 +862,6 @@ class AudioAnalyzerApp:
         editor_popup.grab_set() # Make popup modal
         editor_popup.wait_window() # Wait until popup is closed
 
-
     # --- Merge Logic ---
     def _trigger_merge(self, popup, section_index, direction):
         """Handles the click event from the merge buttons in the edit popup.
@@ -1076,137 +890,6 @@ class AudioAnalyzerApp:
                 self._merge_section(section_index + 1)
             else:
                 messagebox.showerror("Merge Error", "Cannot merge the last section with next.")
-
-    def _merge_section(self, remove_boundary_index):
-        """Merges two adjacent sections by removing the specified boundary.
-
-        Removes the start time at `remove_boundary_index` and the corresponding
-        label, color, and feature dictionary at that index. Updates the end time
-        and duration of the preceding section. Recalculates features for the
-        newly merged section. Clears any existing HMM results. Updates plots
-        and UI state.
-
-        Args:
-            remove_boundary_index (int): The index of the section start time
-                                         (boundary) to remove. This corresponds
-                                         to the index of the *second* section
-                                         in the pair being merged.
-
-        Note:
-            Operates directly on the `self.track_data[1]` dictionary.
-        """
-        print(f"DEBUG: Attempting to merge by removing boundary at index {remove_boundary_index}")
-        if not self.track_data.get(1):
-            messagebox.showerror("Merge Error", "No track data loaded.")
-            return
-
-        t_data = self.track_data[1]
-        # Get references to the lists within track_data
-        section_starts = t_data.get('section_starts')
-        semantic_labels = t_data.get('semantic_labels')
-        label_colors = t_data.get('label_colors')
-        section_features = t_data.get('section_features') # List of dictionaries
-        # Optional lists
-        cluster_labels = t_data.get('cluster_labels')
-        labels_before_cleanup = t_data.get('labels_before_cleanup')
-
-        # Validate data structure
-        if not all([isinstance(l, list) for l in [section_starts, semantic_labels, label_colors, section_features]]):
-            messagebox.showerror("Merge Error", "Core section data lists are missing or invalid.")
-            print("ERROR: Core section data lists missing for merge.")
-            return
-
-        num_sections_before_merge = len(section_starts)
-        # Validate boundary index
-        if remove_boundary_index <= 0 or remove_boundary_index >= num_sections_before_merge:
-            messagebox.showerror("Merge Error", f"Invalid boundary index {remove_boundary_index} for merging.")
-            print(f"ERROR: Invalid boundary index {remove_boundary_index} for merging {num_sections_before_merge} sections.")
-            return
-
-        # Indices for the sections involved
-        keep_section_idx = remove_boundary_index - 1 # The section that will grow
-        remove_section_idx = remove_boundary_index # The section being absorbed
-
-        try:
-            # Get times for duration calculation
-            kept_start_time = section_features[keep_section_idx]['start_time']
-            removed_end_time = section_features[remove_section_idx]['end_time']
-            new_duration_sec = removed_end_time - kept_start_time
-            new_duration_bars = round(new_duration_sec / t_data['seconds_per_bar']) if t_data.get('seconds_per_bar', 0) > 0 else 0
-
-            # --- Remove the boundary and corresponding data ---
-            print(f"DEBUG: Removing data for section index {remove_section_idx} (boundary index {remove_boundary_index})")
-            # Remove the start time that defines the boundary
-            del section_starts[remove_boundary_index]
-            # Remove the data associated with the second section
-            del semantic_labels[remove_section_idx]
-            del label_colors[remove_section_idx]
-            del section_features[remove_section_idx]
-            # Remove from optional lists if they exist and have the correct length
-            if cluster_labels and len(cluster_labels) == num_sections_before_merge:
-                del cluster_labels[remove_section_idx]
-            if labels_before_cleanup and len(labels_before_cleanup) == num_sections_before_merge:
-                del labels_before_cleanup[remove_section_idx]
-
-            # --- Update the kept section's data ---
-            print(f"DEBUG: Updating kept section index {keep_section_idx} end time and duration.")
-            section_features[keep_section_idx]['end_time'] = removed_end_time
-            section_features[keep_section_idx]['duration_sec'] = new_duration_sec
-            section_features[keep_section_idx]['duration_bars'] = new_duration_bars
-
-            # --- Recalculate features for the merged section ---
-            print(f"DEBUG: Recalculating features for merged section {keep_section_idx} ({kept_start_time:.2f} - {removed_end_time:.2f})")
-            merged_features = self._recalculate_section_features(t_data, keep_section_idx)
-            if merged_features:
-                # Update all recalculated keys in the existing feature dict
-                feature_keys_to_update = list(merged_features.keys())
-                for key in feature_keys_to_update:
-                    section_features[keep_section_idx][key] = merged_features[key]
-                print("DEBUG: Features recalculated and updated in section_features list.")
-            else:
-                print("Warning: Feature recalculation failed for merged section.")
-
-            # --- Update indices in subsequent feature dictionaries ---
-            # Indices need to be decremented from the removed section onwards
-            for i in range(keep_section_idx + 1, len(section_features)): # Start from the one after the kept section
-                 if 'index' in section_features[i]:
-                     section_features[i]['index'] -= 1 # Decrement index
-                 else:
-                     # This indicates a potential issue with data consistency
-                     print(f"Warning: 'index' key missing in section_features at list index {i} during merge update.")
-
-
-            # --- Update the main track_data dictionary (redundant but safe) ---
-            t_data['section_starts'] = section_starts
-            t_data['semantic_labels'] = semantic_labels
-            t_data['label_colors'] = label_colors
-            t_data['section_features'] = section_features
-            if cluster_labels: t_data['cluster_labels'] = cluster_labels
-            if labels_before_cleanup: t_data['labels_before_cleanup'] = labels_before_cleanup
-
-            # --- Clear HMM results as they are now invalid ---
-            if 'hmm_semantic_labels' in t_data: del t_data['hmm_semantic_labels']
-            if 'hmm_label_colors' in t_data: del t_data['hmm_label_colors']
-            if 'hmm_section_starts' in t_data: del t_data['hmm_section_starts']
-            self.show_hmm_var.set(False) # Switch back to original view
-            self._update_hmm_button_state() # Disable HMM buttons
-
-            print(f"DEBUG: Merge successful. Removed section at original index {remove_section_idx}. Updated section at index {keep_section_idx}.")
-            self.status_label.config(text="Sections Merged", foreground="blue")
-
-            # --- Refresh plots and editor ---
-            self.plot_manager.display_analysis_results() # Update plots
-            self._update_save_button_state() # Enable save button
-
-        except IndexError as e:
-            messagebox.showerror("Merge Error", f"Index error during merge: {e}. Lists might be inconsistent.")
-            print(f"ERROR: Index error during merge: {e}")
-            traceback.print_exc()
-        except Exception as e:
-            messagebox.showerror("Merge Error", f"An unexpected error occurred during merge:\n{e}")
-            print(f"ERROR: Unexpected error during merge: {e}")
-            traceback.print_exc()
-
 
     # --- Split Logic ---
     def _show_split_section_popup(self, section_index, clicked_time):
@@ -1261,8 +944,8 @@ class AudioAnalyzerApp:
             messagebox.showerror("Split Error", f"Cannot get label or time data for section index {section_index}.")
             return
         except KeyError as ke:
-             messagebox.showerror("Split Error", f"Missing expected key in track data: {ke}")
-             return
+            messagebox.showerror("Split Error", f"Missing expected key in track data: {ke}")
+            return
 
         # --- Create Pop-up Window ---
         split_popup = tk.Toplevel(self.master)
@@ -1334,7 +1017,7 @@ class AudioAnalyzerApp:
         num_sections_before = len(section_starts) if section_starts else 0
 
         if not (0 <= section_index < num_sections_before):
-             messagebox.showerror("Split Error", "Invalid section index.", parent=popup); return
+            messagebox.showerror("Split Error", "Invalid section index.", parent=popup); return
 
         original_start_time = section_starts[section_index]
         # Calculate original end time carefully
@@ -1344,8 +1027,8 @@ class AudioAnalyzerApp:
         epsilon = 1e-6
         # Check if split time is strictly within the section
         if not (original_start_time + epsilon < split_time < original_end_time - epsilon):
-             messagebox.showerror("Split Error", f"Split time {split_time:.3f}s must be strictly within the section boundaries ({original_start_time:.3f}s - {original_end_time:.3f}s).", parent=popup)
-             return
+            messagebox.showerror("Split Error", f"Split time {split_time:.3f}s must be strictly within the section boundaries ({original_start_time:.3f}s - {original_end_time:.3f}s).", parent=popup)
+            return
 
         # Check if resulting sections meet minimum duration
         if (split_time - original_start_time < MIN_SPLIT_SECTION_DURATION_SEC) or \
@@ -1421,355 +1104,61 @@ class AudioAnalyzerApp:
         popup.destroy() # Close the popup
         self._split_section(section_index, split_time) # Perform the actual split using the calculated time
 
-    def _split_section(self, section_index, split_time):
-        """Splits a section at the given absolute time point.
+    # --- section_manager methods | Merge/Split/Shift ---
 
-        Modifies the `track_data[1]` dictionary by:
-        1. Inserting the `split_time` into the `section_starts` list.
-        2. Duplicating the label, color, and feature dictionary for the split section.
-        3. Updating the end time/duration of the first part of the split section.
-        4. Updating the start time/duration/index of the second part (newly inserted section).
-        5. Updating the indices of all subsequent sections.
-        6. Recalculating features for both newly formed sections using `_recalculate_section_features`.
-        7. Clearing any existing HMM results.
-        8. Refreshing plots and UI state.
+    def _trigger_merge(self, popup, section_index, direction):
+        """Handles merge button clicks from the edit popup."""
+        popup.destroy()
 
-        Args:
-            section_index (int): The zero-based index of the section to split.
-            split_time (float): The absolute time (in seconds) at which to split.
-
-        Note:
-            Operates directly on the `self.track_data[1]` dictionary.
-        """
-        print(f"DEBUG: Executing split for section {section_index} at time {split_time:.3f}")
-        if not self.track_data.get(1): return # Should already be checked
-        t_data = self.track_data[1]
-
-        # --- Get original data lists ---
-        section_starts = t_data.get('section_starts')
-        semantic_labels = t_data.get('semantic_labels')
-        label_colors = t_data.get('label_colors')
-        section_features = t_data.get('section_features') # List of dictionaries
-        # Optional lists that also need modification
-        cluster_labels = t_data.get('cluster_labels')
-        labels_before_cleanup = t_data.get('labels_before_cleanup')
-
-        # Basic validation
-        if not all([isinstance(l, list) for l in [section_starts, semantic_labels, label_colors, section_features]]):
-             messagebox.showerror("Split Error", "Core section data lists missing or invalid.")
-             return
-        num_sections_before = len(section_starts)
-        if not (0 <= section_index < num_sections_before):
-             messagebox.showerror("Split Error", f"Invalid section index {section_index} for split.")
-             return
-
-        try:
-            insert_index = section_index + 1 # New boundary/section goes after the current one
-            original_start_time = section_starts[section_index]
-            original_end_time = section_features[section_index]['end_time'] # Get original end time before modification
-
-            # --- Insert new boundary and duplicate labels/colors ---
-            print(f" -> Inserting boundary at {split_time:.3f}s (index {insert_index})")
-            section_starts.insert(insert_index, split_time)
-            original_label = semantic_labels[section_index] # Label of the section being split
-            semantic_labels.insert(insert_index, original_label) # Duplicate label
-            original_color = label_colors[section_index]
-            label_colors.insert(insert_index, original_color) # Duplicate color
-
-            # Duplicate optional list items if they exist and have the correct length
-            if cluster_labels and len(cluster_labels) == num_sections_before:
-                cluster_labels.insert(insert_index, cluster_labels[section_index])
-            if labels_before_cleanup and len(labels_before_cleanup) == num_sections_before:
-                labels_before_cleanup.insert(insert_index, labels_before_cleanup[section_index])
-
-            # --- Handle section_features list ---
-            original_feature_dict = section_features[section_index]
-            # Create a deep copy for the second part to avoid modifying shared references later
-            new_section_feature_dict = copy.deepcopy(original_feature_dict)
-
-            # 1. Update first part (section_index) - times and durations
-            print(f" -> Updating section {section_index} end time to {split_time:.3f}s")
-            section_features[section_index]['end_time'] = split_time
-            section_features[section_index]['duration_sec'] = split_time - original_start_time
-            section_features[section_index]['duration_bars'] = round(section_features[section_index]['duration_sec'] / t_data['seconds_per_bar']) if t_data.get('seconds_per_bar', 0) > 0 else 0
-            # Keep original start time and index ('index' key should already be correct)
-
-            # 2. Update second part (newly inserted dict) - times, durations, and index
-            print(f" -> Creating new section {insert_index} from {split_time:.3f}s to {original_end_time:.3f}s")
-            new_section_feature_dict['start_time'] = split_time
-            new_section_feature_dict['end_time'] = original_end_time # End time is the original end time
-            new_section_feature_dict['duration_sec'] = original_end_time - split_time
-            new_section_feature_dict['duration_bars'] = round(new_section_feature_dict['duration_sec'] / t_data['seconds_per_bar']) if t_data.get('seconds_per_bar', 0) > 0 else 0
-            new_section_feature_dict['index'] = insert_index # Set correct index for the new section
-            new_section_feature_dict['original_label'] = original_label # Ensure label consistency
-
-            # Insert the new feature dictionary into the list at the correct position
-            section_features.insert(insert_index, new_section_feature_dict)
-
-            # 3. Update indices for all subsequent feature dictionaries
-            print(f" -> Updating indices for sections {insert_index + 1} onwards...")
-            for i in range(insert_index + 1, len(section_features)):
-                 if 'index' in section_features[i]:
-                     section_features[i]['index'] += 1 # Increment index
-                 else:
-                     # This indicates a potential issue with data consistency
-                     print(f"Warning: 'index' key missing in section_features at list index {i} during split index update.")
-
-            # --- Recalculate features for the two new sections ---
-            # Recalculate for the first part (index section_index)
-            print(f"DEBUG: Recalculating features for split section part 1 (index {section_index})")
-            recalculated_part1 = self._recalculate_section_features(t_data, section_index)
-            if recalculated_part1:
-                # Update all recalculated keys in the existing feature dict
-                feature_keys_to_update = list(recalculated_part1.keys())
-                for key in feature_keys_to_update:
-                    section_features[section_index][key] = recalculated_part1[key]
-                print(" -> Part 1 features updated.")
+        if direction == 'prev':
+            if section_index > 0:
+                self.section_manager.merge_section(section_index)
             else:
-                print(" -> Warning: Feature recalculation failed for part 1.")
-
-            # Recalculate for the second part (index insert_index)
-            print(f"DEBUG: Recalculating features for split section part 2 (index {insert_index})")
-            recalculated_part2 = self._recalculate_section_features(t_data, insert_index)
-            if recalculated_part2:
-                # Update all recalculated keys in the newly inserted feature dict
-                feature_keys_to_update = list(recalculated_part2.keys())
-                for key in feature_keys_to_update:
-                    section_features[insert_index][key] = recalculated_part2[key]
-                print(" -> Part 2 features updated.")
+                messagebox.showerror("Merge Error", "Cannot merge the first section with previous.")
+        elif direction == 'next':
+            num_sections = len(self.track_data[1].get('section_starts', []))
+            if section_index < num_sections - 1:
+                self.section_manager.merge_section(section_index + 1)
             else:
-                print(" -> Warning: Feature recalculation failed for part 2.")
+                messagebox.showerror("Merge Error", "Cannot merge the last section with next.")
 
-            # --- Update the main track_data dictionary (redundant but safe) ---
-            t_data['section_starts'] = section_starts
-            t_data['semantic_labels'] = semantic_labels
-            t_data['label_colors'] = label_colors
-            t_data['section_features'] = section_features
-            if cluster_labels: t_data['cluster_labels'] = cluster_labels
-            if labels_before_cleanup: t_data['labels_before_cleanup'] = labels_before_cleanup
-
-            # --- Clear any existing HMM results as they are now invalid ---
-            if 'hmm_semantic_labels' in t_data: del t_data['hmm_semantic_labels']
-            if 'hmm_label_colors' in t_data: del t_data['hmm_label_colors']
-            if 'hmm_section_starts' in t_data: del t_data['hmm_section_starts']
-            self.show_hmm_var.set(False) # Switch back to original view
-            self._update_hmm_button_state() # Disable HMM buttons
-
-            print(f"DEBUG: Split successful. Section {section_index} split into {section_index} and {insert_index}.")
-            self.status_label.config(text="Section Split", foreground="blue")
-
-            # --- Refresh plots and editor ---
-            self.plot_manager.display_analysis_results() # Update plots
-            self._update_save_button_state() # Enable save button
-
-        except Exception as e:
-            messagebox.showerror("Split Error", f"An unexpected error occurred during split:\n{e}")
-            print(f"ERROR: Unexpected error during split: {e}")
-            traceback.print_exc()
-
-
-    # *** NEW METHOD: Recalculate features for a specific section ***
-    def _recalculate_section_features(self, track_data, section_idx):
-        """Recalculates various features for a specific section index.
-
-        This helper method is used after a merge or split operation to update
-        the feature dictionary for a section whose boundaries have changed.
-        It extracts the necessary frame-level data (RMS, spectrogram, etc.)
-        from the main `track_data` based on the section's updated start and
-        end times and computes aggregate features like averages, standard
-        deviations, ratios, and trends.
-
-        Args:
-            track_data (dict): The main track data dictionary containing frame-level
-                               features and the `section_features` list.
-            section_idx (int): The zero-based index within the `section_features`
-                               list for which to recalculate features.
-
-        Returns:
-            dict or None: A dictionary containing the recalculated feature values
-                          (e.g., 'avg_rms', 'spectral_centroid_avg', etc.). Returns
-                          None if the section index is invalid or a critical error
-                          occurs during calculation. Feature values will be NaN if
-                          underlying data is missing or calculation fails for that
-                          specific feature.
-        """
-        print(f"DEBUG App: Recalculating features for section index {section_idx}")
-        new_features = {} # Dictionary to store recalculated features
+    def _commit_split_by_bar(self, popup, section_index, bar_var, seconds_per_bar, trim_offset):
+        """Validates and processes split operations."""
         try:
-            # --- Get section info and base data ---
-            section_features_list = track_data.get('section_features', [])
-            if not (0 <= section_idx < len(section_features_list)):
-                print(f"ERROR Recalc: Invalid section index {section_idx}")
-                return None
-            section_info = section_features_list[section_idx]
-            start_time_abs = section_info.get('start_time')
-            end_time_abs = section_info.get('end_time')
+            split_bar = float(bar_var.get())
+        except ValueError:
+            messagebox.showerror("Invalid Bar", f"Split bar must be a valid number.", parent=popup)
+            return
 
-            # Base data needed for calculations from the main track_data dict
-            trim_offset = track_data.get("trim_offset_sec", 0)
-            duration_processed = track_data.get("duration_processed")
-            rms_frames = track_data.get("rms") # Frame-based RMS values
-            rms_times = track_data.get("rms_times") # RELATIVE times for RMS frames
-            spec = track_data.get("spec") # Spectrogram
-            freqs = track_data.get("freqs") # Frequencies for spectrogram
-            times_absolute = track_data.get("times_absolute") # ABSOLUTE times for spectral frames
-            spectral_centroid_frames = track_data.get("spectral_centroid_frames") # Frame-based
-            spectral_bandwidth_frames = track_data.get("spectral_bandwidth_frames") # Frame-based
-            spectral_contrast_frames = track_data.get("spectral_contrast_frames") # Frame-based
-            low_energy_norm = track_data.get("low_energy_norm") # Frame based low energy (normalized)
-            low_energy_times = track_data.get("low_energy_times") # RELATIVE times for low energy
+        # Convert bar to time
+        split_time = (split_bar * seconds_per_bar) + trim_offset
 
-            # Validate essential timing info
-            if start_time_abs is None or end_time_abs is None:
-                print("ERROR Recalc: Missing start/end time for section.")
-                return None
+        # Validate split via SectionManager
+        is_valid, error_message = self.section_manager.validate_split_time(section_index, split_time)
+        if not is_valid:
+            messagebox.showerror("Split Error", error_message, parent=popup)
+            return
 
-            # Calculate relative times for the section boundaries
-            start_time_rel = start_time_abs - trim_offset
-            end_time_rel = end_time_abs - trim_offset
+        popup.destroy()
+        self.section_manager.split_section(section_index, split_time)
 
-            # --- Recalculate RMS-based features ---
-            avg_rms, peak_rms, rms_std, rms_trend = np.nan, np.nan, np.nan, np.nan
-            if rms_frames is not None and rms_times is not None:
-                # Find RMS frames within the relative time boundaries
-                rms_mask = (rms_times >= start_time_rel) & (rms_times < end_time_rel)
-                # Get finite RMS values and corresponding times within the section
-                section_rms_vals = rms_frames[rms_mask][np.isfinite(rms_frames[rms_mask])]
-                section_time_vals = rms_times[rms_mask][np.isfinite(rms_frames[rms_mask])]
+    def _commit_section_shift(self, popup, start_bar_var, shift_amount_var):
+        """Processes section shifting operations."""
+        try:
+            start_bar = int(start_bar_var.get())
+            shift_bars = int(shift_amount_var.get())
 
-                if section_rms_vals.size > 0:
-                    avg_rms = np.mean(section_rms_vals)
-                    peak_rms = np.max(section_rms_vals)
-                    # Standard deviation requires at least 2 points
-                    if section_rms_vals.size >= 2: rms_std = np.std(section_rms_vals)
-                    else: rms_std = 0.0 # Std dev is 0 for a single point
-                    # Trend (slope) requires at least 2 points
-                    if section_rms_vals.size > 1:
-                        try:
-                            # Calculate time relative to the start of the section's valid frames
-                            relative_time_vals = section_time_vals - section_time_vals[0]
-                            slope, _, _, _, _ = scipy.stats.linregress(relative_time_vals, section_rms_vals)
-                            rms_trend = slope if np.isfinite(slope) else 0.0 # Use 0 if slope is NaN/Inf
-                        except ValueError: # Handle potential linregress errors
-                            rms_trend = 0.0
-                    else: rms_trend = 0.0 # Slope is 0 for 0 or 1 point
-                else: # If no valid RMS frames found in section
-                    avg_rms=0.0; peak_rms=0.0; rms_std=0.0; rms_trend=0.0
+            if start_bar < 1:
+                raise ValueError("Start bar must be 1 or greater.")
 
-            # Store recalculated RMS features
-            new_features["avg_rms"] = avg_rms
-            new_features["peak_rms"] = peak_rms
-            new_features["rms_std_dev"] = rms_std # Overall RMS std dev (potentially deprecated?)
-            new_features["rms_trend"] = rms_trend
-            new_features["rms_std_dev_section"] = rms_std # Store as section-specific std dev
+            popup.destroy()
+            self.section_manager.shift_sections(start_bar, shift_bars)
 
-            # --- Recalculate Spectrogram-based features ---
-            low_ratio, high_ratio, cent_avg, cent_std, bw_avg, cont_avg = (np.nan,) * 6
-            spec_times_rel = None # Calculate relative spectral times if possible
-            if times_absolute is not None:
-                spec_times_rel = times_absolute - trim_offset
-
-            if spec is not None and freqs is not None and spec_times_rel is not None:
-                # Find spectral frame indices within the relative time boundaries
-                spec_indices = np.where((spec_times_rel >= start_time_rel) & (spec_times_rel < end_time_rel))[0]
-                if spec_indices.size > 0:
-                    section_spec = spec[:, spec_indices] # Get spectrogram slice for the section
-                    total_energy = np.sum(section_spec) + 1e-9 # Add epsilon to avoid division by zero
-
-                    # Low/High Energy Ratios
-                    low_freq_mask = freqs < 150
-                    high_freq_mask = freqs > 5000
-                    low_ratio = np.sum(section_spec[low_freq_mask,:]) / total_energy if np.any(low_freq_mask) else 0.0
-                    high_ratio = np.sum(section_spec[high_freq_mask,:]) / total_energy if np.any(high_freq_mask) else 0.0
-
-                    # Spectral Centroid Avg/Std
-                    if spectral_centroid_frames is not None and len(spectral_centroid_frames) == spec.shape[1]:
-                         section_centroid = spectral_centroid_frames[spec_indices][np.isfinite(spectral_centroid_frames[spec_indices])]
-                         if section_centroid.size > 0: cent_avg = np.mean(section_centroid)
-                         else: cent_avg = 0.0
-                         if section_centroid.size >= 2: cent_std = np.std(section_centroid)
-                         else: cent_std = 0.0
-                    else: cent_avg=0.0; cent_std=0.0
-
-                    # Spectral Bandwidth Avg
-                    if spectral_bandwidth_frames is not None and len(spectral_bandwidth_frames) == spec.shape[1]:
-                         section_bw = spectral_bandwidth_frames[spec_indices][np.isfinite(spectral_bandwidth_frames[spec_indices])]
-                         if section_bw.size > 0: bw_avg = np.mean(section_bw)
-                         else: bw_avg = 0.0
-                    else: bw_avg=0.0
-
-                    # Spectral Contrast Avg (simple mean across bands/frames)
-                    if spectral_contrast_frames is not None and spectral_contrast_frames.shape[1] == spec.shape[1]:
-                         section_cont = spectral_contrast_frames[:, spec_indices]
-                         finite_cont = section_cont[np.isfinite(section_cont)]
-                         if finite_cont.size > 0: cont_avg = np.mean(finite_cont)
-                         else: cont_avg = 0.0
-                    else: cont_avg=0.0
-                else: # If no spectral frames found in section
-                     low_ratio=0.0; high_ratio=0.0; cent_avg=0.0; cent_std=0.0; bw_avg=0.0; cont_avg=0.0
-
-            # Store recalculated spectral features
-            new_features["low_end_ratio"] = low_ratio
-            new_features["high_end_ratio"] = high_ratio
-            new_features["spectral_centroid_avg"] = cent_avg
-            new_features["spectral_centroid_std_dev"] = cent_std # Overall centroid std dev (potentially deprecated?)
-            new_features["spectral_bandwidth_avg"] = bw_avg
-            new_features["spectral_contrast_avg"] = cont_avg
-            new_features["centroid_std_dev_section"] = cent_std # Store as section-specific std dev
-
-            # --- Recalculate Relative Position ---
-            rel_pos = np.nan
-            if start_time_abs is not None and duration_processed is not None and duration_processed > 0:
-                # Clamp between 0 and 1
-                rel_pos = max(0.0, min(start_time_abs / duration_processed, 1.0))
-            new_features['relative_position'] = rel_pos
-
-            # --- Recalculate Average Low-End Energy ---
-            avg_low_e = np.nan
-            if low_energy_norm is not None and low_energy_times is not None:
-                 # Ensure low_energy_times is a numpy array before masking
-                 if isinstance(low_energy_times, np.ndarray):
-                     # Use relative times for low energy
-                     le_indices = np.where((low_energy_times >= start_time_rel) & (low_energy_times < end_time_rel))[0]
-                     if le_indices.size > 0:
-                         finite_vals = low_energy_norm[le_indices][np.isfinite(low_energy_norm[le_indices])]
-                         if finite_vals.size > 0: avg_low_e = np.mean(finite_vals)
-                 else:
-                     print(f" -> Recalc Warning: low_energy_times is not NumPy array for section {section_idx}.")
-            new_features['low_energy_norm'] = avg_low_e
-
-            # --- Recalculate Delta Features ---
-            # Setting deltas to 0.0 after merge/split as recalculating based on
-            # potentially changed neighbors is complex and might not be meaningful.
-            new_features['delta_rms'] = 0.0
-            new_features['delta_centroid'] = 0.0
-
-            # --- Ensure all expected feature keys exist, assign NaN if calculation failed ---
-            # Define the list of features that should ideally be present after calculation
-            expected_keys = [
-                "avg_rms", "peak_rms", "rms_std_dev", "rms_trend",
-                "low_end_ratio", "high_end_ratio", "spectral_centroid_avg",
-                "spectral_centroid_std_dev", "spectral_bandwidth_avg", "spectral_contrast_avg",
-                "relative_position", "low_energy_norm",
-                "rms_std_dev_section", "centroid_std_dev_section",
-                "delta_rms", "delta_centroid"
-                # Add any other features expected to be calculated here
-            ]
-            for key in expected_keys:
-                if key not in new_features or not np.isfinite(new_features.get(key, np.nan)):
-                    # Set to NaN if missing or non-finite, except for deltas which we default to 0
-                    if key not in ['delta_rms', 'delta_centroid']:
-                         new_features[key] = np.nan
-
-            # Debug print the recalculated features
-            print(f" -> Recalculated features for index {section_idx}: { {k: f'{v:.2f}' if isinstance(v, float) else v for k,v in new_features.items()} }")
-            return new_features # Return the dictionary of recalculated features
-
+        except ValueError as ve:
+            messagebox.showerror("Invalid Input", f"Please enter valid integer numbers.\nError: {ve}", parent=popup)
         except Exception as e:
-            print(f"ERROR recalculating features for section {section_idx}: {e}")
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}", parent=popup)
             traceback.print_exc()
-            return None # Indicate failure
-
 
     # --- Save/Load Methods --- # Now Handled by FileManager
     def _save_analysis(self):
@@ -1788,71 +1177,93 @@ class AudioAnalyzerApp:
         """Opens a file dialog to select an audio file via FileManager."""
         self.file_manager.select_file(track_num)
 
-
-    # --- Manual Section Editing Callback ---
-    def _apply_section_edits_from_editor(self, new_labels, new_colors_hex):
-        """Applies label and color edits made in the SectionEditor to the track data.
-
-        This method is called by the SectionEditor instance when the user confirms
-        their edits. It updates the `semantic_labels`, `label_colors`, and the
-        `original_label` within the `section_features` list in `track_data[1]`.
-        It also clears any existing HMM results, refreshes plots, and updates UI state.
-
-        Args:
-            new_labels (list[str]): The list of updated section labels.
-            new_colors_hex (list[str]): The list of updated section color hex codes.
+    # --- Section Shift Methods ---
+    def _trigger_shift_sections_popup(self):
         """
-        print("DEBUG MainApp: Applying section edits received from editor...")
-        if not self.track_data.get(1):
-            messagebox.showerror("Update Error", "No track data loaded to apply edits to.")
+        Creates and displays a modal dialog box for shifting section boundaries.
+        Called when the 'Shift Sections...' button is clicked.
+        """
+        # --- Pre-checks ---
+        track_num = 1 # Assuming shift only works in single track mode for now
+        if self.mode.get() != "single" or not self.track_data.get(track_num):
+            messagebox.showwarning("Shift Sections", "Please load and analyze a single track first.")
             return
 
-        current_labels = self.track_data[1].get('semantic_labels', [])
-        # Validate data consistency
-        if len(new_labels) != len(current_labels) or len(new_colors_hex) != len(current_labels):
-            messagebox.showerror("Update Error", f"Data length mismatch when applying edits. Expected {len(current_labels)}, got {len(new_labels)} labels, {len(new_colors_hex)} colors.")
+        td = self.track_data[track_num]
+        if not td.get('section_starts') or not td.get('seconds_per_bar'):
+            messagebox.showerror("Shift Sections Error", "Missing necessary section or timing data (seconds_per_bar) for shifting.")
+            return
+        if td['seconds_per_bar'] <= 0:
+            messagebox.showerror("Shift Sections Error", "Invalid timing data (seconds_per_bar <= 0). Cannot shift by bars.")
             return
 
+        # --- Create Dialog Window ---
+        shift_popup = tk.Toplevel(self.master)
+        shift_popup.title("Shift Section Boundaries")
+        shift_popup.transient(self.master)
+        shift_popup.resizable(False, False)
+        popup_frame = ttk.Frame(shift_popup, padding="15")
+        popup_frame.pack(expand=True, fill=tk.BOTH)
+
+        # --- Input Fields ---
+        start_bar_var = tk.StringVar(value="1") # Default start bar
+        shift_amount_var = tk.StringVar(value="0") # Default shift amount
+
+        # Start Bar
+        ttk.Label(popup_frame, text="Shift sections starting FROM Bar #:").grid(row=0, column=0, padx=5, pady=5, sticky=tk.W)
+        start_bar_entry = ttk.Entry(popup_frame, textvariable=start_bar_var, width=8)
+        start_bar_entry.grid(row=0, column=1, padx=5, pady=5, sticky=tk.W)
+
+        # Shift Amount
+        ttk.Label(popup_frame, text="Shift Amount (bars, +/-):").grid(row=1, column=0, padx=5, pady=5, sticky=tk.W)
+        shift_amount_entry = ttk.Entry(popup_frame, textvariable=shift_amount_var, width=8)
+        shift_amount_entry.grid(row=1, column=1, padx=5, pady=5, sticky=tk.W)
+
+        # --- Buttons ---
+        button_frame = ttk.Frame(popup_frame)
+        button_frame.grid(row=2, column=0, columnspan=2, pady=(15, 0))
+
+        ok_button = ttk.Button(button_frame, text="Apply Shift", width=12,
+                              command=lambda p=shift_popup, sbv=start_bar_var, sav=shift_amount_var:
+                              self._commit_section_shift(p, sbv, sav))
+        ok_button.pack(side=tk.LEFT, padx=10)
+
+        cancel_button = ttk.Button(button_frame, text="Cancel", width=10, command=shift_popup.destroy)
+        cancel_button.pack(side=tk.LEFT, padx=10)
+
+        # --- Focus and Modality ---
+        start_bar_entry.focus_set()
+        shift_popup.grab_set()
+        shift_popup.wait_window()
+
+    def _commit_section_shift(self, popup, start_bar_var, shift_amount_var):
+        """
+        Validates input from the shift dialog and calls the apply logic.
+        Called by the 'Apply Shift' button in the shift popup.
+        """
         try:
-            # Update main data lists
-            self.track_data[1]['semantic_labels'] = new_labels
-            self.track_data[1]['label_colors'] = new_colors_hex
+            start_bar = int(start_bar_var.get())
+            shift_bars = int(shift_amount_var.get())
 
-            # Sync the 'original_label' field in the section_features list
-            section_features = self.track_data[1].get('section_features', [])
-            print(f"DEBUG: Syncing 'original_label' in section_features. Features count: {len(section_features)}, New labels count: {len(new_labels)}")
-            if len(section_features) == len(new_labels):
-                mismatches_found = False
-                for i in range(len(section_features)):
-                    # Ensure the key exists before assigning
-                    section_features[i]['original_label'] = new_labels[i]
-                # Verify sync (optional debug check)
-                for i in range(len(section_features)):
-                    if section_features[i].get('original_label') != new_labels[i]:
-                        print(f"WARNING: Mismatch persists at Section {i} after update!")
-                        mismatches_found = True
-                if not mismatches_found:
-                    print(" -> Sync successful: 'original_label' in section_features matches semantic_labels.")
-            else:
-                print("WARNING: Cannot sync 'original_label' due to length mismatch between section_features and new_labels.")
+            # Basic validation
+            if start_bar < 1:
+                raise ValueError("Start bar must be 1 or greater.")
+            # Allow zero shift (useful for testing maybe?)
+            # if shift_bars == 0:
+            #     raise ValueError("Shift amount cannot be zero.")
 
-            # Clear HMM results as edits invalidate them
-            if 'hmm_semantic_labels' in self.track_data[1]: del self.track_data[1]['hmm_semantic_labels']
-            if 'hmm_label_colors' in self.track_data[1]: del self.track_data[1]['hmm_label_colors']
-            if 'hmm_section_starts' in self.track_data[1]: del self.track_data[1]['hmm_section_starts']
-            self.show_hmm_var.set(False) # Switch view back
-            self._update_hmm_button_state() # Disable HMM buttons
+            # Further validation might be needed in _apply_section_shift
+            # based on the number of sections, etc.
 
-            print("DEBUG MainApp: track_data updated with edits. Cleared HMM results.")
-            print("DEBUG MainApp: Replotting waveform with updated labels/colors...")
-            # Refresh plots and UI
-            self.plot_manager.display_analysis_results()
-            messagebox.showinfo("Update Complete", "Section labels and colors updated.")
-            self.status_label.config(text="Sections Updated", foreground="blue")
-            self._update_save_button_state() # Enable save button
+            popup.destroy() # Close the dialog first
+            self.section_manager.shift_sections(
+                start_bar, shift_bars
+            )  # Call the SectionManager
 
+        except ValueError as ve:
+            messagebox.showerror("Invalid Input", f"Please enter valid integer numbers.\nError: {ve}", parent=popup)
         except Exception as e:
-            messagebox.showerror("Update Error", f"Failed to apply section edits:\n{e}")
+            messagebox.showerror("Error", f"An unexpected error occurred: {e}", parent=popup)
             traceback.print_exc()
 
     # *** HMM Prediction Trigger Method ***
@@ -1913,7 +1324,7 @@ class AudioAnalyzerApp:
             self.plot_manager.display_analysis_results() # Refresh plots
 
         # Update button states after prediction attempt
-        self._update_hmm_button_state()
+        self.ui_manager.update_hmm_button_state()
 
     def _on_closing(self):
         """Handles the window close event (clicking the 'X' button).

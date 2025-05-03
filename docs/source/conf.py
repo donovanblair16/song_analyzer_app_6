@@ -58,6 +58,7 @@ autodoc_default_options = {
     "member-order": "bysource",  # Order members as they appear in source code
     "undoc-members": True,  # Include members even if they lack docstrings (optional)
     "show-inheritance": True,  # Show base classes for classes
+    "private-members": True,  # <<< ADDED: Include members starting with _
     # Add other autodoc options if needed
 }
 

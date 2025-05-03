@@ -298,8 +298,8 @@
     <span class="c1"># --- File Operation Methods Removed (Moved to file_manager.py) ---</span>
 
     <span class="c1"># --- UI Update Methods (Remain in main app) ---</span>
-<div class="viewcode-block" id="AudioAnalyzerApp.update_manual_bpm_state">
-<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp.update_manual_bpm_state">[docs]</a>
+<div class="viewcode-block" id="AudioAnalyzerapp.ui_manager.update_manual_bpm_state">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerapp.ui_manager.update_manual_bpm_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_manual_bpm_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enables or disables the manual BPM entry and update button.</span>
 
@@ -315,8 +315,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">update_bpm_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="AudioAnalyzerApp.update_ui_for_mode">
-<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp.update_ui_for_mode">[docs]</a>
+<div class="viewcode-block" id="AudioAnalyzerapp.ui_manager.update_ui_for_mode">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerapp.ui_manager.update_ui_for_mode">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_ui_for_mode</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates UI elements visibility and state based on Single/Compare mode.</span>
 
@@ -364,8 +364,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_playback_buttons_state_from_manager</span><span class="p">(</span><span class="s1">&#39;stopped&#39;</span><span class="p">)</span> <span class="c1"># Reset playback buttons</span></div>
 
 
-<div class="viewcode-block" id="AudioAnalyzerApp.update_analyze_button_state">
-<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp.update_analyze_button_state">[docs]</a>
+<div class="viewcode-block" id="AudioAnalyzerapp.ui_manager.update_analyze_button_state">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerapp.ui_manager.update_analyze_button_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">update_analyze_button_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enables or disables the &#39;Analyze&#39; button based on file selection(s).</span>
 
@@ -386,6 +386,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_hmm_button_state</span><span class="p">()</span></div>
 
 
+<div class="viewcode-block" id="AudioAnalyzerApp._update_save_button_state">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._update_save_button_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_save_button_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enables the &#39;Save Analysis&#39; button.</span>
 
@@ -395,8 +397,11 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="o">.</span><span class="n">get</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;single&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">track_data</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span>
             <span class="n">state</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">save_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerapp.ui_manager.update_hmm_button_state">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerapp.ui_manager.update_hmm_button_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_hmm_button_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Enables/disables HMM Predict and Show HMM buttons.</span>
 
@@ -443,7 +448,8 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;show_hmm_button&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_hmm_button</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">show_hmm_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">show_state</span><span class="p">)</span>
 
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMM Button Update: Finished.&quot;</span><span class="p">)</span> <span class="c1"># DEBUG PRINT</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG HMM Button Update: Finished.&quot;</span><span class="p">)</span> <span class="c1"># DEBUG PRINT</span></div>
+
 
     <span class="c1"># --- Analysis Orchestration (Remains in main app) ---</span>
 <div class="viewcode-block" id="AudioAnalyzerApp.run_analysis">
@@ -574,6 +580,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Analysis/Update process finished.&quot;</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="AudioAnalyzerApp._analyze_single_track">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._analyze_single_track">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_analyze_single_track</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track_num</span><span class="p">,</span> <span class="n">manual_bpm_override</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Runs the complete analysis pipeline for a single track.</span>
 
@@ -769,7 +777,8 @@
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;--- Unhandled Error during analysis of Track </span><span class="si">{</span><span class="n">track_num</span><span class="si">}</span><span class="s2"> ---&quot;</span><span class="p">)</span>
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
             <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error Analyzing Track </span><span class="si">{</span><span class="n">track_num</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Unexpected error during analysis:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="k">return</span> <span class="kc">None</span> <span class="c1"># Indicate failure</span>
+            <span class="k">return</span> <span class="kc">None</span> <span class="c1"># Indicate failure</span></div>
+
 
     <span class="c1"># --- Method for Handling Manual BPM Update ---</span>
 <div class="viewcode-block" id="AudioAnalyzerApp.update_plots_with_manual_bpm">
@@ -804,6 +813,8 @@
 
 
     <span class="c1"># --- Playback GUI Update Callbacks ---</span>
+<div class="viewcode-block" id="AudioAnalyzerapp.ui_manager.update_playback_buttons_state">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerapp.ui_manager.update_playback_buttons_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_playback_buttons_state_from_manager</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the Play/Pause and Stop button states based on PlaybackManager state.</span>
 
@@ -829,8 +840,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">play_pause_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">play_pause_state</span><span class="p">,</span>
                                           <span class="n">text</span><span class="o">=</span><span class="s2">&quot;Pause&quot;</span> <span class="k">if</span> <span class="n">is_playing</span> <span class="k">else</span> <span class="s2">&quot;Play&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_button</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">stop_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">stop_state</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">stop_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">stop_state</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._update_playhead_display">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._update_playhead_display">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_playhead_display</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Updates the position of the vertical playhead line on the waveform plot.</span>
 
@@ -862,8 +876,11 @@
         <span class="c1"># Make sure it&#39;s visible and redraw</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">playhead_line</span><span class="o">.</span><span class="n">get_visible</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">playhead_line</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_redraw_canvas</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_redraw_canvas</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._redraw_canvas">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._redraw_canvas">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_redraw_canvas</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Requests an idle redraw of the Matplotlib canvas for the waveform plot.</span>
 
@@ -876,9 +893,12 @@
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">canvas</span><span class="o">.</span><span class="n">draw_idle</span><span class="p">()</span> <span class="c1"># Schedule redraw, doesn&#39;t block</span>
             <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error redrawing canvas: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># Log error if redraw fails</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error redrawing canvas: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># Log error if redraw fails</span></div>
+
 
     <span class="c1"># --- Method to Toggle Label View ---</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._toggle_label_view">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._toggle_label_view">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_toggle_label_view</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Switches the waveform plot labels between final and pre-cleanup versions.</span>
 
@@ -892,8 +912,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">display_analysis_results</span><span class="p">()</span>
         <span class="c1"># Update button states based on the new view</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_update_toggle_button_state</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_save_button_state</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_save_button_state</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerapp.ui_manager.update_toggle_button_state">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerapp.ui_manager.update_toggle_button_state">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_update_toggle_button_state</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">         </span><span class="sd">&quot;&quot;&quot;Updates the state of the &#39;Toggle Labels&#39; button.</span>
 
@@ -907,9 +930,12 @@
              <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_hmm_var</span><span class="o">.</span><span class="n">get</span><span class="p">()):</span> <span class="c1"># Disable if showing HMM</span>
              <span class="n">state</span> <span class="o">=</span> <span class="n">tk</span><span class="o">.</span><span class="n">NORMAL</span>
          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">toggle_labels_button</span><span class="p">:</span>
-             <span class="bp">self</span><span class="o">.</span><span class="n">toggle_labels_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">toggle_labels_button</span><span class="o">.</span><span class="n">config</span><span class="p">(</span><span class="n">state</span><span class="o">=</span><span class="n">state</span><span class="p">)</span></div>
+
 
     <span class="c1"># --- Waveform Click Handler (Seek, Edit, Split Functionality) ---</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._on_waveform_click">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._on_waveform_click">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_on_waveform_click</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles mouse clicks on the waveform plot axes.</span>
 
@@ -1035,11 +1061,14 @@
                 <span class="n">display_time</span> <span class="o">=</span> <span class="n">target_frame</span> <span class="o">/</span> <span class="n">sample_rate</span> <span class="o">+</span> <span class="n">trim_offset</span> <span class="c1"># Convert back to absolute plot time</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">playhead_line</span><span class="o">.</span><span class="n">set_xdata</span><span class="p">([</span><span class="n">display_time</span><span class="p">,</span> <span class="n">display_time</span><span class="p">])</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">playhead_line</span><span class="o">.</span><span class="n">set_visible</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_redraw_canvas</span><span class="p">()</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_redraw_canvas</span><span class="p">()</span></div>
+
         <span class="c1"># else: print(f&quot;DEBUG CLICK HANDLER: Ignored button {event.button}.&quot;) # Verbose</span>
 
 
     <span class="c1"># --- Section Edit Pop-up Method ---</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._show_section_edit_popup">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._show_section_edit_popup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_show_section_edit_popup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_index</span><span class="p">,</span> <span class="n">event</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates and displays a modal pop-up dialog for editing or merging a section.</span>
 
@@ -1148,10 +1177,13 @@
             <span class="n">editor_popup</span><span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;+</span><span class="si">{</span><span class="n">center_x</span><span class="si">}</span><span class="s2">+</span><span class="si">{</span><span class="n">center_y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 
         <span class="n">editor_popup</span><span class="o">.</span><span class="n">grab_set</span><span class="p">()</span> <span class="c1"># Make popup modal</span>
-        <span class="n">editor_popup</span><span class="o">.</span><span class="n">wait_window</span><span class="p">()</span> <span class="c1"># Wait until popup is closed</span>
+        <span class="n">editor_popup</span><span class="o">.</span><span class="n">wait_window</span><span class="p">()</span> <span class="c1"># Wait until popup is closed</span></div>
+
 
 
     <span class="c1"># --- Merge Logic ---</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._trigger_merge">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._trigger_merge">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_trigger_merge</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">popup</span><span class="p">,</span> <span class="n">section_index</span><span class="p">,</span> <span class="n">direction</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles the click event from the merge buttons in the edit popup.</span>
 
@@ -1178,8 +1210,11 @@
                 <span class="c1"># To merge with next, remove the boundary *after* section_index</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_merge_section</span><span class="p">(</span><span class="n">section_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Merge Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Cannot merge the last section with next.&quot;</span><span class="p">)</span>
+                <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Merge Error&quot;</span><span class="p">,</span> <span class="s2">&quot;Cannot merge the last section with next.&quot;</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._merge_section">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._merge_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_merge_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remove_boundary_index</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Merges two adjacent sections by removing the specified boundary.</span>
 
@@ -1308,10 +1343,13 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Merge Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;An unexpected error occurred during merge:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: Unexpected error during merge: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+
 
 
     <span class="c1"># --- Split Logic ---</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._show_split_section_popup">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._show_split_section_popup">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_show_split_section_popup</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_index</span><span class="p">,</span> <span class="n">clicked_time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Creates and displays a modal pop-up for splitting a section based on bar number.</span>
 
@@ -1409,8 +1447,11 @@
         <span class="n">bar_entry</span><span class="o">.</span><span class="n">focus_set</span><span class="p">()</span> <span class="c1"># Set focus to the entry field</span>
         <span class="n">split_popup</span><span class="o">.</span><span class="n">grab_set</span><span class="p">()</span> <span class="c1"># Make the popup modal</span>
         <span class="n">split_popup</span><span class="o">.</span><span class="n">wait_window</span><span class="p">()</span> <span class="c1"># Wait for the popup to close</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG MainApp: Split pop-up closed for section index </span><span class="si">{</span><span class="n">section_index</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;DEBUG MainApp: Split pop-up closed for section index </span><span class="si">{</span><span class="n">section_index</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">)</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._commit_split">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._commit_split">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_commit_split</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">popup</span><span class="p">,</span> <span class="n">section_index</span><span class="p">,</span> <span class="n">time_var</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the split time entered in the (older, time-based) split popup and calls _split_section.</span>
 
@@ -1458,8 +1499,11 @@
 
         <span class="c1"># --- If all validations pass ---</span>
         <span class="n">popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> <span class="c1"># Close the popup</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_split_section</span><span class="p">(</span><span class="n">section_index</span><span class="p">,</span> <span class="n">split_time</span><span class="p">)</span> <span class="c1"># Perform the actual split</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_split_section</span><span class="p">(</span><span class="n">section_index</span><span class="p">,</span> <span class="n">split_time</span><span class="p">)</span> <span class="c1"># Perform the actual split</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._commit_split_by_bar">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._commit_split_by_bar">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_commit_split_by_bar</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">popup</span><span class="p">,</span> <span class="n">section_index</span><span class="p">,</span> <span class="n">bar_var</span><span class="p">,</span> <span class="n">seconds_per_bar</span><span class="p">,</span> <span class="n">trim_offset</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Validates the split bar number from the popup, converts it to time, and calls _split_section.</span>
 
@@ -1522,8 +1566,11 @@
 
         <span class="c1"># --- If all validations pass ---</span>
         <span class="n">popup</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> <span class="c1"># Close the popup</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_split_section</span><span class="p">(</span><span class="n">section_index</span><span class="p">,</span> <span class="n">split_time</span><span class="p">)</span> <span class="c1"># Perform the actual split using the calculated time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_split_section</span><span class="p">(</span><span class="n">section_index</span><span class="p">,</span> <span class="n">split_time</span><span class="p">)</span> <span class="c1"># Perform the actual split using the calculated time</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._split_section">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._split_section">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_split_section</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">section_index</span><span class="p">,</span> <span class="n">split_time</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Splits a section at the given absolute time point.</span>
 
@@ -1668,10 +1715,13 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Split Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;An unexpected error occurred during split:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: Unexpected error during split: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+
 
 
     <span class="c1"># *** NEW METHOD: Recalculate features for a specific section ***</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._recalculate_section_features">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._recalculate_section_features">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_recalculate_section_features</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">track_data</span><span class="p">,</span> <span class="n">section_idx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Recalculates various features for a specific section index.</span>
 
@@ -1871,21 +1921,31 @@
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR recalculating features for section </span><span class="si">{</span><span class="n">section_idx</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
-            <span class="k">return</span> <span class="kc">None</span> <span class="c1"># Indicate failure</span>
+            <span class="k">return</span> <span class="kc">None</span> <span class="c1"># Indicate failure</span></div>
+
 
 
     <span class="c1"># --- Save/Load Methods --- # Now Handled by FileManager</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._save_analysis">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._save_analysis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_save_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Saves the current analysis results for Track 1 via FileManager.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span><span class="o">.</span><span class="n">save_analysis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span><span class="o">.</span><span class="n">save_analysis</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._load_analysis">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._load_analysis">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_load_analysis</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Loads a previously saved analysis file via FileManager.&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span><span class="o">.</span><span class="n">load_analysis</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span><span class="o">.</span><span class="n">load_analysis</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._ask_save_status">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._ask_save_status">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_ask_save_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parent</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Asks the user if they want to save changes via FileManager.&quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span><span class="o">.</span><span class="n">ask_save_status</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_manager</span><span class="o">.</span><span class="n">ask_save_status</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="AudioAnalyzerApp.select_file">
 <a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp.select_file">[docs]</a>
@@ -1896,6 +1956,8 @@
 
 
     <span class="c1"># --- Manual Section Editing Callback ---</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._apply_section_edits_from_editor">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._apply_section_edits_from_editor">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_apply_section_edits_from_editor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new_labels</span><span class="p">,</span> <span class="n">new_colors_hex</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Applies label and color edits made in the SectionEditor to the track data.</span>
 
@@ -1959,9 +2021,12 @@
 
         <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="n">messagebox</span><span class="o">.</span><span class="n">showerror</span><span class="p">(</span><span class="s2">&quot;Update Error&quot;</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Failed to apply section edits:</span><span class="se">\n</span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span>
+            <span class="n">traceback</span><span class="o">.</span><span class="n">print_exc</span><span class="p">()</span></div>
+
 
     <span class="c1"># *** HMM Prediction Trigger Method ***</span>
+<div class="viewcode-block" id="AudioAnalyzerApp._trigger_hmm_prediction">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._trigger_hmm_prediction">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_trigger_hmm_prediction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Initiates HMM-based section prediction for the analyzed track.</span>
 
@@ -2019,8 +2084,11 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">display_analysis_results</span><span class="p">()</span> <span class="c1"># Refresh plots</span>
 
         <span class="c1"># Update button states after prediction attempt</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_update_hmm_button_state</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_update_hmm_button_state</span><span class="p">()</span></div>
 
+
+<div class="viewcode-block" id="AudioAnalyzerApp._on_closing">
+<a class="viewcode-back" href="../_autosummary_generated/core%20%20%23%20Directory%20for%20generated%20stubs/main_app.html#main_app.AudioAnalyzerApp._on_closing">[docs]</a>
     <span class="k">def</span><span class="w"> </span><span class="nf">_on_closing</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Handles the window close event (clicking the &#39;X&#39; button).</span>
 
@@ -2030,6 +2098,7 @@
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Window closing...&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">playback_manager</span><span class="o">.</span><span class="n">cleanup</span><span class="p">()</span> <span class="c1"># Stop audio stream and release resources</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">master</span><span class="o">.</span><span class="n">destroy</span><span class="p">()</span> <span class="c1"># Close the Tkinter window</span></div>
+</div>
 
 
 <span class="c1"># --- Main Execution Block ---</span>

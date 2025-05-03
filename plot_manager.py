@@ -119,7 +119,7 @@ class PlotManager:
         #     app.track_data[1].pop('hmm_label_colors', None)
         #     app.track_data[1].pop('hmm_section_starts', None)
         # app.show_hmm_var.set(False) # Reset toggle
-        # app._update_hmm_button_state() # Disable HMM buttons
+        # app.ui_manager.update_hmm_button_state() # Disable HMM buttons
 
     def embed_plot(self, fig, tab_name):
         """Clears the specified tab (except editor) and embeds the plot."""
@@ -184,7 +184,7 @@ class PlotManager:
                 display_data1.setdefault('label_colors', [])
                 display_data1.setdefault('section_starts', [])
                 # Re-enable pre-cleanup toggle button if original data exists
-                app._update_toggle_button_state() # Call main app's method
+                app.ui_manager.update_toggle_button_state() # Call main app's method
 
         display_data2 = t2_data_source.copy() if t2_data_source else {}
         # HMM comparison not implemented, display_data2 always uses original

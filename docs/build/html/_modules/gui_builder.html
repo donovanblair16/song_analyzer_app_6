@@ -113,6 +113,8 @@
 
 
 <span class="c1"># --- Control Panel Builder ---</span>
+<div class="viewcode-block" id="_build_control_panel">
+<a class="viewcode-back" href="../_autosummary_generated/gui%20%20%23%20Directory%20for%20generated%20stubs/gui_builder.html#gui_builder._build_control_panel">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_control_panel</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the top frame containing controls.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG GUI Builder: Building control panel...&quot;</span><span class="p">)</span>
@@ -179,9 +181,12 @@
     <span class="n">max_rows</span> <span class="o">=</span> <span class="mi">4</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">var</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">app</span><span class="o">.</span><span class="n">analysis_vars</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
          <span class="n">row</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="n">max_rows</span><span class="p">;</span> <span class="n">col</span> <span class="o">=</span> <span class="n">i</span> <span class="o">//</span> <span class="n">max_rows</span>
-         <span class="n">cb</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Checkbutton</span><span class="p">(</span><span class="n">options_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">analysis_labels</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">variable</span><span class="o">=</span><span class="n">var</span><span class="p">);</span> <span class="n">cb</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+         <span class="n">cb</span> <span class="o">=</span> <span class="n">ttk</span><span class="o">.</span><span class="n">Checkbutton</span><span class="p">(</span><span class="n">options_frame</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="n">app</span><span class="o">.</span><span class="n">analysis_labels</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">variable</span><span class="o">=</span><span class="n">var</span><span class="p">);</span> <span class="n">cb</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">row</span><span class="o">=</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="o">=</span><span class="n">col</span><span class="p">,</span> <span class="n">sticky</span><span class="o">=</span><span class="n">tk</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">padx</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">pady</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+
 
 <span class="c1"># --- Plot Notebook Builder ---</span>
+<div class="viewcode-block" id="_build_plot_notebook">
+<a class="viewcode-back" href="../_autosummary_generated/gui%20%20%23%20Directory%20for%20generated%20stubs/gui_builder.html#gui_builder._build_plot_notebook">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">_build_plot_notebook</span><span class="p">(</span><span class="n">app</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Creates the ttk.Notebook widget to hold plot tabs.&quot;&quot;&quot;</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;DEBUG GUI Builder: Building plot notebook...&quot;</span><span class="p">)</span>
@@ -213,7 +218,8 @@
 
         <span class="k">else</span><span class="p">:</span>
              <span class="c1"># Call placeholder method using app instance&#39;s plot manager</span>
-             <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">add_placeholder_label</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Select file(s) and click Analyze.&quot;</span><span class="p">)</span>
+             <span class="n">app</span><span class="o">.</span><span class="n">plot_manager</span><span class="o">.</span><span class="n">add_placeholder_label</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;Select file(s) and click Analyze.&quot;</span><span class="p">)</span></div>
+
 
 </pre></div>
 
