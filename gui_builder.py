@@ -239,10 +239,9 @@ def _build_control_panel(app):
                     options_frame, text=app.analysis_labels[key], variable=var
                 )
                 cb.grid(row=row, column=col, sticky=tk.W, padx=3, pady=1)
-            else:
-                print(
-                    f"Warning: Key '{key}' found in analysis_vars but not in analysis_labels."
-                )
+
+                # Add this debug print to see initial variable state
+                print(f"DEBUG: Checkbox {key} initial state: {var.get()}")
     else:
         print(
             "Warning: app.analysis_labels not found or is empty. Cannot create analysis option checkboxes."

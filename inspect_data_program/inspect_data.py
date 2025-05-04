@@ -24,6 +24,8 @@
 # - FIXED: Addressed filter application issues
 # - FIXED: Improved GUI updates during loading
 # - ADDED: Feature set filtering functionality
+# - ADDED: Robust column visibility toggle and column reordering functionality
+# - REMOVED: Limitation to first 5 files for processing entire folder
 # =============================================================================
 
 import os
@@ -76,7 +78,9 @@ class FeatureInspectorApp:
         """Initialize the application."""
         self.master = master
         master.title("Perfect Analysis Feature Inspector (Cached)")
-        master.geometry("1100x750")  # Adjusted size slightly
+        master.geometry(
+            "1300x750"
+        )  # Increased width to accommodate column control pane
 
         # Data Caching & State
         self.data_cache = {}  # {file_path: track_data}
@@ -87,6 +91,16 @@ class FeatureInspectorApp:
         self.loading_in_progress = False
         self.selected_feature_set = None  # Currently selected feature set for filtering
         self.file_to_feature_sets = {}  # Maps file paths to their feature sets
+
+        # Column visibility and order tracking
+        self.all_columns = []  # All possible columns in original order
+        self.column_visibility = (
+            {}
+        )  # Dictionary to track visibility {column_name: is_visible}
+        self.column_order = []  # Current display order of columns
+        self.current_data = []  # Store current row data for redisplaying
+        self.dragging = False  # Flag for column drag operation
+        self.drag_column = None  # Column being dragged
 
         # --- Tkinter Variables ---
         self.show_nan_only_var = tk.BooleanVar(
@@ -103,14 +117,12 @@ class FeatureInspectorApp:
         )  # For feature set display
 
         # --- Create Main UI Structure ---
-        self.paned_window = ttk.PanedWindow(master, orient=tk.HORIZONTAL)
-        self.paned_window.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.main_paned_window = ttk.PanedWindow(master, orient=tk.HORIZONTAL)
+        self.main_paned_window.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # --- Left Pane: File List, Filters & Controls ---
-        self.left_frame = ttk.Frame(
-            self.paned_window, width=300
-        )  # Slightly wider left pane
-        self.paned_window.add(self.left_frame, weight=1)
+        self.left_frame = ttk.Frame(self.main_paned_window, width=250)
+        self.main_paned_window.add(self.left_frame, weight=1)
 
         # --- File List Area ---
         file_list_frame = ttk.LabelFrame(self.left_frame, text="Analysis Files")
@@ -179,11 +191,72 @@ class FeatureInspectorApp:
         # Bind selection event for feature set filtering
         self.feature_set_listbox.bind("<<ListboxSelect>>", self.on_feature_set_select)
 
+        # --- Middle Pane: Column Visibility Controls ---
+        self.column_control_frame = ttk.Frame(self.main_paned_window, width=250)
+        self.main_paned_window.add(self.column_control_frame, weight=1)
+
+        # Column control area
+        column_control_label_frame = ttk.LabelFrame(
+            self.column_control_frame, text="Column Visibility"
+        )
+        column_control_label_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        # Canvas with scrollbar for column checkboxes
+        column_canvas_frame = ttk.Frame(column_control_label_frame)
+        column_canvas_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+
+        self.column_scroll = ttk.Scrollbar(column_canvas_frame, orient=tk.VERTICAL)
+        self.column_canvas = tk.Canvas(
+            column_canvas_frame,
+            yscrollcommand=self.column_scroll.set,
+            highlightthickness=0,
+        )
+        self.column_scroll.config(command=self.column_canvas.yview)
+        self.column_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.column_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Frame for checkboxes inside canvas
+        self.column_checkbox_frame = ttk.Frame(self.column_canvas)
+        self.column_canvas_window = self.column_canvas.create_window(
+            (0, 0),
+            window=self.column_checkbox_frame,
+            anchor=tk.NW,
+            tags="self.column_checkbox_frame",
+        )
+
+        # Quick selection buttons for columns
+        column_button_frame = ttk.Frame(column_control_label_frame)
+        column_button_frame.pack(fill=tk.X, padx=5, pady=5)
+
+        ttk.Button(
+            column_button_frame, text="Select All", command=self._select_all_columns
+        ).pack(side=tk.LEFT, padx=2)
+
+        ttk.Button(
+            column_button_frame, text="Deselect All", command=self._deselect_all_columns
+        ).pack(side=tk.LEFT, padx=2)
+
+        ttk.Button(
+            column_button_frame, text="Reset Order", command=self._reset_column_order
+        ).pack(side=tk.LEFT, padx=2)
+
+        # Instructions for column reordering
+        ttk.Label(
+            column_control_label_frame,
+            text="Drag column headers to reorder",
+            font=self.small_font,
+            wraplength=180,
+        ).pack(pady=(0, 5))
+
+        # Configure the canvas for proper scrolling
+        self.column_checkbox_frame.bind(
+            "<Configure>", self._on_checkbox_frame_configure
+        )
+        self.column_canvas.bind("<Configure>", self._on_column_canvas_configure)
+
         # --- Right Pane: Feature Display Treeview ---
-        self.right_frame = ttk.Frame(
-            self.paned_window, width=750
-        )  # Slightly wider right pane
-        self.paned_window.add(self.right_frame, weight=3)
+        self.right_frame = ttk.Frame(self.main_paned_window, width=650)
+        self.main_paned_window.add(self.right_frame, weight=3)
 
         ttk.Label(self.right_frame, text="Section Features:").pack(
             pady=(0, 5), anchor=tk.W
@@ -206,6 +279,11 @@ class FeatureInspectorApp:
         hsb.pack(side=tk.BOTTOM, fill=tk.X)
         self.feature_tree.pack(fill=tk.BOTH, expand=True)
 
+        # Bind events for column drag-and-drop reordering
+        self.feature_tree.bind("<ButtonPress-1>", self._start_column_drag)
+        self.feature_tree.bind("<B1-Motion>", self._column_drag_motion)
+        self.feature_tree.bind("<ButtonRelease-1>", self._end_column_drag)
+
         # --- Status Bar ---
         status_bar = ttk.Label(
             master, textvariable=self.status_var, relief=tk.SUNKEN, anchor=tk.W
@@ -214,6 +292,289 @@ class FeatureInspectorApp:
 
         # --- Load Cache or Start Initial Load ---
         self.master.after(100, self._load_cache_or_start_load)
+
+    # --- Canvas Configuration Handlers ---
+
+    def _on_checkbox_frame_configure(self, event):
+        """Update the scroll region when the checkbox frame changes size."""
+        self.column_canvas.configure(scrollregion=self.column_canvas.bbox("all"))
+
+    def _on_column_canvas_configure(self, event):
+        """Adjust the inner frame width when the canvas is resized."""
+        canvas_width = event.width
+        self.column_canvas.itemconfig(self.column_canvas_window, width=canvas_width)
+
+    # --- Column Control Functions ---
+
+    def _setup_column_checkboxes(self, columns):
+        """Set up the column visibility checkboxes."""
+        # Clear existing checkboxes
+        for widget in self.column_checkbox_frame.winfo_children():
+            widget.destroy()
+
+        # Set up the initial state of all columns
+        for col in columns:
+            if col not in self.column_visibility:
+                # By default, all columns are visible
+                self.column_visibility[col] = True
+
+        # Create the checkboxes in the original column order
+        for i, col in enumerate(columns):
+            # Create a variable for this checkbox
+            var = tk.BooleanVar(value=self.column_visibility.get(col, True))
+
+            # Create a checkbox for this column
+            checkbox = ttk.Checkbutton(
+                self.column_checkbox_frame,
+                text=col,
+                variable=var,
+                command=lambda c=col, v=var: self._toggle_column_visibility(c, v),
+            )
+            checkbox.pack(anchor=tk.W, pady=1, padx=5, fill=tk.X)
+
+            # Store the variable for later access
+            self.column_visibility[col] = var.get()
+
+    def _toggle_column_visibility(self, column, var=None):
+        """Toggle visibility of a specific column."""
+        # Update the visibility state
+        if var is not None:
+            self.column_visibility[column] = var.get()
+        else:
+            current = self.column_visibility.get(column, True)
+            self.column_visibility[column] = not current
+
+        # Update the treeview display
+        self._refresh_treeview()
+
+    def _select_all_columns(self):
+        """Select all column checkboxes."""
+        # Update visibility state for all columns
+        for col in self.all_columns:
+            self.column_visibility[col] = True
+
+        # Update checkbox states
+        for widget in self.column_checkbox_frame.winfo_children():
+            if isinstance(widget, ttk.Checkbutton):
+                # This is a hack to set the variable value and update the checkbox display
+                widget.state(["selected"])
+
+        # Refresh the treeview
+        self._refresh_treeview()
+        self._update_status("All columns selected")
+
+    def _deselect_all_columns(self):
+        """Deselect all column checkboxes except essential ones."""
+        # Standard columns that should always be visible
+        standard_cols = ["#", "Label", "Start (s)", "End (s)", "Dur (s)"]
+
+        # Update visibility state for all columns
+        for col in self.all_columns:
+            self.column_visibility[col] = col in standard_cols
+
+        # Update checkbox states in the UI
+        for widget in self.column_checkbox_frame.winfo_children():
+            if isinstance(widget, ttk.Checkbutton):
+                # Get the column name from the checkbox text
+                col_name = widget.cget("text")
+                if col_name in standard_cols:
+                    widget.state(["selected"])
+                else:
+                    widget.state(["!selected"])
+
+        # Refresh the treeview
+        self._refresh_treeview()
+        self._update_status("Deselected all columns except standard ones")
+
+    def _reset_column_order(self):
+        """Reset columns to their original order."""
+        # Restore original column order
+        self.column_order = self.all_columns.copy()
+
+        # Refresh the treeview with the new order
+        self._refresh_treeview()
+        self._update_status("Column order reset to original")
+
+    def _get_visible_columns_in_order(self):
+        """Get the list of visible columns in the current display order."""
+        # If column_order is empty, initialize it with all columns
+        if not self.column_order:
+            self.column_order = self.all_columns.copy()
+
+        # Filter visible columns based on current order
+        visible_columns = []
+        for col in self.column_order:
+            if self.column_visibility.get(col, True):
+                visible_columns.append(col)
+
+        # Handle any visible columns not in the current order
+        for col in self.all_columns:
+            if self.column_visibility.get(col, True) and col not in visible_columns:
+                visible_columns.append(col)
+
+        return visible_columns
+
+    def _refresh_treeview(self):
+        """Refresh the treeview with the current column visibility and order settings."""
+        # Get visible columns in current order
+        visible_columns = self._get_visible_columns_in_order()
+
+        # Remember currently selected item if any
+        selected_items = self.feature_tree.selection()
+        selected_id = selected_items[0] if selected_items else None
+
+        # Clear the treeview
+        for item in self.feature_tree.get_children():
+            self.feature_tree.delete(item)
+
+        # Re-configure columns
+        self.feature_tree["columns"] = visible_columns
+
+        # Configure column properties
+        for col in visible_columns:
+            # Set appropriate column width and properties
+            anchor = tk.W
+            width = 80
+            stretch = tk.NO
+
+            if col == "#":
+                width = 40
+            elif col == "Label":
+                width = 100
+                stretch = tk.YES
+            elif col in ["Start (s)", "End (s)", "Dur (s)"]:
+                width = 70
+            elif "rms" in col.lower() or "energy" in col.lower():
+                width = 110
+                stretch = tk.YES
+            elif "centroid" in col.lower() or "position" in col.lower():
+                width = 130
+                stretch = tk.YES
+            elif len(col) > 15:
+                width = 120
+                stretch = tk.YES
+
+            self.feature_tree.heading(col, text=col, anchor=anchor)
+            self.feature_tree.column(col, width=width, anchor=anchor, stretch=stretch)
+
+        # Repopulate the treeview with current data
+        if self.current_data:
+            for item_id, values_dict in self.current_data:
+                # Create a new row with only the visible columns in correct order
+                row_values = []
+                for col in visible_columns:
+                    row_values.append(values_dict.get(col, ""))
+
+                # Insert into treeview
+                self.feature_tree.insert(
+                    "", tk.END, iid=item_id, values=tuple(row_values)
+                )
+
+            # Restore selection if possible
+            if selected_id:
+                try:
+                    self.feature_tree.selection_set(selected_id)
+                    self.feature_tree.see(selected_id)
+                except:
+                    pass
+
+    # --- Column Drag and Drop Functions ---
+
+    def _start_column_drag(self, event):
+        """Start dragging a column header."""
+        if self.dragging:
+            return
+
+        # Identify the region and column being clicked
+        region = self.feature_tree.identify_region(event.x, event.y)
+        if region != "heading":
+            return
+
+        # Get the column identifier
+        column_id = self.feature_tree.identify_column(event.x)
+
+        # Convert column id (#1, #2, etc.) to column name
+        if column_id.startswith("#"):
+            col_idx = int(column_id[1:]) - 1
+            visible_columns = self._get_visible_columns_in_order()
+
+            if 0 <= col_idx < len(visible_columns):
+                # Found a valid column to drag
+                self.drag_column = visible_columns[col_idx]
+                self.dragging = True
+
+                # Change cursor to indicate dragging
+                self.feature_tree.configure(cursor="exchange")
+
+                # Save the x position for calculating drag direction
+                self.drag_start_x = event.x
+
+    def _column_drag_motion(self, event):
+        """Handle column dragging motion."""
+        # Only process if we're in a drag operation
+        if not self.dragging or not self.drag_column:
+            return
+
+        # Provide visual feedback here if needed
+        pass
+
+    def _end_column_drag(self, event):
+        """End column dragging and reposition the column."""
+        # Only process if we're in a drag operation
+        if not self.dragging or not self.drag_column:
+            return
+
+        try:
+            # Reset cursor
+            self.feature_tree.configure(cursor="")
+
+            # Identify the target column
+            target_id = self.feature_tree.identify_column(event.x)
+
+            if target_id.startswith("#"):
+                target_idx = int(target_id[1:]) - 1
+                visible_columns = self._get_visible_columns_in_order()
+
+                if 0 <= target_idx < len(visible_columns):
+                    target_column = visible_columns[target_idx]
+
+                    # Only reorder if dropping on a different column
+                    if target_column != self.drag_column:
+                        self._reorder_column(self.drag_column, target_column)
+        finally:
+            # Reset drag state
+            self.dragging = False
+            self.drag_column = None
+
+    def _reorder_column(self, source_column, target_column):
+        """Reorder columns by moving source_column before target_column."""
+        if not self.column_order:
+            # Initialize column order if needed
+            self.column_order = self.all_columns.copy()
+
+        # Create a working copy of the current order
+        current_order = self.column_order.copy()
+
+        # Find positions in the current order
+        if source_column in current_order and target_column in current_order:
+            # Remove source column from its current position
+            current_order.remove(source_column)
+
+            # Find the target position
+            target_pos = current_order.index(target_column)
+
+            # Insert source column at the target position
+            current_order.insert(target_pos, source_column)
+
+            # Update column order
+            self.column_order = current_order
+
+            # Refresh the treeview
+            self._refresh_treeview()
+
+            self._update_status(
+                f"Moved column '{source_column}' before '{target_column}'"
+            )
 
     # --- Feature Set Filtering Logic ---
 
@@ -492,10 +853,8 @@ class FeatureInspectorApp:
                 f"DEBUG: Found {len(current_files)} files ending with '{FILENAME_SUFFIX}'"
             )
 
-            # LIMIT TO FIRST 5 FILES FOR TESTING
-            if len(current_files) > 5:
-                print(f"NOTICE: Limiting to first 5 files for faster debugging")
-                current_files = current_files[:5]
+            # Removed the limitation to first 5 files
+            # Process ALL files instead
 
             # Always consider it needs an update on initial load
             needs_listbox_update = True
@@ -1008,11 +1367,25 @@ class FeatureInspectorApp:
 
     def clear_feature_display(self):
         """Clears the feature display Treeview."""
-        if hasattr(self, "feature_tree") and self.feature_tree:
-            for item in self.feature_tree.get_children():
-                self.feature_tree.delete(item)
-            self.feature_tree["columns"] = ()
-            print("Feature display cleared")
+        # Clear the treeview
+        for item in self.feature_tree.get_children():
+            self.feature_tree.delete(item)
+
+        # Reset column configuration
+        self.feature_tree["columns"] = ()
+
+        # Clear data storage
+        self.current_data = []
+
+        # Reset column tracking
+        self.all_columns = []
+        self.column_order = []
+
+        # Clear column control checkboxes
+        for widget in self.column_checkbox_frame.winfo_children():
+            widget.destroy()
+
+        print("Feature display cleared")
 
     def display_track_features(self, track_data):
         """Populates the Treeview with features from the loaded track_data."""
@@ -1095,47 +1468,21 @@ class FeatureInspectorApp:
         print(
             f"Dynamic feature keys ({len(dynamic_feature_keys)}): {dynamic_feature_keys}"
         )
-        display_columns = standard_cols + dynamic_feature_keys
 
-        # Configure treeview
-        try:
-            self.feature_tree["columns"] = display_columns
-            self.feature_tree.column("#0", width=0, stretch=tk.NO)
+        # Store all possible columns in their default order
+        self.all_columns = standard_cols + dynamic_feature_keys
 
-            for col in display_columns:
-                anchor = tk.W
-                width = 80
-                stretch = tk.NO
-                if col == "#":
-                    width = 40
-                elif col == "Label":
-                    width = 100
-                    stretch = tk.YES
-                elif col in ["Start (s)", "End (s)", "Dur (s)"]:
-                    width = 70
-                elif "rms" in col.lower() or "energy" in col.lower():
-                    width = 110
-                    stretch = tk.YES
-                elif "centroid" in col.lower() or "position" in col.lower():
-                    width = 130
-                    stretch = tk.YES
-                elif len(col) > 15:
-                    width = 120
-                    stretch = tk.YES
-                self.feature_tree.heading(col, text=col, anchor=anchor)
-                self.feature_tree.column(
-                    col, width=width, anchor=anchor, stretch=stretch
-                )
-            print(f"Treeview columns configured successfully: {display_columns}")
-        except Exception as e:
-            print(f"ERROR configuring treeview: {e}")
-            traceback.print_exc()
-            self._update_status("Error setting up feature display")
-            return
+        # Initialize column order if empty
+        if not self.column_order:
+            self.column_order = self.all_columns.copy()
 
-        # Populate rows
+        # Set up column visibility controls
+        self._setup_column_checkboxes(self.all_columns)
+
+        # Process and display the data
         row_count = 0
         has_nan = False
+        self.current_data = []  # Clear current data
 
         for i, section_dict in enumerate(section_features_list):
             if not isinstance(section_dict, dict):
@@ -1143,28 +1490,27 @@ class FeatureInspectorApp:
                 continue
 
             try:
-                row_values = [
-                    i + 1,
-                    semantic_labels[i] if i < len(semantic_labels) else "N/A",
-                    f"{section_dict.get('start_time', np.nan):.3f}",
-                    f"{section_dict.get('end_time', np.nan):.3f}",
-                    f"{section_dict.get('duration_sec', np.nan):.3f}",
-                ]
+                # Create a full set of values for all possible columns
+                values_dict = {
+                    "#": i + 1,
+                    "Label": semantic_labels[i] if i < len(semantic_labels) else "N/A",
+                    "Start (s)": f"{section_dict.get('start_time', np.nan):.3f}",
+                    "End (s)": f"{section_dict.get('end_time', np.nan):.3f}",
+                    "Dur (s)": f"{section_dict.get('duration_sec', np.nan):.3f}",
+                }
 
-                # Check each value for NaN as we're displaying it
+                # Add dynamic feature values
                 section_has_nan = False
                 for key in dynamic_feature_keys:
                     val = section_dict.get(key, np.nan)
                     if isinstance(val, (int, float, np.number)):
                         formatted_val = f"{val:.4f}" if np.isfinite(val) else "NaN"
-                        # Check if value is being formatted as "NaN"
                         if formatted_val == "NaN":
                             section_has_nan = True
                             has_nan = True
                             print(f"Found NaN value for key '{key}' in section {i}")
                     else:
                         formatted_val = str(val) if val is not None else "None"
-                        # Also check string representation for "NaN"
                         if "NaN" in formatted_val or "nan" in formatted_val:
                             section_has_nan = True
                             has_nan = True
@@ -1172,17 +1518,22 @@ class FeatureInspectorApp:
                                 f"Found NaN string for key '{key}' in section {i}: {formatted_val}"
                             )
 
-                    row_values.append(formatted_val)
+                    values_dict[key] = formatted_val
 
-                self.feature_tree.insert("", tk.END, iid=i, values=tuple(row_values))
-                row_count += 1
+                # Store the data for this row
+                self.current_data.append((i, values_dict))
+
+                # If we have visible columns already configured, display the row
+                if self._get_visible_columns_in_order():
+                    row_count += 1
             except Exception as e:
-                print(f"Error inserting row {i} into feature tree: {e}")
+                print(f"Error processing section {i}: {e}")
                 traceback.print_exc()
 
-        print(f"Successfully added {row_count} rows to the feature tree")
+        # Display the data in the treeview
+        self._refresh_treeview()
 
-        # Update NaN status based on what we actually see in the UI
+        # Update NaN status for the file
         if file_path:
             if has_nan:
                 print(f"UPDATING NaN STATUS: File {filename} HAS NaN values!")
@@ -1191,7 +1542,9 @@ class FeatureInspectorApp:
                 print(f"UPDATING NaN STATUS: File {filename} has NO NaN values")
                 self.file_has_nan[file_path] = False
 
-        self._update_status(f"Displayed {row_count} sections")
+        self._update_status(
+            f"Displayed {len(self.current_data)} sections with {len(self._get_visible_columns_in_order())} visible columns"
+        )
 
 
 # --- Main Execution ---

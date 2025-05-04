@@ -49,3 +49,7 @@ Thumbs.db
 
 # HMM model checkpoints/data that can be regenerated
 hmm_model/checkpoints/
+
+# Large data files
+inspect_data_program/feature_inspector_cache.joblib
+*.joblib

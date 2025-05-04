@@ -218,6 +218,14 @@ class AudioAnalyzerApp:
             RuntimeError: If analysis fails critically for a required track.
                           (Caught internally and shown via messagebox).
         """
+
+        print("\nDEBUG: Analysis checkbox states at start of run_analysis:")
+        for k, v in self.analysis_vars.items():
+            print(f"  {k}: {v.get()}")
+
+        # Specific check for low-end energy
+        print(f"DEBUG: Low-End Energy checkbox specifically: {self.analysis_vars['low_end'].get()}")
+
         mode = self.mode.get()
         # --- Pre-Analysis Checks and UI Updates ---
         if not is_update:
@@ -270,6 +278,16 @@ class AudioAnalyzerApp:
                 # Error handled within _analyze_single_track via messagebox
                 raise RuntimeError("Analysis failed for Track 1. Check console for details.")
             self.track_data[1] = results1
+
+            if app.track_data[1] and app.track_data[1].get('section_features'):
+                print("\n=== DEBUG: Checking for relative_rms in sections ===")
+                for i, section in enumerate(app.track_data[1]['section_features']):
+                    if isinstance(section, dict):
+                        has_relative_rms = 'relative_rms' in section
+                        rms_value = section.get('relative_rms', 'NOT PRESENT')
+                        print(f"Section {i}: relative_rms present: {has_relative_rms}, value: {rms_value}")
+                print("=== End relative_rms check ===\n")
+
             # Set audio for playback immediately after T1 analysis
             self.playback_manager.set_audio(results1.get('y_processed'), results1.get('sr'))
 
@@ -511,6 +529,42 @@ class AudioAnalyzerApp:
             else:
                 # Ensure keys exist even if skipped
                 results["dyn_range"]=None; results["dyn_times_absolute"]=None
+
+            # --- ADD THIS SECTION: Extract Features Step ---
+            print(f" Step X: Extracting Section Features...")
+            if results.get("section_features") and results.get("semantic_labels"):
+                try:
+                    # Call extract_section_features to add advanced features like relative_rms
+                    section_features_list, semantic_labels_list = (
+                        extract_section_features(results)
+                    )
+
+                    # Update results with the enriched feature dictionaries
+                    results["section_features"] = section_features_list
+                    results["semantic_labels"] = semantic_labels_list
+                    print(
+                        f" -> Successfully extracted features for {len(section_features_list)} sections"
+                    )
+
+                    # Debug check for relative_rms (you can remove this later)
+                    if section_features_list and isinstance(
+                        section_features_list[0], dict
+                    ):
+                        if "relative_rms" in section_features_list[0]:
+                            print(
+                                f" -> Confirmed 'relative_rms' feature is present: {section_features_list[0]['relative_rms']}"
+                            )
+                        else:
+                            print(
+                                f" -> WARNING: 'relative_rms' feature is missing from extracted features!"
+                            )
+                except Exception as e:
+                    print(f" -> ERROR in section feature extraction: {e}")
+                    traceback.print_exc()
+            else:
+                print(
+                    f" -> Skipping Section Feature Extraction (no section data available)"
+                )
 
             # --- Ensure default keys exist if analysis steps were skipped ---
             results.setdefault("semantic_labels", [])
