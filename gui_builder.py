@@ -4,21 +4,30 @@
 # Includes:
 # - Shift Sections button.
 # - Feature Table tab with Treeview.
+# FIXED: Passed the apply_callback function during SectionEditor instantiation.
+# ADDED: "Select HMM Model" button.
 # =============================================================================
 
 import tkinter as tk
 from tkinter import ttk
+import traceback  # Added for potential future debugging
 
 # Import SectionEditor components needed to instantiate it
 try:
     # Assuming section_editor.py is accessible
     from section_editor import SectionEditor, ALLOWED_LABELS, COLOR_NAME_MAP
-except ImportError:
+except ImportError as ie:
     print(
-        "ERROR in gui_builder: Could not import from section_editor. Ensure file exists."
+        f"ERROR in gui_builder: Could not import from section_editor. Ensure file exists.\nError: {ie}"
     )
     # Define fallbacks or raise error if critical
     SectionEditor = None  # Or a dummy class/function
+    ALLOWED_LABELS = []
+    COLOR_NAME_MAP = {}
+except Exception as e:
+    print(f"Unexpected error importing from section_editor: {e}")
+    traceback.print_exc()
+    SectionEditor = None
     ALLOWED_LABELS = []
     COLOR_NAME_MAP = {}
 
@@ -59,12 +68,11 @@ def _build_control_panel(app):
     )
     app.toggle_labels_button.pack(anchor=tk.W)
     # HMM Toggle
-    # Use plot_manager method for command
     app.show_hmm_button = ttk.Checkbutton(
         toggles_frame,
         text="Show HMM Prediction",
         variable=app.show_hmm_var,
-        command=app.plot_manager.display_analysis_results,
+        command=app.plot_manager.display_analysis_results,  # Command calls plot manager to refresh view
         state=tk.DISABLED,
     )
     app.show_hmm_button.pack(anchor=tk.W)
@@ -90,19 +98,14 @@ def _build_control_panel(app):
     app.stop_button.grid(row=0, column=1, padx=2)
 
     # --- Shift Sections Button ---
-    # Added the Shift Sections button, linked to a method in main_app.py
-    # It starts disabled and will be enabled when analysis data is ready.
     app.shift_sections_button = ttk.Button(
         playback_frame,
         text="Shift Sections...",
-        command=app._trigger_shift_sections_popup,
+        command=app._trigger_shift_sections_popup,  # Calls method in main_app
         state=tk.DISABLED,
         width=15,
-    )  # Increased width
-    app.shift_sections_button.grid(
-        row=0, column=2, padx=(10, 2)
-    )  # Place it next to Stop button with padding
-    # --- End Shift Sections Button ---
+    )
+    app.shift_sections_button.grid(row=0, column=2, padx=(10, 2))
 
     # File Selection & Actions Area
     file_frame = ttk.LabelFrame(app.control_frame, text="Files & Actions", padding=5)
@@ -111,7 +114,7 @@ def _build_control_panel(app):
     app.select_button1 = ttk.Button(
         file_frame,
         text="Select Track 1 (.wav)",
-        command=lambda: app.file_manager.select_file(1),
+        command=lambda: app.file_manager.select_file(1),  # Calls method in file_manager
     )
     app.select_button1.grid(row=0, column=0, padx=5, pady=2, sticky=tk.W)
     app.file_label1 = ttk.Label(
@@ -126,7 +129,7 @@ def _build_control_panel(app):
     app.select_button2 = ttk.Button(
         file_frame,
         text="Select Track 2 (.wav)",
-        command=lambda: app.file_manager.select_file(2),
+        command=lambda: app.file_manager.select_file(2),  # Calls method in file_manager
     )
     app.select_button2.grid(row=1, column=0, padx=5, pady=2, sticky=tk.W)
     app.file_label2 = ttk.Label(
@@ -138,7 +141,8 @@ def _build_control_panel(app):
         anchor=tk.W,
     )
     app.file_label2.grid(row=1, column=1, padx=5, pady=2, sticky=tk.EW)
-    # Analysis and HMM buttons frame
+
+    # --- Analysis and HMM buttons frame ---
     analysis_buttons_frame = ttk.Frame(file_frame)
     analysis_buttons_frame.grid(
         row=2, column=0, columnspan=2, sticky=tk.EW, pady=(8, 2)
@@ -146,30 +150,50 @@ def _build_control_panel(app):
     app.analyze_button = ttk.Button(
         analysis_buttons_frame,
         text="Analyze Track",
-        command=app.run_analysis,
+        command=app.run_analysis,  # Calls method in main_app
         state=tk.DISABLED,
     )
     app.analyze_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 2))
-    # HMM Button
+
+    # --- HMM Buttons Frame (New) ---
+    hmm_buttons_frame = ttk.Frame(file_frame)
+    hmm_buttons_frame.grid(row=3, column=0, columnspan=2, sticky=tk.EW, pady=(5, 2))
+
+    # Select HMM Model Button
+    app.select_hmm_button = ttk.Button(
+        hmm_buttons_frame,
+        text="Select HMM Model",
+        command=app._select_hmm_model,  # Calls new method in main_app
+        state=tk.NORMAL,  # Always enabled, action checks for folder
+    )
+    app.select_hmm_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 2))
+
+    # Run HMM Prediction Button
     app.hmm_predict_button = ttk.Button(
-        analysis_buttons_frame,
+        hmm_buttons_frame,
         text="Run HMM Prediction",
-        command=app._trigger_hmm_prediction,
-        state=tk.DISABLED,
+        command=app._trigger_hmm_prediction,  # Calls method in main_app
+        state=tk.DISABLED,  # Disabled until model selected and analysis done
     )
     app.hmm_predict_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(2, 0))
+    # --- End HMM Buttons Frame ---
+
     # Save/Load frame
     save_load_frame = ttk.Frame(file_frame)
-    save_load_frame.grid(row=3, column=0, columnspan=2, pady=(5, 2), sticky=tk.EW)
+    save_load_frame.grid(
+        row=4, column=0, columnspan=2, pady=(5, 2), sticky=tk.EW
+    )  # Adjusted row
     # File operation buttons
     app.load_button = ttk.Button(
-        save_load_frame, text="Load Analysis", command=app.file_manager.load_analysis
+        save_load_frame,
+        text="Load Analysis",
+        command=app.file_manager.load_analysis,  # Calls method in file_manager
     )
     app.load_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(0, 2))
     app.save_button = ttk.Button(
         save_load_frame,
         text="Save Analysis",
-        command=app.file_manager.save_analysis,
+        command=app.file_manager.save_analysis,  # Calls method in file_manager
         state=tk.DISABLED,
     )
     app.save_button.pack(side=tk.LEFT, expand=True, fill=tk.X, padx=(2, 0))
@@ -183,14 +207,14 @@ def _build_control_panel(app):
         text="Single Track",
         variable=app.mode,
         value="single",
-        command=app.ui_manager.update_ui_for_mode,
+        command=app.ui_manager.update_ui_for_mode,  # Calls method in ui_manager
     ).pack(anchor=tk.W)
     ttk.Radiobutton(
         mode_frame,
         text="Compare Tracks",
         variable=app.mode,
         value="compare",
-        command=app.ui_manager.update_ui_for_mode,
+        command=app.ui_manager.update_ui_for_mode,  # Calls method in ui_manager
     ).pack(anchor=tk.W)
 
     # Manual BPM Input
@@ -202,7 +226,7 @@ def _build_control_panel(app):
         app.manual_bpm_frame,
         text="Use Manual BPM",
         variable=app.use_manual_bpm,
-        command=app.ui_manager.update_manual_bpm_state,
+        command=app.ui_manager.update_manual_bpm_state,  # Calls method in ui_manager
         state=tk.DISABLED,
     )
     app.manual_bpm_check.grid(row=0, column=0, columnspan=2, sticky=tk.W)
@@ -216,7 +240,7 @@ def _build_control_panel(app):
     app.update_bpm_button = ttk.Button(
         app.manual_bpm_frame,
         text="Update",
-        command=app.update_plots_with_manual_bpm,
+        command=app.update_plots_with_manual_bpm,  # Calls method in main_app
         state=tk.DISABLED,
         width=6,
     )
@@ -240,8 +264,6 @@ def _build_control_panel(app):
                 )
                 cb.grid(row=row, column=col, sticky=tk.W, padx=3, pady=1)
 
-                # Add this debug print to see initial variable state
-                print(f"DEBUG: Checkbox {key} initial state: {var.get()}")
     else:
         print(
             "Warning: app.analysis_labels not found or is empty. Cannot create analysis option checkboxes."
@@ -255,9 +277,12 @@ def _build_plot_notebook(app):
     app.notebook = ttk.Notebook(app.master)
     app.notebook.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, padx=10, pady=(5, 10))
 
-    # Define tab names - ADDED 'Feature Table'
+    # Define tab names
     app.tab_names = [
         "Waveform",
+        "HMM Posteriors",
+        "Feature Importance",
+        "Emission Probabilities",
         "Feature Table",
         "Energy/Balance",
         "Timbre/Texture",
@@ -289,15 +314,11 @@ def _build_plot_notebook(app):
             )
             # Instantiate the editor inside the outer frame
             if SectionEditor:
-                apply_callback_func = getattr(
-                    app, "_apply_section_edits_from_editor", None
-                )
-                if not callable(apply_callback_func):
-                    apply_callback_func = lambda *args: print(
-                        "ERROR: Apply callback missing!"
-                    )
+                # Pass the main app's _apply_section_edits method as the callback
                 app.section_editor = SectionEditor(
-                    editor_outer_frame, apply_callback=apply_callback_func, app_ref=app
+                    editor_outer_frame,
+                    apply_callback=app._apply_section_edits,  # Pass the callback here
+                    app_ref=app,
                 )
                 app.section_editor.pack(anchor=tk.CENTER, pady=0)
             else:
@@ -334,14 +355,7 @@ def _build_plot_notebook(app):
             hsb.pack(side=tk.BOTTOM, fill=tk.X)
             app.feature_table_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-            # Add placeholder label (will be managed by main_app)
-            placeholder = ttk.Label(
-                app.feature_table_tree,
-                text="Analyze Track 1 to view features.",
-                padding=10,
-            )
-            # Note: Packing placeholder directly into Treeview frame might interfere
-            # It's better managed by the _populate_feature_table logic in main_app
+            # Placeholder managed by main_app._populate_feature_table
 
         else:  # Other Plot Tabs
             app.plot_widgets[name] = {}  # Initialize plot widgets dict for plot tabs

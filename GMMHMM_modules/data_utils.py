@@ -1,6 +1,8 @@
 # =============================================================================
 # FILE: data_utils.py
 # Purpose: Handle data loading and cleaning operations for GMMHMM training.
+# MODIFIED: Removed internal/external feature extraction logic. Assumes
+#           features are pre-calculated in loaded joblib files.
 # =============================================================================
 
 import os
@@ -11,48 +13,12 @@ from collections import defaultdict
 # Import constants from config within the same package
 from .config import LABELS_TO_IGNORE
 
-# Attempt to import the feature extraction function from the root level
-# This assumes 'audio_analysis_wrapper.py' is in the project root
-try:
-    # Need to adjust path if running this module directly vs importing it
-    import sys
-    # Add project root to path to find audio_analysis_wrapper
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if project_root not in sys.path:
-        sys.path.append(project_root)
-
-    from audio_analysis_wrapper import extract_section_features
-    print("Successfully imported 'extract_section_features' from 'audio_analysis_wrapper'.")
-except ImportError:
-    print("\n *** WARNING: Could not import 'extract_section_features' from 'audio_analysis_wrapper.py'. ***")
-    print(" *** Using a DUMMY function instead. Ensure the real function provides required features. ***\n")
-
-    # Define a dummy function if the real one isn't available
-    def extract_section_features(track_data):
-        print("WARNING: Using DUMMY extract_section_features function!")
-        labels = track_data.get("semantic_labels", ["Intro", "Drop", "Outro", "Fill", "Drop"])
-        features = []
-        for i, label in enumerate(labels):
-            features.append({
-                "avg_rms": np.random.rand() * 0.5 + (0.1 if label == "Intro" else 0.4),
-                "relative_position": i / len(labels),
-                "low_energy_norm": np.random.rand(),
-                "rms_std_dev_section": np.random.rand() * 0.1,
-                "centroid_std_dev_section": np.random.rand() * 100,
-                "delta_rms": (np.random.rand() - 0.5) * 0.1,
-                "delta_centroid": (np.random.rand() - 0.5) * 100,
-                "rms_trend": (np.random.rand() - 0.5) * 0.05,
-                "crest_factor": 1.0 + np.random.rand() * 2.0,
-                "spectral_centroid_slope": (np.random.rand() - 0.5) * 200,
-                "duration_bars": np.random.randint(1, 8),
-                "original_label": label,
-            })
-        return features, labels
 
 # --- Data Loading ---
 def load_perfect_analyses(folder_path):
     """
     Loads all .joblib analysis files from the specified folder.
+    Expects files to contain 'semantic_labels' and 'section_features' (list of dicts).
 
     Args:
         folder_path (str): Path to the folder containing .joblib analysis files.
@@ -70,31 +36,68 @@ def load_perfect_analyses(folder_path):
         print(f"ERROR: Cannot access analysis folder: {folder_path}")
         return []
 
-    print(f"Found {len(analysis_files)} .joblib files in '{os.path.basename(folder_path)}'.")
+    print(
+        f"Found {len(analysis_files)} .joblib files in '{os.path.basename(folder_path)}'."
+    )
     for filename in analysis_files:
         file_path = os.path.join(folder_path, filename)
         try:
             data = joblib.load(file_path)
             # Validate essential data
+            # Check for semantic_labels and section_features
             if (
                 "semantic_labels" in data
                 and isinstance(data["semantic_labels"], list)
                 and len(data["semantic_labels"]) > 0
+                and "section_features" in data  # Check for pre-calculated features
+                and isinstance(data["section_features"], list)
+                and len(data["section_features"])
+                == len(data["semantic_labels"])  # Ensure lengths match
             ):
                 # Append filename along with data
                 all_data_with_filenames.append((filename, data))
+                print(
+                    f" -> Successfully loaded {filename} with {len(data['semantic_labels'])} sections."
+                )
             else:
-                print(f" -> Skipping {filename}: Missing or empty 'semantic_labels'.")
+                missing_keys = []
+                if (
+                    "semantic_labels" not in data
+                    or not isinstance(data.get("semantic_labels"), list)
+                    or not data.get("semantic_labels")
+                ):
+                    missing_keys.append("'semantic_labels' (missing or empty list)")
+                if "section_features" not in data or not isinstance(
+                    data.get("section_features"), list
+                ):
+                    missing_keys.append("'section_features' (missing or not a list)")
+                elif (
+                    "semantic_labels" in data
+                    and "section_features" in data
+                    and len(data.get("section_features", []))
+                    != len(data.get("semantic_labels", []))
+                ):
+                    missing_keys.append(
+                        "'section_features' and 'semantic_labels' length mismatch"
+                    )
+
+                print(
+                    f" -> Skipping {filename}: Missing or invalid required data: {', '.join(missing_keys)}."
+                )
         except Exception as e:
             print(f" -> Error loading {filename}: {e}")
 
-    print(f"Successfully loaded data from {len(all_data_with_filenames)} files.")
+    print(f"Successfully loaded valid data from {len(all_data_with_filenames)} files.")
     return all_data_with_filenames
 
+
 # --- Data Cleaning Functions ---
-def remove_feature_outliers(section_features_list, section_labels, song_name, z_threshold=3.0):
+def remove_feature_outliers(
+    section_features_list, section_labels, song_name, z_threshold=3.0
+):
     """
     Remove sections with extreme feature values based on Z-score.
+    Operates on the provided list of feature dictionaries.
 
     Args:
         section_features_list (list): List of feature dictionaries for sections.
@@ -108,23 +111,50 @@ def remove_feature_outliers(section_features_list, section_labels, song_name, z_
     """
     print(f"Applying outlier removal with z-threshold = {z_threshold}...")
     original_count = len(section_features_list)
+    if original_count == 0:
+        return [], [], []
 
     # Extract arrays for each feature across all sections in the list
     feature_arrays = defaultdict(list)
+    # Use the first valid section to determine available numeric features
+    available_numeric_features = set()
     for section_dict in section_features_list:
-        for key, value in section_dict.items():
-            if isinstance(value, (int, float, np.number)) and np.isfinite(value):
-                feature_arrays[key].append(float(value)) # Ensure float conversion
+        if isinstance(section_dict, dict):
+            for key, value in section_dict.items():
+                if isinstance(value, (int, float, np.number)) and np.isfinite(value):
+                    available_numeric_features.add(key)
+        # Optimization: break after finding the first valid dict's features
+        # if available_numeric_features:
+        #     break
+
+    if not available_numeric_features:
+        print(
+            "Warning: No numeric features found in the first section to calculate outlier stats."
+        )
+        return section_features_list, section_labels, []
+
+    # Populate feature arrays only for available numeric features
+    for section_dict in section_features_list:
+        if isinstance(section_dict, dict):
+            for key in available_numeric_features:
+                value = section_dict.get(key)  # Use .get() for safety
+                if isinstance(value, (int, float, np.number)) and np.isfinite(value):
+                    feature_arrays[key].append(float(value))  # Ensure float conversion
+                # Optionally handle missing values for a feature within a section if needed
+                # else: feature_arrays[key].append(np.nan) # or skip
 
     # Calculate means and std deviations for each feature
     feature_stats = {}
     for key, values in feature_arrays.items():
-        if len(values) > 1: # Need at least 2 values for std
+        if len(values) > 1:  # Need at least 2 values for std
             np_values = np.array(values)
-            mean = np.mean(np_values)
-            std = np.std(np_values)
-            if std > 1e-9: # Avoid division by zero or near-zero std
-                feature_stats[key] = {'mean': mean, 'std': std}
+            # Filter out potential NaNs added above if handling missing values that way
+            np_values = np_values[np.isfinite(np_values)]
+            if len(np_values) > 1:
+                mean = np.mean(np_values)
+                std = np.std(np_values)
+                if std > 1e-9:  # Avoid division by zero or near-zero std
+                    feature_stats[key] = {"mean": mean, "std": std}
 
     # Check each section for outliers
     cleaned_features = []
@@ -132,48 +162,66 @@ def remove_feature_outliers(section_features_list, section_labels, song_name, z_
     removal_details = []
     removed_count = 0
 
-    for idx, (section_dict, label) in enumerate(zip(section_features_list, section_labels)):
+    for idx, (section_dict, label) in enumerate(
+        zip(section_features_list, section_labels)
+    ):
         is_outlier = False
         outlier_feature = None
         outlier_value = None
 
-        for key, stats in feature_stats.items():
-            if key in section_dict:
-                value = section_dict[key]
-                # Check if value is numeric and finite before calculating z-score
-                if isinstance(value, (int, float, np.number)) and np.isfinite(value):
-                    value_float = float(value)
-                    z_score = abs((value_float - stats['mean']) / stats['std'])
-                    if z_score > z_threshold:
-                        is_outlier = True
-                        outlier_feature = key
-                        outlier_value = value_float
-                        break # Found an outlier feature, no need to check others for this section
-                else:
-                    # Handle non-numeric or non-finite values if necessary, or just skip
-                    pass
-
+        # Check only against features for which we could calculate stats
+        if isinstance(section_dict, dict):  # Ensure it's a dictionary
+            for key, stats in feature_stats.items():
+                if key in section_dict:
+                    value = section_dict[key]
+                    # Check if value is numeric and finite before calculating z-score
+                    if isinstance(value, (int, float, np.number)) and np.isfinite(
+                        value
+                    ):
+                        value_float = float(value)
+                        # Use the calculated std dev which should be > 1e-9
+                        z_score = abs((value_float - stats["mean"]) / stats["std"])
+                        if z_score > z_threshold:
+                            is_outlier = True
+                            outlier_feature = key
+                            outlier_value = value_float
+                            break  # Found an outlier feature, no need to check others
+                    else:
+                        # Handle non-numeric or non-finite values if necessary, or just skip
+                        pass
+        else:
+            # Handle cases where an element isn't a dictionary (shouldn't happen with checks in load)
+            print(
+                f"Warning: Item at index {idx} is not a dictionary. Skipping outlier check for this item."
+            )
 
         if is_outlier:
             removed_count += 1
-            removal_details.append({
-                "song": song_name,
-                "section_index": idx,
-                "label": label,
-                "reason": f"Outlier (z-score > {z_threshold})",
-                "feature": outlier_feature,
-                "value": f"{outlier_value:.4f}" if outlier_value is not None else "N/A"
-            })
+            removal_details.append(
+                {
+                    "song": song_name,
+                    "section_index": idx,
+                    "label": label,
+                    "reason": f"Outlier (z-score > {z_threshold})",
+                    "feature": outlier_feature,
+                    "value": (
+                        f"{outlier_value:.4f}" if outlier_value is not None else "N/A"
+                    ),
+                }
+            )
         else:
+            # Only append if it wasn't identified as an outlier
             cleaned_features.append(section_dict)
             cleaned_labels.append(label)
 
     print(f"Removed {removed_count} of {original_count} sections as outliers.")
     return cleaned_features, cleaned_labels, removal_details
 
+
 def remove_short_sections(section_features_list, section_labels, song_name, min_bars=2):
     """
-    Remove sections shorter than minimum bar count.
+    Remove sections shorter than minimum bar count, assuming 'duration_bars'
+    feature exists in the pre-calculated features.
 
     Args:
         section_features_list (list): List of feature dictionaries.
@@ -184,47 +232,84 @@ def remove_short_sections(section_features_list, section_labels, song_name, min_
     Returns:
         tuple: (cleaned_features, cleaned_labels, removal_details)
     """
-    print(f"Removing sections shorter than {min_bars} bars...")
+    print(
+        f"Removing sections shorter than {min_bars} bars (requires 'duration_bars' feature)..."
+    )
     original_count = len(section_features_list)
 
     cleaned_features = []
     cleaned_labels = []
     removal_details = []
 
+    has_duration_bars_feature = False  # Flag to check if the feature exists
+
     for idx, (section, label) in enumerate(zip(section_features_list, section_labels)):
-        section_bars = section.get('duration_bars', 0) # Default to 0 if key missing
+        # Check if the section is a dict and contains the key on the first iteration
+        if idx == 0 and isinstance(section, dict) and "duration_bars" in section:
+            has_duration_bars_feature = True
+        elif idx == 0:
+            print(
+                "Warning: 'duration_bars' feature not found in the first section. Cannot remove short sections."
+            )
+
+        if not has_duration_bars_feature:
+            # If feature missing, keep all sections and exit the loop for this cleaning type
+            cleaned_features = section_features_list
+            cleaned_labels = section_labels
+            break  # Stop checking further sections
+
+        # Proceed if feature exists
+        section_bars = section.get(
+            "duration_bars", 0
+        )  # Default to 0 if key missing (though checked above)
         # Ensure section_bars is numeric before comparison
         is_short = False
-        if isinstance(section_bars, (int, float, np.number)) and np.isfinite(section_bars):
+        if isinstance(section_bars, (int, float, np.number)) and np.isfinite(
+            section_bars
+        ):
             if float(section_bars) < min_bars:
                 is_short = True
         else:
             # Handle non-numeric duration_bars if needed, e.g., treat as short or log warning
-            print(f"Warning: Non-numeric duration_bars '{section_bars}' for section {idx} in {song_name}. Treating as short.")
-            is_short = True # Or handle differently
+            print(
+                f"Warning: Non-numeric duration_bars '{section_bars}' for section {idx} in {song_name}. Treating as short."
+            )
+            is_short = True  # Or handle differently
 
         if not is_short:
             cleaned_features.append(section)
             cleaned_labels.append(label)
         else:
-            removal_details.append({
-                "song": song_name,
-                "section_index": idx,
-                "label": label,
-                "reason": f"Too short (<{min_bars} bars)",
-                "feature": "duration_bars",
-                "value": f"{float(section_bars):.1f}" if isinstance(section_bars, (int, float, np.number)) and np.isfinite(section_bars) else str(section_bars)
-            })
+            removal_details.append(
+                {
+                    "song": song_name,
+                    "section_index": idx,
+                    "label": label,
+                    "reason": f"Too short (<{min_bars} bars)",
+                    "feature": "duration_bars",
+                    "value": (
+                        f"{float(section_bars):.1f}"
+                        if isinstance(section_bars, (int, float, np.number))
+                        and np.isfinite(section_bars)
+                        else str(section_bars)
+                    ),
+                }
+            )
 
     removed_count = original_count - len(cleaned_features)
-    print(f"Removed {removed_count} of {original_count} sections for being too short.")
+    if (
+        has_duration_bars_feature
+    ):  # Only print count if the check was actually performed
+        print(
+            f"Removed {removed_count} of {original_count} sections for being too short."
+        )
     return cleaned_features, cleaned_labels, removal_details
 
 
 def filter_consistency(section_features_list, section_labels, song_name):
     """
     Remove sections where features (e.g., RMS) don't match typical values for their label.
-    This is a basic example checking RMS; could be expanded.
+    This is a basic example checking RMS; requires 'avg_rms' feature.
 
     Args:
         section_features_list (list): List of feature dictionaries.
@@ -234,18 +319,39 @@ def filter_consistency(section_features_list, section_labels, song_name):
     Returns:
         tuple: (cleaned_features, cleaned_labels, removal_details)
     """
-    print("Applying consistency filtering (basic RMS check)...")
+    print("Applying consistency filtering (basic RMS check, requires 'avg_rms')...")
     original_count = len(section_features_list)
+    if original_count == 0:
+        return [], [], []
+
+    # Check if avg_rms exists in the first section's features
+    has_avg_rms = False
+    if (
+        isinstance(section_features_list[0], dict)
+        and "avg_rms" in section_features_list[0]
+    ):
+        has_avg_rms = True
+    else:
+        print("Warning: 'avg_rms' feature not found. Skipping consistency filtering.")
+        return section_features_list, section_labels, []
 
     label_feature_means = defaultdict(lambda: defaultdict(list))
 
     # Calculate average feature values per label across the input list
     for section, label in zip(section_features_list, section_labels):
         # Only consider labels that are NOT in LABELS_TO_IGNORE for calculating typicals
-        if label not in LABELS_TO_IGNORE:
-            for feature, value in section.items():
-                if isinstance(value, (int, float, np.number)) and np.isfinite(value):
-                        label_feature_means[label][feature].append(float(value))
+        if label not in LABELS_TO_IGNORE and isinstance(
+            section, dict
+        ):  # Check section is dict
+            # Only calculate for avg_rms if doing the basic check
+            feature = "avg_rms"
+            value = section.get(feature)
+            if (
+                value is not None
+                and isinstance(value, (int, float, np.number))
+                and np.isfinite(value)
+            ):
+                label_feature_means[label][feature].append(float(value))
 
     # Convert lists to means
     for label in label_feature_means:
@@ -255,7 +361,7 @@ def filter_consistency(section_features_list, section_labels, song_name):
                 label_feature_means[label][feature] = np.mean(values)
             else:
                 # Handle case where a feature might have no valid values for a label
-                label_feature_means[label][feature] = None # Or some other indicator
+                label_feature_means[label][feature] = None  # Or some other indicator
 
     # Filter sections
     filtered_features = []
@@ -267,28 +373,48 @@ def filter_consistency(section_features_list, section_labels, song_name):
         inconsistent_feature = None
         inconsistent_value = None
 
-        # Check consistency only for labels we care about (not ignored ones)
-        if label not in LABELS_TO_IGNORE and label in label_feature_means:
+        # Check consistency only for labels we care about and if section is a dict
+        if (
+            label not in LABELS_TO_IGNORE
+            and label in label_feature_means
+            and isinstance(section, dict)
+        ):
             # Example: Check if RMS is within 0.5x to 2.0x of typical for this label
-            if 'avg_rms' in section and 'avg_rms' in label_feature_means[label]:
-                typical_rms = label_feature_means[label]['avg_rms']
-                section_rms = section['avg_rms']
+            feature_to_check = "avg_rms"
+            if (
+                feature_to_check in section
+                and feature_to_check in label_feature_means[label]
+            ):
+                typical_val = label_feature_means[label][feature_to_check]
+                section_val = section[feature_to_check]
 
                 # Ensure both values are valid numbers before comparing
-                if typical_rms is not None and isinstance(section_rms, (int, float, np.number)) and np.isfinite(section_rms) and typical_rms > 1e-6: # Avoid division by zero/small numbers
-                    section_rms_float = float(section_rms)
-                    if not (0.5 * typical_rms <= section_rms_float <= 2.0 * typical_rms):
+                if (
+                    typical_val is not None
+                    and isinstance(section_val, (int, float, np.number))
+                    and np.isfinite(section_val)
+                    and typical_val > 1e-6
+                ):  # Avoid division by zero/small numbers
+                    section_val_float = float(section_val)
+                    if not (
+                        0.5 * typical_val <= section_val_float <= 2.0 * typical_val
+                    ):
                         consistent = False
-                        inconsistent_feature = 'avg_rms'
-                        inconsistent_value = section_rms_float
-                elif typical_rms is None:
+                        inconsistent_feature = feature_to_check
+                        inconsistent_value = section_val_float
+                elif typical_val is None:
                     # Cannot perform check if typical value wasn't calculated
                     pass
-                elif not (isinstance(section_rms, (int, float, np.number)) and np.isfinite(section_rms)):
-                        # Handle case where section RMS is invalid
-                        consistent = False # Treat invalid RMS as inconsistent
-                        inconsistent_feature = 'avg_rms'
-                        inconsistent_value = section_rms # Keep original value for reporting
+                elif not (
+                    isinstance(section_val, (int, float, np.number))
+                    and np.isfinite(section_val)
+                ):
+                    # Handle case where section RMS is invalid
+                    consistent = False  # Treat invalid value as inconsistent
+                    inconsistent_feature = feature_to_check
+                    inconsistent_value = (
+                        section_val  # Keep original value for reporting
+                    )
 
             # Add more consistency checks here for other features if desired
 
@@ -297,14 +423,20 @@ def filter_consistency(section_features_list, section_labels, song_name):
             filtered_features.append(section)
             filtered_labels.append(label)
         else:
-            removal_details.append({
-                "song": song_name,
-                "section_index": idx,
-                "label": label,
-                "reason": "Inconsistent feature values (e.g., RMS)",
-                "feature": inconsistent_feature,
-                "value": f"{inconsistent_value:.4f}" if isinstance(inconsistent_value, (float, np.number)) else str(inconsistent_value)
-            })
+            removal_details.append(
+                {
+                    "song": song_name,
+                    "section_index": idx,
+                    "label": label,
+                    "reason": "Inconsistent feature values (e.g., RMS)",
+                    "feature": inconsistent_feature,
+                    "value": (
+                        f"{inconsistent_value:.4f}"
+                        if isinstance(inconsistent_value, (float, np.number))
+                        else str(inconsistent_value)
+                    ),
+                }
+            )
 
     removed_count = original_count - len(filtered_features)
     print(f"Removed {removed_count} of {original_count} sections for inconsistency.")

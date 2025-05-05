@@ -1,18 +1,18 @@
 {
-  "export_timestamp": "2025-05-03T11:52:49.180533",
+  "export_timestamp": "2025-05-05T08:00:47.004336",
   "model_base_name": "gmmhmm_4f_1m_out_sh_con",
   "configuration": {
     "feature_keys": [
       "relative_rms",
-      "delta_rms",
-      "spectral_centroid_slope",
-      "spectral_centroid_avg"
+      "low_energy_norm",
+      "relative_position",
+      "spectral_centroid_std_dev"
     ],
     "feature_weights": {
       "relative_rms": 5.0,
-      "delta_rms": 2.0,
-      "spectral_centroid_slope": 1.0,
-      "spectral_centroid_avg": 1.0
+      "low_energy_norm": 2.0,
+      "relative_position": 2.0,
+      "spectral_centroid_std_dev": 2.0
     },
     "model_parameters": {
       "n_mixtures": 1,
@@ -20,14 +20,15 @@
       "covariance_type": "diag",
       "n_iter": 100,
       "converged": true,
-      "used_transition_prior": true
+      "used_transition_prior": false
     },
     "data_cleaning_settings": {
       "enable_outlier_removal": true,
       "outlier_z_threshold": 3.0,
       "enable_short_section_removal": true,
       "short_section_min_bars": 2.0,
-      "enable_consistency_filtering": true
+      "enable_consistency_filtering": true,
+      "enable_undersampling": false
     }
   },
   "analysis": {
@@ -39,24 +40,24 @@
             "mixture_index": 0,
             "mixture_weight": 1.0,
             "mean_features_unscaled": {
-              "relative_rms": 0.9548405369400642,
-              "delta_rms": 0.1930756091208143,
-              "spectral_centroid_slope": -0.8902853392012045,
-              "spectral_centroid_avg": 3383.860224872092
+              "relative_rms": 0.6655006257477629,
+              "low_energy_norm": 0.21412702692197988,
+              "relative_position": 0.5577848693167256,
+              "spectral_centroid_std_dev": 1066.5060270719605
             },
             "std_dev_features_unscaled": {
-              "relative_rms": 0.04212267814952688,
-              "delta_rms": 0.07250928457784797,
-              "spectral_centroid_slope": 51.16304756906394,
-              "spectral_centroid_avg": 787.6601921227026
+              "relative_rms": 0.1576677131472024,
+              "low_energy_norm": 0.10885905619939905,
+              "relative_position": 0.16546196215285888,
+              "spectral_centroid_std_dev": 344.21698108812797
             }
           }
         ],
         "raw_averages": {
-          "delta_rms": -0.0681830525194129,
-          "relative_rms": 0.4879954596088357,
-          "spectral_centroid_avg": 3403.9787666668412,
-          "spectral_centroid_slope": -4.902084559535356
+          "low_energy_norm": 0.12091920173798616,
+          "relative_position": 0.43795764927097186,
+          "relative_rms": 0.47651107838520634,
+          "spectral_centroid_std_dev": 1192.0852492114063
         }
       },
       {
@@ -66,24 +67,24 @@
             "mixture_index": 0,
             "mixture_weight": 1.0,
             "mean_features_unscaled": {
-              "relative_rms": 0.46621452761444254,
-              "delta_rms": 0.008348941295223164,
-              "spectral_centroid_slope": 20.277810536709524,
-              "spectral_centroid_avg": 3949.615709530804
+              "relative_rms": 0.9714283173043163,
+              "low_energy_norm": 0.44892358964356105,
+              "relative_position": 0.7736737125423307,
+              "spectral_centroid_std_dev": 1633.543938382389
             },
             "std_dev_features_unscaled": {
-              "relative_rms": 0.16531296322187716,
-              "delta_rms": 0.03130474515583,
-              "spectral_centroid_slope": 61.499557866072585,
-              "spectral_centroid_avg": 1276.8549355427003
+              "relative_rms": 0.02725264016878621,
+              "low_energy_norm": 0.057322639127564926,
+              "relative_position": 0.08285188425008713,
+              "spectral_centroid_std_dev": 387.3057076487125
             }
           }
         ],
         "raw_averages": {
-          "delta_rms": -0.16675541395771093,
-          "relative_rms": 0.3513621112395977,
-          "spectral_centroid_avg": 3042.527602994095,
-          "spectral_centroid_slope": -11.90815444298888
+          "low_energy_norm": 0.07877456958835515,
+          "relative_position": 0.42485245062778726,
+          "relative_rms": 0.39673274503304407,
+          "spectral_centroid_std_dev": 1247.8561838351281
         }
       },
       {
@@ -93,24 +94,24 @@
             "mixture_index": 0,
             "mixture_weight": 1.0,
             "mean_features_unscaled": {
-              "relative_rms": 0.9622466232937509,
-              "delta_rms": 0.0004267128860447958,
-              "spectral_centroid_slope": 12.59883629926641,
-              "spectral_centroid_avg": 3582.558737500793
+              "relative_rms": 0.6073862737426523,
+              "low_energy_norm": 0.24277957617318627,
+              "relative_position": 0.05584155965223081,
+              "spectral_centroid_std_dev": 2006.7657798020216
             },
             "std_dev_features_unscaled": {
-              "relative_rms": 0.03493554299077816,
-              "delta_rms": 0.01336743384672973,
-              "spectral_centroid_slope": 40.670490190311284,
-              "spectral_centroid_avg": 648.5916035909133
+              "relative_rms": 0.23906201964704685,
+              "low_energy_norm": 0.13990250118688102,
+              "relative_position": 0.0501797922169878,
+              "spectral_centroid_std_dev": 540.193471822365
             }
           }
         ],
         "raw_averages": {
-          "delta_rms": -0.04296795364921493,
-          "relative_rms": 0.46664359166443004,
-          "spectral_centroid_avg": 3986.6610706051533,
-          "spectral_centroid_slope": 37.20095342581438
+          "low_energy_norm": 0.09146261553241047,
+          "relative_position": 0.45611846603577644,
+          "relative_rms": 0.4777336377846567,
+          "spectral_centroid_std_dev": 1154.1034899774788
         }
       },
       {
@@ -120,24 +121,24 @@
             "mixture_index": 0,
             "mixture_weight": 1.0,
             "mean_features_unscaled": {
-              "relative_rms": 0.5798381666221959,
-              "delta_rms": -0.08660842869683062,
-              "spectral_centroid_slope": 22.59654217414739,
-              "spectral_centroid_avg": 3876.254782276574
+              "relative_rms": 0.7206537090770228,
+              "low_energy_norm": 0.2899867069999088,
+              "relative_position": 0.9221463219855073,
+              "spectral_centroid_std_dev": 2173.0425800777675
             },
             "std_dev_features_unscaled": {
-              "relative_rms": 0.20745183324290584,
-              "delta_rms": 0.12149408365418284,
-              "spectral_centroid_slope": 86.57786106159682,
-              "spectral_centroid_avg": 1115.2221621704323
+              "relative_rms": 0.1924396752109985,
+              "low_energy_norm": 0.11187163821250262,
+              "relative_position": 0.030996339884841014,
+              "spectral_centroid_std_dev": 427.23774991353383
             }
           }
         ],
         "raw_averages": {
-          "delta_rms": 0.05535909484077251,
-          "relative_rms": 0.9432428370463116,
-          "spectral_centroid_avg": 3560.3208787134085,
-          "spectral_centroid_slope": 8.459668300719734
+          "low_energy_norm": 0.43788118306747076,
+          "relative_position": 0.49815796025968534,
+          "relative_rms": 0.9554811889926592,
+          "spectral_centroid_std_dev": 1615.704000913969
         }
       },
       {
@@ -147,24 +148,24 @@
             "mixture_index": 0,
             "mixture_weight": 1.0,
             "mean_features_unscaled": {
-              "relative_rms": 0.7886186871832714,
-              "delta_rms": 0.002092938542906579,
-              "spectral_centroid_slope": -0.39964184828564164,
-              "spectral_centroid_avg": 3257.1379370805207
+              "relative_rms": 0.9650918935851078,
+              "low_energy_norm": 0.4443111633238478,
+              "relative_position": 0.32220978320906835,
+              "spectral_centroid_std_dev": 1602.9216542078873
             },
             "std_dev_features_unscaled": {
-              "relative_rms": 0.08757004649097155,
-              "delta_rms": 0.012936564930963177,
-              "spectral_centroid_slope": 17.6648421916084,
-              "spectral_centroid_avg": 1649.5646115237819
+              "relative_rms": 0.0324840063480382,
+              "low_energy_norm": 0.054740756892472646,
+              "relative_position": 0.1345937036158072,
+              "spectral_centroid_std_dev": 357.60411365984277
             }
           }
         ],
         "raw_averages": {
-          "delta_rms": 0.013950780479826478,
-          "relative_rms": 0.5825675282722864,
-          "spectral_centroid_avg": 4000.8650319163366,
-          "spectral_centroid_slope": 20.03849639105144
+          "low_energy_norm": 0.23466048792004585,
+          "relative_position": 0.04316191567032999,
+          "relative_rms": 0.5800783593654633,
+          "spectral_centroid_std_dev": 1984.1580863670563
         }
       },
       {
@@ -174,24 +175,24 @@
             "mixture_index": 0,
             "mixture_weight": 1.0,
             "mean_features_unscaled": {
-              "relative_rms": 0.34291911347422727,
-              "delta_rms": -0.24152376420456914,
-              "spectral_centroid_slope": -10.778151384363378,
-              "spectral_centroid_avg": 3722.8431350908822
+              "relative_rms": 0.3861198261735591,
+              "low_energy_norm": 0.057469311630834186,
+              "relative_position": 0.4296306480046134,
+              "spectral_centroid_std_dev": 1198.0173820943317
             },
             "std_dev_features_unscaled": {
-              "relative_rms": 0.09022726144660519,
-              "delta_rms": 0.045432905274226734,
-              "spectral_centroid_slope": 68.12895546889011,
-              "spectral_centroid_avg": 1501.3145959054834
+              "relative_rms": 0.09241388321065383,
+              "low_energy_norm": 0.03710271421746782,
+              "relative_position": 0.19243101445122454,
+              "spectral_centroid_std_dev": 388.11049844201585
             }
           }
         ],
         "raw_averages": {
-          "delta_rms": -0.04689388208091259,
-          "relative_rms": 0.7153620727360248,
-          "spectral_centroid_avg": 4048.1275477715944,
-          "spectral_centroid_slope": 10.631238952220526
+          "low_energy_norm": 0.3138872816701207,
+          "relative_position": 0.9163151808107354,
+          "relative_rms": 0.7463225530166375,
+          "spectral_centroid_std_dev": 1999.3444679117442
         }
       }
     ],
@@ -206,63 +207,64 @@
       ],
       "matrix": [
         [
-          1.899847825241621e-49,
-          2.504983121619306e-62,
-          0.9058461296233155,
-          0.09415387037668466,
-          0.0,
-          0.0
+          0.49144344916555144,
+          0.340093046686119,
+          5.402035539635413e-294,
+          1.171984878888441e-49,
+          0.06936042075683274,
+          0.09910308339149684
         ],
         [
-          0.4231145051599615,
-          0.500715304583343,
-          0.009607564114154189,
-          0.0665626261425413,
+          0.052142673660252645,
+          0.7495319052038018,
           0.0,
-          0.0
+          0.17949539315142993,
+          1.2837033602330277e-51,
+          0.01883002798451567
         ],
         [
+          6.322823992451191e-65,
+          4.446794388909498e-287,
+          0.6305698638353819,
           0.0,
-          9.038395530390008e-15,
-          0.594451998603432,
-          0.28712548395418813,
-          0.0,
-          0.11842251744237083
+          0.25216708036717533,
+          0.1172630557974427
         ],
         [
-          0.4679438577267625,
-          0.2758929160935832,
-          0.008979089802540714,
-          0.22337715086508597,
+          2.1924542598878767e-57,
+          1.0278097473363681e-27,
           0.0,
-          0.023806985512027687
+          1.0,
+          1.252522348516965e-174,
+          1.1806297390561867e-25
         ],
         [
-          0.10507224313956855,
-          4.109474138747748e-16,
-          1.1087227252125393e-108,
-          0.28693823826098164,
-          0.6079895185994494,
-          0.0
+          0.08609548061814801,
+          0.003132270099464167,
+          5.899232618683965e-118,
+          5.061560799086965e-125,
+          0.648478161111831,
+          0.2622940881705567
         ],
         [
-          0.0,
-          0.9999999999474564,
-          0.0,
-          5.254368219905441e-11,
-          0.0,
-          1.124024520115616e-302
+          0.09110082085826142,
+          0.13607353281992415,
+          1.508830680125104e-157,
+          1.0703978937701263e-65,
+          0.3118974293522313,
+          0.46092821696958314
         ]
       ]
     }
   },
   "data_cleaning_report": {
     "summary": {
-      "total_processed": 1274,
-      "total_removed": 138,
-      "outliers_removed": 125,
-      "short_sections_removed": 6,
-      "inconsistent_removed": 7
+      "total_processed": 1409,
+      "total_removed": 143,
+      "outliers_removed": 134,
+      "short_sections_removed": 4,
+      "inconsistent_removed": 5,
+      "undersampled_removed": 0
     },
     "removal_details": [
       {
@@ -270,32 +272,56 @@
         "section_index": 6,
         "label": "Build",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "high_end_ratio",
-        "value": "0.1664"
+        "feature": "spectral_bandwidth_avg",
+        "value": "2810.8212"
       },
       {
         "song": "Cloonee Young MA InntRaw - Stephanie HNTR Remix.analysis",
         "section_index": 19,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "3.4182"
+        "feature": "spectral_centroid_slope",
+        "value": "-37612.5021"
+      },
+      {
+        "song": "18167514_Hella Good_Extended Mix.analysis",
+        "section_index": 17,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "-1156.0077"
       },
       {
         "song": "Devotionz - Tattoo Extended Mix.analysis",
         "section_index": 16,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.9048"
+        "feature": "spectral_centroid_slope",
+        "value": "1085.9869"
+      },
+      {
+        "song": "18138836_Dress Code_Extended Mix.analysis",
+        "section_index": 12,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "duration_bars",
+        "value": "1.0000"
+      },
+      {
+        "song": "18138836_Dress Code_Extended Mix.analysis",
+        "section_index": 24,
+        "label": "Outro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "-1478.3410"
       },
       {
         "song": "Max Styler Club De Combat - On Repeat Extended Mix.analysis",
         "section_index": 22,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_bars",
-        "value": "0.0000"
+        "feature": "spectral_centroid_slope",
+        "value": "1929.0245"
       },
       {
         "song": "Max Styler Club De Combat - On Repeat Extended Mix.analysis",
@@ -318,8 +344,8 @@
         "section_index": 18,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "6.6905"
+        "feature": "spectral_centroid_slope",
+        "value": "-2427.2650"
       },
       {
         "song": "Swedish House Mafia Niki  The Dove - Lioness Extended Mix.analysis",
@@ -334,8 +360,64 @@
         "section_index": 21,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.1212"
+        "feature": "spectral_centroid_slope",
+        "value": "-19779.0130"
+      },
+      {
+        "song": "18062324_Shook Part 3_Original Mix.analysis",
+        "section_index": 4,
+        "label": "Breakdown",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "delta_centroid",
+        "value": "2226.9253"
+      },
+      {
+        "song": "18062324_Shook Part 3_Original Mix.analysis",
+        "section_index": 20,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "446.0482"
+      },
+      {
+        "song": "18062324_Shook Part 3_Original Mix.analysis",
+        "section_index": 24,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "duration_bars",
+        "value": "2.0000"
+      },
+      {
+        "song": "18907317_In The Streets_Extended Mix.analysis",
+        "section_index": 4,
+        "label": "Drop",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "delta_rms",
+        "value": "0.3049"
+      },
+      {
+        "song": "18907317_In The Streets_Extended Mix.analysis",
+        "section_index": 10,
+        "label": "Breakdown",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "crest_factor",
+        "value": "4.6916"
+      },
+      {
+        "song": "18907317_In The Streets_Extended Mix.analysis",
+        "section_index": 11,
+        "label": "Build",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "peak_rms",
+        "value": "0.4032"
+      },
+      {
+        "song": "18907317_In The Streets_Extended Mix.analysis",
+        "section_index": 18,
+        "label": "Outro",
+        "reason": "Inconsistent feature values (e.g., RMS)",
+        "feature": "avg_rms",
+        "value": "0.1307"
       },
       {
         "song": "CamelPhat Cristoph Max Milner - Hope Cristoph Remix Original Mix.analysis",
@@ -350,24 +432,56 @@
         "section_index": 19,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.9512"
+        "feature": "duration_bars",
+        "value": "1.0000"
       },
       {
         "song": "CamelPhat Cristoph Max Milner - Hope Cristoph Remix Original Mix.analysis",
         "section_index": 28,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "2.7936"
+        "feature": "spectral_centroid_slope",
+        "value": "1048.7999"
+      },
+      {
+        "song": "9931959_The Situation_Original Mix copy.analysis",
+        "section_index": 26,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_std_dev",
+        "value": "99.9037"
       },
       {
         "song": "Cassian SCRIPT Belladonna ofc - Where I_m From Original Mix.analysis",
         "section_index": 19,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.6696"
+        "feature": "spectral_centroid_slope",
+        "value": "-6876.2356"
+      },
+      {
+        "song": "18908557_Push Ya Body_Original Mix.analysis",
+        "section_index": 1,
+        "label": "Intro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "crest_factor",
+        "value": "4.4316"
+      },
+      {
+        "song": "18908557_Push Ya Body_Original Mix.analysis",
+        "section_index": 10,
+        "label": "Breakdown",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_bandwidth_avg",
+        "value": "1824.0980"
+      },
+      {
+        "song": "18908557_Push Ya Body_Original Mix.analysis",
+        "section_index": 21,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "-401.0326"
       },
       {
         "song": "Odd Mob Pooks Hayley Trinca - Disappear feat Hayley Trinca Romy Black Extended Remix.analysis",
@@ -382,24 +496,24 @@
         "section_index": 22,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.0317"
+        "feature": "spectral_centroid_slope",
+        "value": "-12981.1595"
       },
       {
         "song": "Deeper Purpose MERYLL Dansyn - What The Fuzz Extended Mix.analysis",
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.0286"
+        "feature": "spectral_centroid_slope",
+        "value": "24661.7544"
       },
       {
         "song": "Goom Gum Dancing on Lego - Before My Eyes Club Mix.analysis",
         "section_index": 5,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.8095"
+        "feature": "duration_bars",
+        "value": "2.0000"
       },
       {
         "song": "Goom Gum Dancing on Lego - Before My Eyes Club Mix.analysis",
@@ -414,8 +528,8 @@
         "section_index": 29,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.4295"
+        "feature": "duration_bars",
+        "value": "1.0000"
       },
       {
         "song": "Sofi Tukker - Drinkee Vintage Culture  John Summit Extended Mix.analysis",
@@ -430,8 +544,8 @@
         "section_index": 21,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.8701"
+        "feature": "spectral_centroid_slope",
+        "value": "830.6852"
       },
       {
         "song": "Kyle Watson Sam Divine Tristan Henry - Too Hot Extended Mix.analysis",
@@ -446,23 +560,23 @@
         "section_index": 19,
         "label": "Outro",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "spectral_centroid_avg",
-        "value": "5446.3024"
+        "feature": "position_context",
+        "value": "1.0000"
       },
       {
         "song": "Kyle Watson Sam Divine Tristan Henry - Too Hot Extended Mix.analysis",
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.0054"
+        "feature": "spectral_centroid_std_dev",
+        "value": "0.0000"
       },
       {
         "song": "HAYLA Meduza - Another World Extended Mix.analysis",
         "section_index": 24,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
+        "feature": "spectral_contrast_avg",
         "value": "0.0000"
       },
       {
@@ -470,16 +584,16 @@
         "section_index": 14,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.8095"
+        "feature": "spectral_centroid_slope",
+        "value": "-248.0172"
       },
       {
         "song": "I Remember John Summit Remix_Extended Mix.analysis",
         "section_index": 22,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "4.1259"
+        "feature": "duration_bars",
+        "value": "2.0000"
       },
       {
         "song": "Local Singles - Night Vision Extended Mix.analysis",
@@ -502,8 +616,8 @@
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.1880"
+        "feature": "spectral_centroid_slope",
+        "value": "-9296.0271"
       },
       {
         "song": "Local Singles - Night Vision Extended Mix.analysis",
@@ -512,6 +626,38 @@
         "reason": "Inconsistent feature values (e.g., RMS)",
         "feature": "avg_rms",
         "value": "0.0820"
+      },
+      {
+        "song": "18905242_Soul Flow_Original Mix.analysis",
+        "section_index": 0,
+        "label": "Intro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "position_context",
+        "value": "1.0000"
+      },
+      {
+        "song": "18905242_Soul Flow_Original Mix.analysis",
+        "section_index": 4,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "position_context",
+        "value": "1.0000"
+      },
+      {
+        "song": "18905242_Soul Flow_Original Mix.analysis",
+        "section_index": 16,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "duration_bars",
+        "value": "1.0000"
+      },
+      {
+        "song": "18905242_Soul Flow_Original Mix.analysis",
+        "section_index": 26,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_std_dev",
+        "value": "4028.3514"
       },
       {
         "song": "18295509_Dirty Blonde_Extended Mix.analysis",
@@ -534,7 +680,7 @@
         "section_index": 23,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
+        "feature": "spectral_contrast_avg",
         "value": "0.0000"
       },
       {
@@ -582,8 +728,8 @@
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.4001"
+        "feature": "spectral_centroid_slope",
+        "value": "2728.7009"
       },
       {
         "song": "Pavel Petrov Rafael Cerato - Reflections Original mix.analysis",
@@ -606,16 +752,16 @@
         "section_index": 23,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.8264"
+        "feature": "spectral_centroid_slope",
+        "value": "-1817.3587"
       },
       {
         "song": "FISHER OZ - Stay Extended Mix.analysis",
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.2345"
+        "feature": "spectral_centroid_slope",
+        "value": "31980.2546"
       },
       {
         "song": "FISHER OZ - Stay Extended Mix.analysis",
@@ -634,60 +780,28 @@
         "value": "0.0987"
       },
       {
+        "song": "18957319_Summertime Blues_Extended Mix.analysis",
+        "section_index": 21,
+        "label": "Outro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "duration_bars",
+        "value": "7.0000"
+      },
+      {
         "song": "John Summit HAYLA - Where You Are Extended Mix.analysis",
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.2160"
-      },
-      {
-        "song": "Matroda - Temperature Original Mix.analysis",
-        "section_index": 12,
-        "label": "Breakdown",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "spectral_bandwidth_avg",
-        "value": "1375.4791"
-      },
-      {
-        "song": "Matroda - Temperature Original Mix.analysis",
-        "section_index": 18,
-        "label": "Fade Out",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.9273"
+        "feature": "relative_rms",
+        "value": "0.0196"
       },
       {
         "song": "Mapei Swedish House Mafia - Time Original Mix.analysis",
         "section_index": 3,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.7209"
-      },
-      {
-        "song": "Walker  Royce - Death By Love Extended Mix.analysis",
-        "section_index": 4,
-        "label": "Fill",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "4.5760"
-      },
-      {
-        "song": "Walker  Royce - Death By Love Extended Mix.analysis",
-        "section_index": 7,
-        "label": "Drop",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "rms_trend",
-        "value": "-0.0395"
-      },
-      {
-        "song": "Walker  Royce - Death By Love Extended Mix.analysis",
-        "section_index": 14,
-        "label": "Build",
-        "reason": "Outlier (z-score > 3.0)",
         "feature": "spectral_centroid_slope",
-        "value": "-457.6658"
+        "value": "353.0473"
       },
       {
         "song": "Blausch Meshcut - Brood feat Meshcut Mind Against Remix.analysis",
@@ -710,8 +824,8 @@
         "section_index": 29,
         "label": "Outro",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "12.6491"
+        "feature": "duration_bars",
+        "value": "7.0000"
       },
       {
         "song": "Kaskade deadmau5 HAYLA - Escape John Summit Remix Extended Mix.analysis",
@@ -726,16 +840,16 @@
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.9636"
+        "feature": "duration_bars",
+        "value": "1.0000"
       },
       {
         "song": "Echoes John Summit - Human feat Echoes Extended.analysis",
         "section_index": 23,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.3657"
+        "feature": "spectral_centroid_slope",
+        "value": "-7301.6959"
       },
       {
         "song": "Hosanna Westend - Drum Death Extended Mix.analysis",
@@ -750,24 +864,8 @@
         "section_index": 17,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "2.5472"
-      },
-      {
-        "song": "Linska - Bad Boy  GENESI Extended Remix.analysis",
-        "section_index": 24,
-        "label": "Fade Out",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.7461"
-      },
-      {
-        "song": "Linska - Bad Boy  GENESI Extended Remix.analysis",
-        "section_index": 17,
-        "label": "Fill",
-        "reason": "Too short (<2.0 bars)",
-        "feature": "duration_bars",
-        "value": "1.0"
+        "feature": "spectral_centroid_slope",
+        "value": "-1171.3781"
       },
       {
         "song": "Max Styler - Time To Go Original Mix.analysis",
@@ -782,64 +880,8 @@
         "section_index": 20,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.7183"
-      },
-      {
-        "song": "Max Styler - Time To Go Original Mix.analysis",
-        "section_index": 2,
-        "label": "Drop",
-        "reason": "Inconsistent feature values (e.g., RMS)",
-        "feature": "avg_rms",
-        "value": "0.1722"
-      },
-      {
-        "song": "Blackchild ITA - Nothing Better Than Music Extended Mix.analysis",
-        "section_index": 0,
-        "label": "Intro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "high_end_ratio",
-        "value": "0.5917"
-      },
-      {
-        "song": "Blackchild ITA - Nothing Better Than Music Extended Mix.analysis",
-        "section_index": 1,
-        "label": "Intro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "spectral_centroid_avg",
-        "value": "6323.8509"
-      },
-      {
-        "song": "Blackchild ITA - Nothing Better Than Music Extended Mix.analysis",
-        "section_index": 2,
-        "label": "Drop",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "delta_rms",
-        "value": "0.2022"
-      },
-      {
-        "song": "Blackchild ITA - Nothing Better Than Music Extended Mix.analysis",
-        "section_index": 11,
-        "label": "Build",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "spectral_centroid_std_dev",
-        "value": "716.9715"
-      },
-      {
-        "song": "Blackchild ITA - Nothing Better Than Music Extended Mix.analysis",
-        "section_index": 23,
-        "label": "Build",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "spectral_centroid_std_dev",
-        "value": "693.4539"
-      },
-      {
-        "song": "Blackchild ITA - Nothing Better Than Music Extended Mix.analysis",
-        "section_index": 32,
-        "label": "Fade Out",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "6.7192"
+        "feature": "spectral_centroid_slope",
+        "value": "-907.5867"
       },
       {
         "song": "Maceo Plex AVNU UK - Clickbait This Ain_t Hollywood Extended Mix.analysis",
@@ -854,8 +896,8 @@
         "section_index": 21,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "rms_trend",
-        "value": "-0.0433"
+        "feature": "spectral_centroid_slope",
+        "value": "-730.3622"
       },
       {
         "song": "Maceo Plex AVNU UK - Clickbait This Ain_t Hollywood Extended Mix.analysis",
@@ -894,104 +936,16 @@
         "section_index": 24,
         "label": "Outro",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "12.4541"
-      },
-      {
-        "song": "Rome Fortune Sam WOLFE HNTR Danny Avila ES - YES BTCH feat Rome Fortune Extended Mix.analysis",
-        "section_index": 0,
-        "label": "Intro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "high_end_ratio",
-        "value": "0.0718"
-      },
-      {
-        "song": "Rome Fortune Sam WOLFE HNTR Danny Avila ES - YES BTCH feat Rome Fortune Extended Mix.analysis",
-        "section_index": 7,
-        "label": "Fill",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "rms_trend",
-        "value": "0.2280"
-      },
-      {
-        "song": "Rome Fortune Sam WOLFE HNTR Danny Avila ES - YES BTCH feat Rome Fortune Extended Mix.analysis",
-        "section_index": 10,
-        "label": "Breakdown",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "4.1717"
-      },
-      {
-        "song": "Rome Fortune Sam WOLFE HNTR Danny Avila ES - YES BTCH feat Rome Fortune Extended Mix.analysis",
-        "section_index": 13,
-        "label": "Fill",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "peak_rms",
-        "value": "0.3574"
-      },
-      {
-        "song": "Rome Fortune Sam WOLFE HNTR Danny Avila ES - YES BTCH feat Rome Fortune Extended Mix.analysis",
-        "section_index": 17,
-        "label": "Fade Out",
-        "reason": "Too short (<2.0 bars)",
         "feature": "duration_bars",
-        "value": "1.0"
-      },
-      {
-        "song": "Gabss - She Freaks Original Mix.analysis",
-        "section_index": 0,
-        "label": "Intro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "position_context",
-        "value": "1.0000"
-      },
-      {
-        "song": "Gabss - She Freaks Original Mix.analysis",
-        "section_index": 12,
-        "label": "Breakdown",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "spectral_bandwidth_avg",
-        "value": "1848.3596"
-      },
-      {
-        "song": "Gabss - She Freaks Original Mix.analysis",
-        "section_index": 17,
-        "label": "Fill",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.8045"
-      },
-      {
-        "song": "Gabss - She Freaks Original Mix.analysis",
-        "section_index": 18,
-        "label": "Drop",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "delta_centroid",
-        "value": "-5499.1026"
-      },
-      {
-        "song": "Gabss - She Freaks Original Mix.analysis",
-        "section_index": 25,
-        "label": "Outro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "11.7448"
-      },
-      {
-        "song": "Gabss - She Freaks Original Mix.analysis",
-        "section_index": 26,
-        "label": "Fade Out",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.9177"
+        "value": "6.0000"
       },
       {
         "song": "Cassian Hayden James Elderbrook - On Your Own feat Elderbrook Jordan Brando Remix Original Mix.analysis",
         "section_index": 9,
         "label": "Drop",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "high_end_ratio",
-        "value": "0.0986"
+        "feature": "spectral_centroid_avg",
+        "value": "1439.8696"
       },
       {
         "song": "Cassian Hayden James Elderbrook - On Your Own feat Elderbrook Jordan Brando Remix Original Mix.analysis",
@@ -1006,24 +960,24 @@
         "section_index": 16,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.8045"
+        "feature": "duration_bars",
+        "value": "1.0000"
       },
       {
         "song": "Cassian Hayden James Elderbrook - On Your Own feat Elderbrook Jordan Brando Remix Original Mix.analysis",
         "section_index": 24,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.7534"
+        "feature": "spectral_centroid_slope",
+        "value": "-4678.6531"
       },
       {
         "song": "Baset Anyma ofc - Neverland From Japan Extended Mix.analysis",
         "section_index": 19,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.1978"
+        "feature": "spectral_centroid_slope",
+        "value": "-1165.4682"
       },
       {
         "song": "Baset Anyma ofc - Neverland From Japan Extended Mix.analysis",
@@ -1046,24 +1000,24 @@
         "section_index": 17,
         "label": "Fill",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.8605"
+        "feature": "spectral_centroid_slope",
+        "value": "-361.0649"
       },
       {
         "song": "Gorgon City - You Know It Extended Mix.analysis",
         "section_index": 24,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.9856"
+        "feature": "duration_bars",
+        "value": "2.0000"
       },
       {
         "song": "Chris Lake Amber Mark - In My Head Extended Mix.analysis",
         "section_index": 21,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.4902"
+        "feature": "spectral_centroid_slope",
+        "value": "13225.7605"
       },
       {
         "song": "Chris Lake Amber Mark - In My Head Extended Mix.analysis",
@@ -1078,8 +1032,40 @@
         "section_index": 19,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.4307"
+        "feature": "duration_bars",
+        "value": "2.0000"
+      },
+      {
+        "song": "18033432_Lemon  Lime_Extended Mix.analysis",
+        "section_index": 0,
+        "label": "Intro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "position_context",
+        "value": "1.0000"
+      },
+      {
+        "song": "18033432_Lemon  Lime_Extended Mix.analysis",
+        "section_index": 17,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_contrast_avg",
+        "value": "24.6743"
+      },
+      {
+        "song": "18033432_Lemon  Lime_Extended Mix.analysis",
+        "section_index": 18,
+        "label": "Drop",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "delta_centroid",
+        "value": "-2904.2418"
+      },
+      {
+        "song": "18033432_Lemon  Lime_Extended Mix.analysis",
+        "section_index": 28,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "1248.3521"
       },
       {
         "song": "Sonique Matt Sassari Hugel - It Feels So Good Extended Mix.analysis",
@@ -1102,8 +1088,8 @@
         "section_index": 23,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "10.0237"
+        "feature": "spectral_centroid_slope",
+        "value": "1526.9779"
       },
       {
         "song": "Sonique Matt Sassari Hugel - It Feels So Good Extended Mix.analysis",
@@ -1112,6 +1098,38 @@
         "reason": "Inconsistent feature values (e.g., RMS)",
         "feature": "avg_rms",
         "value": "0.1080"
+      },
+      {
+        "song": "Mau P - MERTHER Extended Mix.analysis",
+        "section_index": 6,
+        "label": "Breakdown",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_bandwidth_avg",
+        "value": "2705.5630"
+      },
+      {
+        "song": "Mau P - MERTHER Extended Mix.analysis",
+        "section_index": 10,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "duration_bars",
+        "value": "2.0000"
+      },
+      {
+        "song": "Mau P - MERTHER Extended Mix.analysis",
+        "section_index": 14,
+        "label": "Breakdown",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "peak_rms",
+        "value": "0.4277"
+      },
+      {
+        "song": "Mau P - MERTHER Extended Mix.analysis",
+        "section_index": 26,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "524.1902"
       },
       {
         "song": "RUFUS DU SOL Adam Ten Mita Gami - Lately Adam Ten  Mita Gami Extended Remix.analysis",
@@ -1128,22 +1146,6 @@
         "reason": "Outlier (z-score > 3.0)",
         "feature": "rms_trend",
         "value": "-0.0172"
-      },
-      {
-        "song": "RUFUS DU SOL Adam Ten Mita Gami - Lately Adam Ten  Mita Gami Extended Remix.analysis",
-        "section_index": 8,
-        "label": "Drop",
-        "reason": "Inconsistent feature values (e.g., RMS)",
-        "feature": "avg_rms",
-        "value": "0.1237"
-      },
-      {
-        "song": "RUFUS DU SOL Adam Ten Mita Gami - Lately Adam Ten  Mita Gami Extended Remix.analysis",
-        "section_index": 17,
-        "label": "Drop",
-        "reason": "Inconsistent feature values (e.g., RMS)",
-        "feature": "avg_rms",
-        "value": "0.1232"
       },
       {
         "song": "Innellea Meduza Nu-La GENESI ITA - Edge Of The World feat Nu-La Extended Mix.analysis",
@@ -1166,40 +1168,112 @@
         "section_index": 0,
         "label": "Intro",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "8.0000"
+        "feature": "spectral_centroid_slope",
+        "value": "523.8202"
       },
       {
         "song": "Mind Against - Love Seeking Original Mix.analysis",
         "section_index": 1,
         "label": "Intro",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "8.0000"
+        "feature": "duration_bars",
+        "value": "4.0000"
       },
       {
-        "song": "18257468_Show Me Love_Extended Mix.analysis",
-        "section_index": 15,
-        "label": "Outro",
+        "song": "18032885_Better_Original Mix.analysis",
+        "section_index": 9,
+        "label": "Drop",
         "reason": "Outlier (z-score > 3.0)",
         "feature": "rms_trend",
-        "value": "-0.0098"
+        "value": "-0.0105"
       },
       {
-        "song": "18257468_Show Me Love_Extended Mix.analysis",
-        "section_index": 17,
+        "song": "18032885_Better_Original Mix.analysis",
+        "section_index": 26,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.9767"
+        "feature": "spectral_centroid_std_dev",
+        "value": "5.1208"
+      },
+      {
+        "song": "18237419_Ecstasy_Extended.analysis",
+        "section_index": 6,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_contrast_avg",
+        "value": "25.5459"
+      },
+      {
+        "song": "18237419_Ecstasy_Extended.analysis",
+        "section_index": 7,
+        "label": "Drop",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "delta_rms",
+        "value": "0.3424"
+      },
+      {
+        "song": "18237419_Ecstasy_Extended.analysis",
+        "section_index": 17,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "rms_trend",
+        "value": "-0.0380"
+      },
+      {
+        "song": "18914462_Miami Flow_Original Mix.analysis",
+        "section_index": 0,
+        "label": "Intro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "position_context",
+        "value": "1.0000"
+      },
+      {
+        "song": "18914462_Miami Flow_Original Mix.analysis",
+        "section_index": 7,
+        "label": "Drop",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "delta_centroid",
+        "value": "-2289.8615"
+      },
+      {
+        "song": "18914462_Miami Flow_Original Mix.analysis",
+        "section_index": 11,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "-443.9084"
+      },
+      {
+        "song": "18914462_Miami Flow_Original Mix.analysis",
+        "section_index": 23,
+        "label": "Outro",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "position_context",
+        "value": "1.0000"
       },
       {
         "song": "You_ve Done Enough_John Summit Extended Mix.analysis",
         "section_index": 23,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "3.6862"
+        "feature": "spectral_centroid_slope",
+        "value": "-483.5379"
+      },
+      {
+        "song": "Max Styler Westend - Rhythm Machine Original Mix.analysis",
+        "section_index": 14,
+        "label": "Fill",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "crest_factor",
+        "value": "5.9034"
+      },
+      {
+        "song": "Max Styler Westend - Rhythm Machine Original Mix.analysis",
+        "section_index": 23,
+        "label": "Fade Out",
+        "reason": "Outlier (z-score > 3.0)",
+        "feature": "spectral_centroid_slope",
+        "value": "4011.5092"
       },
       {
         "song": "Ali Love - Emperor feat Kali Maceo Plex Last Disco Remix.analysis",
@@ -1222,32 +1296,32 @@
         "section_index": 29,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.7200"
+        "feature": "spectral_centroid_slope",
+        "value": "471.6553"
       },
       {
         "song": "ACRAZE Don Toliver - Bandit Extended Club Mix.analysis",
-        "section_index": 16,
-        "label": "Outro",
+        "section_index": 17,
+        "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "12.9470"
+        "feature": "spectral_contrast_avg",
+        "value": "8.4059"
       },
       {
         "song": "Mind Against CAY DE - CANT U HEAR ME Extended Mix.analysis",
         "section_index": 8,
         "label": "Drop",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "7.8049"
+        "feature": "duration_bars",
+        "value": "4.0000"
       },
       {
         "song": "Mind Against CAY DE - CANT U HEAR ME Extended Mix.analysis",
         "section_index": 9,
         "label": "Build",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "7.8049"
+        "feature": "duration_bars",
+        "value": "4.0000"
       },
       {
         "song": "Mind Against CAY DE - CANT U HEAR ME Extended Mix.analysis",
@@ -1286,16 +1360,8 @@
         "section_index": 22,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.0348"
-      },
-      {
-        "song": "Gorgon City Caroline Byrne - Run It Back feat Caroline Byrne feat Caroline Byrne.analysis",
-        "section_index": 20,
-        "label": "Fade Out",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "1.9572"
+        "feature": "spectral_centroid_std_dev",
+        "value": "48.3035"
       },
       {
         "song": "18463700_2ezy_Original Mix.analysis",
@@ -1310,8 +1376,8 @@
         "section_index": 22,
         "label": "Fade Out",
         "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "0.2326"
+        "feature": "spectral_centroid_slope",
+        "value": "3141.3432"
       },
       {
         "song": "Chris Lake Ragie Ban - Toxic Extended Mix.analysis",
@@ -1344,30 +1410,6 @@
         "reason": "Outlier (z-score > 3.0)",
         "feature": "duration_sec",
         "value": "14.8311"
-      },
-      {
-        "song": "PARISI - Feel It For You Extended.analysis",
-        "section_index": 0,
-        "label": "Intro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "low_end_ratio",
-        "value": "0.4944"
-      },
-      {
-        "song": "PARISI - Feel It For You Extended.analysis",
-        "section_index": 3,
-        "label": "Breakdown",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "crest_factor",
-        "value": "6.2762"
-      },
-      {
-        "song": "PARISI - Feel It For You Extended.analysis",
-        "section_index": 22,
-        "label": "Outro",
-        "reason": "Outlier (z-score > 3.0)",
-        "feature": "duration_sec",
-        "value": "12.3822"
       }
     ]
   }

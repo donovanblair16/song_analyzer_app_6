@@ -2,6 +2,7 @@
 # FILE: gui.py
 # Purpose: Define Tkinter GUI dialogs for feature selection and model analysis.
 # MODIFIED: Set default checkbox state based on a predefined list.
+# ADDED: Undersampling option to FeatureSelectionDialog.
 # =============================================================================
 
 import tkinter as tk
@@ -24,17 +25,18 @@ from .config import (
     DEFAULT_ENABLE_CONSISTENCY_FILTERING,
     DEFAULT_USE_TRANSITION_PRIOR,
     TRANSITION_MATRIX_PATH,
+    # <<< ADDED: Default for undersampling >>>
+    DEFAULT_ENABLE_UNDERSAMPLING,
 )
 
 # <<< Define the features that should be ON by default >>>
 DEFAULT_FEATURES_ON = [
     "relative_rms",
-    "position_context",
     "low_energy_norm",
-    "centroid_std_dev_section",
     "delta_rms",
-    "crest_factor",
-    "spectral_centroid_slope",
+    "label_proportion",
+    "relative_position",
+    "position_context",
 ]
 
 
@@ -49,7 +51,7 @@ class FeatureSelectionDialog(tk.Toplevel):
         print("[DEBUG GUI] FeatureSelectionDialog __init__ started.")  # DEBUG PRINT
         super().__init__(parent)
         self.title("GMMHMM Configuration")
-        self.geometry("700x800")  # Adjusted size slightly for new option
+        self.geometry("700x850")  # Increased height slightly for new option
         self.resizable(True, True)
         self.parent = parent
 
@@ -62,7 +64,7 @@ class FeatureSelectionDialog(tk.Toplevel):
         self.feature_vars = {}  # Checkbuttons {feature_key: BooleanVar}
         self.weight_vars = {}  # Entry variables {feature_key: StringVar}
 
-        # Data cleaning
+        # Data cleaning & Sampling
         self.enable_outlier_removal = BooleanVar(value=DEFAULT_ENABLE_OUTLIER_REMOVAL)
         self.outlier_z_threshold = StringVar(value=str(DEFAULT_OUTLIER_Z_THRESHOLD))
         self.enable_short_section_removal = BooleanVar(
@@ -74,6 +76,8 @@ class FeatureSelectionDialog(tk.Toplevel):
         self.enable_consistency_filtering = BooleanVar(
             value=DEFAULT_ENABLE_CONSISTENCY_FILTERING
         )
+        # <<< ADDED: Undersampling Variable >>>
+        self.enable_undersampling = BooleanVar(value=DEFAULT_ENABLE_UNDERSAMPLING)
 
         # Model parameters
         self.mixture_var = StringVar(value=str(DEFAULT_HMM_N_MIXTURES))
@@ -129,7 +133,7 @@ class FeatureSelectionDialog(tk.Toplevel):
         ).grid(row=0, column=0, columnspan=4, sticky="w", pady=(0, 15))
 
         description = (
-            "Select features, set weights, configure data cleaning, "
+            "Select features, set weights, configure data cleaning/sampling, " # Added sampling
             "and adjust HMM parameters."
         )
         ttk.Label(main_frame, text=description, wraplength=650).grid(
@@ -240,7 +244,7 @@ class FeatureSelectionDialog(tk.Toplevel):
             "[DEBUG GUI] create_widgets: Setting up data cleaning frame..."
         )  # DEBUG PRINT
         data_cleaning_frame = ttk.LabelFrame(
-            main_frame, text="Data Cleaning Options", padding=10
+            main_frame, text="Data Cleaning & Sampling", padding=10 # Renamed frame
         )
         data_cleaning_frame.grid(
             row=4, column=0, columnspan=4, sticky="ew", pady=(10, 15)
@@ -287,6 +291,25 @@ class FeatureSelectionDialog(tk.Toplevel):
             data_cleaning_frame,
             text="(Removes sections with inconsistent features for their label, e.g., RMS)",
         ).grid(row=2, column=3, sticky="w", padx=5, pady=5)
+
+        # <<< ADDED: Undersampling Checkbox >>>
+        ttk.Checkbutton(
+            data_cleaning_frame,
+            text="Enable Undersampling (Majority Class)",
+            variable=self.enable_undersampling,
+        ).grid(row=3, column=0, sticky="w", padx=5, pady=5, columnspan=2)
+        ttk.Label(
+            data_cleaning_frame,
+            text="(Reduces sections of most frequent label to match 2nd most frequent)",
+            foreground="darkblue" # Add color to highlight note
+        ).grid(row=3, column=3, sticky="w", padx=5, pady=5)
+        ttk.Label(
+            data_cleaning_frame,
+            text="WARNING: Undersampling breaks sequence structure for HMM training!",
+            foreground="red" # Add warning color
+        ).grid(row=4, column=0, columnspan=4, sticky="w", padx=5, pady=(0,5))
+        # <<< END ADDED >>>
+
 
         # --- Model parameters frame ---
         print(
@@ -388,9 +411,10 @@ class FeatureSelectionDialog(tk.Toplevel):
         # Also reset weights to the current defaults from config
         for feature, weight_var in self.weight_vars.items():
             weight_var.set(str(DEFAULT_FEATURE_WEIGHTS.get(feature, 1.0)))
+        # <<< ADDED: Set undersampling default >>>
+        self.enable_undersampling.set(DEFAULT_ENABLE_UNDERSAMPLING)
 
     # --- Validation and Confirmation ---
-    # (Validation code remains the same)
     def validate_inputs(self):
         """Validate inputs before closing dialog. Returns config dict or None."""
         print("[DEBUG GUI] Validating inputs...")  # DEBUG PRINT
@@ -479,12 +503,13 @@ class FeatureSelectionDialog(tk.Toplevel):
         # Get transition prior setting
         config["use_transition_prior"] = self.use_transition_prior_var.get()
 
-        # Validate and store data cleaning parameters
-        config["cleaning_settings"] = {}
-        config["cleaning_settings"][
+        # Validate and store data cleaning/sampling parameters
+        # <<< MODIFIED: Renamed dict key slightly >>>
+        config["data_processing_settings"] = {}
+        config["data_processing_settings"][
             "enable_outlier_removal"
         ] = self.enable_outlier_removal.get()
-        if config["cleaning_settings"]["enable_outlier_removal"]:
+        if config["data_processing_settings"]["enable_outlier_removal"]:
             try:
                 z_threshold = float(self.outlier_z_threshold.get())
                 if z_threshold <= 0:
@@ -497,7 +522,7 @@ class FeatureSelectionDialog(tk.Toplevel):
                         "[DEBUG GUI] Validation failed: Non-positive Z-score."
                     )  # DEBUG PRINT
                     return None
-                config["cleaning_settings"]["outlier_z_threshold"] = z_threshold
+                config["data_processing_settings"]["outlier_z_threshold"] = z_threshold
             except ValueError:
                 messagebox.showerror(
                     "Input Error",
@@ -509,14 +534,14 @@ class FeatureSelectionDialog(tk.Toplevel):
                 )  # DEBUG PRINT
                 return None
         else:
-            config["cleaning_settings"][
+            config["data_processing_settings"][
                 "outlier_z_threshold"
             ] = None  # Store None if disabled
 
-        config["cleaning_settings"][
+        config["data_processing_settings"][
             "enable_short_section_removal"
         ] = self.enable_short_section_removal.get()
-        if config["cleaning_settings"]["enable_short_section_removal"]:
+        if config["data_processing_settings"]["enable_short_section_removal"]:
             try:
                 min_bars = float(self.short_section_min_bars.get())  # Allow float
                 if min_bars <= 0:
@@ -527,7 +552,7 @@ class FeatureSelectionDialog(tk.Toplevel):
                         "[DEBUG GUI] Validation failed: Non-positive min_bars."
                     )  # DEBUG PRINT
                     return None
-                config["cleaning_settings"]["short_section_min_bars"] = min_bars
+                config["data_processing_settings"]["short_section_min_bars"] = min_bars
             except ValueError:
                 messagebox.showerror(
                     "Input Error", "Minimum bars must be a valid number.", parent=self
@@ -537,13 +562,18 @@ class FeatureSelectionDialog(tk.Toplevel):
                 )  # DEBUG PRINT
                 return None
         else:
-            config["cleaning_settings"][
+            config["data_processing_settings"][
                 "short_section_min_bars"
             ] = None  # Store None if disabled
 
-        config["cleaning_settings"][
+        config["data_processing_settings"][
             "enable_consistency_filtering"
         ] = self.enable_consistency_filtering.get()
+
+        # <<< ADDED: Get undersampling setting >>>
+        config["data_processing_settings"][
+            "enable_undersampling"
+        ] = self.enable_undersampling.get()
 
         print("[DEBUG GUI] Validation successful.")  # DEBUG PRINT
         return config
@@ -1023,7 +1053,7 @@ def show_feature_selection_dialog():
     Returns:
         dict or None: A dictionary containing the selected configuration
                       (feature_keys, feature_weights, hmm_n_mixtures,
-                      hmm_min_covar, cleaning_settings, use_transition_prior)
+                      hmm_min_covar, data_processing_settings, use_transition_prior) # Updated dict key
                       if the user confirms, otherwise None if cancelled.
     """
     dialog = None  # Initialize dialog variable
