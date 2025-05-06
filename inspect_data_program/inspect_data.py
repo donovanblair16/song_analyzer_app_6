@@ -1,9 +1,9 @@
 # =============================================================================
-# FILE: inspect_data.py (Formerly inspect_perfect_features_gui.py)
+# FILE: inspect_data.py
 # PURPOSE: Provides a GUI to load and inspect section features from
 #          analysis files stored in the 'completed_analyses/Perfect' folder.
-#          Includes file list, feature display, caching, filtering, and search
-#          (feature value search and label transition search).
+#          Includes file list, feature display, caching, filtering, search,
+#          multi-select, CSV export, and column sorting.
 # USAGE: Run this script from the main project directory
 #        (e.g., song_analyzer_app_6) or its subdirectory.
 # MODIFIED:
@@ -18,20 +18,26 @@
 # - ADDED: Dedicated ScrolledText for transition search results.
 # - ADDED: Label filter for feature search.
 # - ADDED: GUI elements for transition search.
+# - ADDED: Multi-select for file listbox.
+# - ADDED: "Display Selected Files" button.
+# - ADDED: "Export Displayed Data" button and functionality.
+# - ADDED: "Song Name" and "Song ID" columns to main feature view.
+# - ADDED: Right-click column header sorting for main feature view.
 # - (Previous fixes and features retained)
 # =============================================================================
 
 import os
 import joblib
 import numpy as np
-import pandas as pd
+import pandas as pd # Keep for potential future use, but using csv for export now
 import tkinter as tk
-from tkinter import ttk, messagebox, scrolledtext, font as tkFont
+from tkinter import ttk, messagebox, scrolledtext, font as tkFont, filedialog # Added filedialog
 import traceback
 import time
 import threading
 from collections import defaultdict
 import math # For isnan/isinf
+import csv # Added for CSV export
 
 # --- Configuration ---
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -49,8 +55,9 @@ CACHE_FILE_PATH = os.path.join(SCRIPT_DIR, CACHE_FILENAME)
 ESSENTIAL_KEYS_FOR_CACHE = ["section_features", "semantic_labels"]
 
 # --- Default Column Visibility and Order ---
+# <<< MODIFIED: Added new default columns >>>
 DEFAULT_VISIBLE_COLUMNS = [
-    "#", "Label", "Start (s)", "End (s)", "Dur (s)",
+    "Song Name", "Song ID", "#", "Label", "Start (s)", "End (s)", "Dur (s)",
     "relative_rms", "delta_rms", "label_proportion", "low_energy_norm",
     "position_context", "relative_position",
 ]
@@ -67,7 +74,11 @@ QUERY_TYPES = [
 
 # --- DEBUG: Print calculated paths ---
 print(f"--- DEBUG PATHS ---")
-# (Paths printed as before)
+print(f"Script Dir: {SCRIPT_DIR}")
+print(f"Project Base: {PROJECT_BASE_FOLDER}")
+print(f"Analysis Base: {ANALYSIS_BASE_FOLDER}")
+print(f"Perfect Folder: {PERFECT_FOLDER_PATH}")
+print(f"Cache Path: {CACHE_FILE_PATH}")
 print(f"--- END DEBUG PATHS ---")
 
 
@@ -80,13 +91,13 @@ class FeatureInspectorApp:
     def __init__(self, master):
         """Initialize the application."""
         self.master = master
-        master.title("Perfect Analysis Feature Inspector (Lean Cached + Search)")
-        master.geometry("1500x800")
+        master.title("Perfect Analysis Feature Inspector (Lean Cached + Search + Export + Sort)")
+        master.geometry("1500x800") # Keep size, might need adjustment
 
         # Data Caching & State
         self.data_cache = {}
         self.cache_timestamps = {}
-        self.full_file_paths = []
+        self.full_file_paths = [] # List of full paths currently loaded/filtered
         self.file_has_nan = {}
         self.unique_feature_sets = []
         self.loading_in_progress = False
@@ -94,14 +105,20 @@ class FeatureInspectorApp:
         self.file_to_feature_sets = {}
         self.feature_stats = {}
         self.unique_labels = []
+        self.song_name_to_id = {} # For Song ID column
+        self.sorted_file_list_for_id = [] # To maintain consistent ID mapping
 
         # Column visibility and order tracking
         self.all_columns = []
         self.column_visibility = {}
-        self.column_order = DEFAULT_VISIBLE_COLUMNS[:]
-        self.current_data = []
+        self.column_order = DEFAULT_VISIBLE_COLUMNS[:] # Use copy
+        self.current_data = [] # Holds data currently displayed in feature_tree (tuples)
         self.dragging = False
         self.drag_column = None
+
+        # Sorting state
+        self.sort_column = None
+        self.sort_reverse = False
 
         # --- Tkinter Variables ---
         self.show_nan_only_var = tk.BooleanVar(value=False)
@@ -119,7 +136,7 @@ class FeatureInspectorApp:
 
         # --- Create Custom Font ---
         default_font = tkFont.nametofont("TkDefaultFont")
-        listbox_font_size = default_font.actual()["size"] + 4
+        listbox_font_size = default_font.actual()["size"] # Keep listbox standard size now
         self.listbox_font = tkFont.Font(size=listbox_font_size)
         self.small_font = tkFont.Font(size=default_font.actual()["size"] - 1)
 
@@ -128,7 +145,7 @@ class FeatureInspectorApp:
         self.main_paned_window.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # --- Left Pane: File List, Filters, Search Controls ---
-        self.left_pane_outer = ttk.Frame(self.main_paned_window, width=300)
+        self.left_pane_outer = ttk.Frame(self.main_paned_window, width=350) # Slightly wider
         self.main_paned_window.add(self.left_pane_outer, weight=1)
 
         # File List Area
@@ -136,9 +153,27 @@ class FeatureInspectorApp:
         file_list_frame.pack(pady=(0, 5), padx=5, fill=tk.BOTH, expand=True)
         list_frame = ttk.Frame(file_list_frame); list_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.file_list_scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL)
-        self.file_listbox = tk.Listbox(list_frame, yscrollcommand=self.file_list_scrollbar.set, exportselection=False, font=self.listbox_font)
+        # <<< MODIFIED: Enable extended selection >>>
+        self.file_listbox = tk.Listbox(
+            list_frame,
+            yscrollcommand=self.file_list_scrollbar.set,
+            exportselection=False,
+            font=self.listbox_font,
+            selectmode=tk.EXTENDED # Allow multi-select
+        )
         self.file_list_scrollbar.config(command=self.file_listbox.yview); self.file_list_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True); self.file_listbox.bind("<<ListboxSelect>>", self.on_file_select)
+        self.file_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True);
+        # <<< MODIFIED: Bind selection change to a different handler >>>
+        self.file_listbox.bind("<<ListboxSelect>>", self.on_file_selection_change)
+
+        # <<< ADDED: Buttons for file list actions >>>
+        file_button_frame = ttk.Frame(file_list_frame)
+        file_button_frame.pack(fill=tk.X, padx=5, pady=(0,5))
+        self.display_selected_button = ttk.Button(file_button_frame, text="Display Selected Files", command=self.display_selected_files)
+        self.display_selected_button.pack(side=tk.LEFT, padx=(0,5), expand=True, fill=tk.X)
+        self.display_all_button = ttk.Button(file_button_frame, text="Display All Files", command=self.display_all_files)
+        self.display_all_button.pack(side=tk.LEFT, padx=(0,0), expand=True, fill=tk.X)
+
 
         # Filter & Control Area
         control_frame = ttk.Frame(self.left_pane_outer)
@@ -232,13 +267,22 @@ class FeatureInspectorApp:
         # --- Right Pane: Feature Display Treeview ---
         self.right_frame = ttk.Frame(self.main_paned_window, width=550)
         self.main_paned_window.add(self.right_frame, weight=3)
-        ttk.Label(self.right_frame, text="Section Features:").pack(pady=(0, 5), anchor=tk.W)
+        # <<< ADDED: Export Button >>>
+        export_button_frame = ttk.Frame(self.right_frame)
+        export_button_frame.pack(fill=tk.X, pady=(0,5))
+        ttk.Label(export_button_frame, text="Section Features:").pack(side=tk.LEFT, anchor=tk.W)
+        self.export_button = ttk.Button(export_button_frame, text="Export Displayed Data", command=self._export_to_csv)
+        self.export_button.pack(side=tk.RIGHT, padx=(0,5))
+        # <<< END ADDED >>>
         tree_frame = ttk.Frame(self.right_frame); tree_frame.pack(fill=tk.BOTH, expand=True)
         vsb = ttk.Scrollbar(tree_frame, orient="vertical"); hsb = ttk.Scrollbar(tree_frame, orient="horizontal")
         self.feature_tree = ttk.Treeview(tree_frame, columns=(), show="headings", yscrollcommand=vsb.set, xscrollcommand=hsb.set)
         vsb.config(command=self.feature_tree.yview); hsb.config(command=self.feature_tree.xview)
         vsb.pack(side=tk.RIGHT, fill=tk.Y); hsb.pack(side=tk.BOTTOM, fill=tk.X); self.feature_tree.pack(fill=tk.BOTH, expand=True)
         self.feature_tree.bind("<ButtonPress-1>", self._start_column_drag); self.feature_tree.bind("<B1-Motion>", self._column_drag_motion); self.feature_tree.bind("<ButtonRelease-1>", self._end_column_drag)
+        # <<< ADDED: Binding for column sorting >>>
+        self.feature_tree.bind("<Button-3>", self._on_column_header_right_click) # Mac: Ctrl-Click or Right-Click
+
 
         # --- Far Right Pane: Search Results ---
         self.search_results_outer_frame = ttk.Frame(self.main_paned_window, width=400) # Added new pane
@@ -249,17 +293,14 @@ class FeatureInspectorApp:
         feature_results_frame.pack(fill=tk.BOTH, expand=True, pady=(0,5)) # Expand vertically
         results_tree_frame = ttk.Frame(feature_results_frame); results_tree_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         results_vsb = ttk.Scrollbar(results_tree_frame, orient="vertical"); results_hsb = ttk.Scrollbar(results_tree_frame, orient="horizontal")
-        # <<< MODIFIED: Added "Section #" column definition >>>
         search_cols = ("File", "Section #", "Section Label", "Feature", "Value")
         self.search_results_tree = ttk.Treeview(results_tree_frame, columns=search_cols, show="headings", yscrollcommand=results_vsb.set, xscrollcommand=results_hsb.set)
         results_vsb.config(command=self.search_results_tree.yview); results_hsb.config(command=self.search_results_tree.xview)
-        # <<< MODIFIED: Define headings and columns for new structure >>>
         self.search_results_tree.heading("File", text="File"); self.search_results_tree.column("File", width=150, stretch=tk.YES)
         self.search_results_tree.heading("Section #", text="Sec #"); self.search_results_tree.column("Section #", width=50, stretch=tk.NO, anchor=tk.CENTER)
         self.search_results_tree.heading("Section Label", text="Label"); self.search_results_tree.column("Section Label", width=80, stretch=tk.NO)
         self.search_results_tree.heading("Feature", text="Feature"); self.search_results_tree.column("Feature", width=100, stretch=tk.YES)
         self.search_results_tree.heading("Value", text="Value"); self.search_results_tree.column("Value", width=80, stretch=tk.NO, anchor=tk.E)
-        # <<< END MODIFICATION >>>
         results_vsb.pack(side=tk.RIGHT, fill=tk.Y); results_hsb.pack(side=tk.BOTTOM, fill=tk.X); self.search_results_tree.pack(fill=tk.BOTH, expand=True)
 
         # Transition Search Results Text Area (NEW)
@@ -287,7 +328,8 @@ class FeatureInspectorApp:
         # print(f"DEBUG: Setting up checkboxes for columns: {columns}") # Less verbose
         # print(f"DEBUG: Default visible columns: {DEFAULT_VISIBLE_COLUMNS}") # Less verbose
         for i, col in enumerate(columns):
-            is_visible_by_default = col in DEFAULT_VISIBLE_COLUMNS
+            # <<< MODIFIED: Use self.column_order for default visibility >>>
+            is_visible_by_default = col in self.column_order
             var = tk.BooleanVar(value=is_visible_by_default)
             checkbox = ttk.Checkbutton(self.column_checkbox_frame, text=col, variable=var, command=lambda c=col: self._toggle_column_visibility(c))
             checkbox.pack(anchor=tk.W, pady=1, padx=5, fill=tk.X)
@@ -304,50 +346,100 @@ class FeatureInspectorApp:
         self._refresh_treeview(); self._update_status("All columns selected")
 
     def _deselect_all_columns(self):
-        for col, var in self.column_visibility.items(): var.set(col in DEFAULT_VISIBLE_COLUMNS)
+        # <<< MODIFIED: Keep essential columns visible >>>
+        essential_cols = ["Song Name", "Song ID", "#", "Label"]
+        for col, var in self.column_visibility.items():
+            var.set(col in essential_cols or col in DEFAULT_VISIBLE_COLUMNS)
         self._refresh_treeview(); self._update_status("Deselected non-default columns")
 
     def _reset_column_order(self):
         self.column_order = DEFAULT_VISIBLE_COLUMNS[:]
         for col in self.all_columns:
             if col not in self.column_order: self.column_order.append(col)
-        self._refresh_treeview(); self._update_status("Column order reset to default")
+        # Reset visibility to default as well
+        for col, var in self.column_visibility.items():
+            var.set(col in DEFAULT_VISIBLE_COLUMNS)
+        self._refresh_treeview(); self._update_status("Column order and visibility reset to default")
 
     def _get_visible_columns_in_order(self):
         if not self.column_order: self.column_order = self.all_columns[:]
         visible_columns = []
+        # First add columns from column_order that are visible
         for col in self.column_order:
             var = self.column_visibility.get(col)
-            if var is not None and var.get(): visible_columns.append(col)
+            if var is not None and var.get():
+                visible_columns.append(col)
+        # Add any other visible columns that might not be in column_order yet
         for col, var in self.column_visibility.items():
-             if var.get() and col not in visible_columns: visible_columns.append(col)
+             if var.get() and col not in visible_columns:
+                 print(f"Warning: Visible column '{col}' not found in current order. Appending.")
+                 visible_columns.append(col)
         return visible_columns
 
     def _refresh_treeview(self):
+        """Refreshes the main feature treeview based on current data, visibility, and order."""
         visible_columns = self._get_visible_columns_in_order()
-        # print(f"DEBUG: Refreshing treeview with visible columns: {visible_columns}") # Less verbose
-        selected_items = self.feature_tree.selection(); selected_id = selected_items[0] if selected_items else None
+        print(f"DEBUG: Refreshing treeview with {len(self.current_data)} items and visible columns: {visible_columns}")
+        selected_items = self.feature_tree.selection();
+        # Store the actual item IDs (which are tuples: (file_path, section_index))
+        selected_ids = [self.feature_tree.item(item_id)['tags'] for item_id in selected_items if self.feature_tree.item(item_id)['tags']]
+        selected_id_to_restore = selected_ids[0] if selected_ids else None
+
+        # Clear existing items
         for item in self.feature_tree.get_children(): self.feature_tree.delete(item)
+
         if visible_columns:
             self.feature_tree["columns"] = visible_columns
             for col in visible_columns:
-                anchor = tk.W; width = 80; stretch = tk.NO
-                if col == "#": width = 40
-                elif col == "Label": width = 100; stretch = tk.YES
-                elif col in ["Start (s)", "End (s)", "Dur (s)"]: width = 70
-                elif "rms" in col.lower() or "energy" in col.lower(): width = 110; stretch = tk.YES
-                elif "centroid" in col.lower() or "position" in col.lower(): width = 130; stretch = tk.YES
+                # Define column properties (adjust widths as needed)
+                anchor = tk.W; width = 80; stretch = tk.YES
+                if col == "#": width = 40; stretch = tk.NO; anchor = tk.CENTER
+                elif col == "Song ID": width = 60; stretch = tk.NO; anchor = tk.CENTER
+                elif col == "Song Name": width = 150; stretch = tk.YES
+                elif col == "Label": width = 100; stretch = tk.NO
+                elif col in ["Start (s)", "End (s)", "Dur (s)"]: width = 70; stretch = tk.NO; anchor = tk.E
+                elif "rms" in col.lower() or "energy" in col.lower(): width = 110; stretch = tk.YES; anchor = tk.E
+                elif "centroid" in col.lower() or "position" in col.lower(): width = 130; stretch = tk.YES; anchor = tk.E
                 elif len(col) > 15: width = 120; stretch = tk.YES
-                self.feature_tree.heading(col, text=col, anchor=anchor); self.feature_tree.column(col, width=width, anchor=anchor, stretch=stretch)
-        else: self.feature_tree["columns"] = ()
+
+                # <<< MODIFIED: Add command binding for sorting >>>
+                self.feature_tree.heading(col, text=col, anchor=anchor,
+                                         command=lambda c=col: self._sort_treeview(c))
+                self.feature_tree.column(col, width=width, anchor=anchor, stretch=stretch)
+        else:
+            self.feature_tree["columns"] = ()
+
+        # Repopulate with current data
         if self.current_data and visible_columns:
-            for item_id, values_dict in self.current_data:
-                row_values = [values_dict.get(col, "") for col in visible_columns]
-                self.feature_tree.insert("", tk.END, iid=item_id, values=tuple(row_values))
-            if selected_id:
-                try: self.feature_tree.selection_set(selected_id); self.feature_tree.see(selected_id)
-                except: pass
-        elif not visible_columns: print("DEBUG: No columns are visible, treeview not populated.")
+            for item_data in self.current_data:
+                # Ensure item_data has the expected structure (file_path, section_index, values_dict)
+                if len(item_data) == 3:
+                    file_path, section_index, values_dict = item_data
+                    row_values = [values_dict.get(col, "") for col in visible_columns]
+                    # Use a unique tuple as the item ID and also store it as a tag for easy retrieval
+                    item_id_tuple = (file_path, section_index)
+                    self.feature_tree.insert("", tk.END, iid=f"{file_path}_{section_index}", values=tuple(row_values), tags=item_id_tuple)
+                else:
+                    print(f"Warning: Skipping malformed item in self.current_data: {item_data}")
+
+            # Restore selection if possible
+            if selected_id_to_restore:
+                try:
+                    # Find the item ID string corresponding to the tuple tag
+                    item_id_str_to_select = None
+                    for item_id_str in self.feature_tree.get_children():
+                        if self.feature_tree.item(item_id_str)['tags'] == selected_id_to_restore:
+                            item_id_str_to_select = item_id_str
+                            break
+                    if item_id_str_to_select:
+                        self.feature_tree.selection_set(item_id_str_to_select)
+                        self.feature_tree.see(item_id_str_to_select)
+                except Exception as e:
+                    print(f"Warning: Could not restore selection after refresh/sort: {e}")
+
+        elif not visible_columns:
+            print("DEBUG: No columns are visible, treeview not populated.")
+
 
     # --- Column Drag and Drop Functions (Unchanged) ---
     def _start_column_drag(self, event):
@@ -360,7 +452,7 @@ class FeatureInspectorApp:
             if 0 <= col_idx < len(visible_columns):
                 self.drag_column = visible_columns[col_idx]; self.dragging = True
                 self.feature_tree.configure(cursor="exchange"); self.drag_start_x = event.x
-    def _column_drag_motion(self, event): pass
+    def _column_drag_motion(self, event): pass # Motion logic can be added if visual feedback is needed
     def _end_column_drag(self, event):
         if not self.dragging or not self.drag_column: return
         try:
@@ -407,7 +499,7 @@ class FeatureInspectorApp:
         self.show_nan_only_var.set(False); self.selected_feature_set = None
         self.feature_set_listbox.selection_clear(0, tk.END); self._update_status("Filters reset"); self._apply_filters()
 
-    # --- Caching and Loading Logic (Unchanged from previous 'lean cache' version) ---
+    # --- Caching and Loading Logic ---
     def _load_cache_or_start_load(self):
         """Tries to load persistent LEAN cache, otherwise starts background load."""
         try:
@@ -424,7 +516,12 @@ class FeatureInspectorApp:
                                 self.data_cache = cached_content["data"]; self.cache_timestamps = cached_content["timestamps"]
                                 self.feature_stats = cached_content.get("stats", {}) # Load stats if present
                                 print(f"Loaded feature stats from cache: {bool(self.feature_stats)}")
-                                self.full_file_paths = sorted(list(self.cache_timestamps.keys()))
+                                # <<< MODIFIED: Store sorted list for consistent IDs >>>
+                                self.sorted_file_list_for_id = sorted(list(self.cache_timestamps.keys()))
+                                self.full_file_paths = self.sorted_file_list_for_id[:] # Initialize full list
+                                # Create Song ID mapping
+                                self._create_song_id_map()
+                                # <<< END MODIFICATION >>>
                                 print(f"Lean cache loaded successfully in {load_time:.2f}s. {len(self.data_cache)} files.")
                                 self._update_status("Loaded lean data from cache. Analyzing...")
                                 self._analyze_cached_data(analyze_stats=not bool(self.feature_stats)) # Analyze stats only if not loaded
@@ -455,6 +552,7 @@ class FeatureInspectorApp:
         try:
             if os.path.exists(CACHE_FILE_PATH): os.remove(CACHE_FILE_PATH); print(f"Removed existing lean cache file for refresh: {CACHE_FILE_PATH}")
             self.data_cache = {}; self.cache_timestamps = {}; self.file_has_nan = {}; self.file_to_feature_sets = {}; self.feature_stats = {} # Clear stats too
+            self.song_name_to_id = {}; self.sorted_file_list_for_id = [] # Clear ID mapping
             print("Cleared all in-memory cache data to force complete reload")
         except OSError as e: print(f"Warning: Could not completely clear cache: {e}")
         self.loading_in_progress = True
@@ -479,18 +577,22 @@ class FeatureInspectorApp:
             current_files = sorted([f for f in all_dir_contents if f.lower().endswith(FILENAME_SUFFIX.lower())])
             print(f"DEBUG: Found {len(current_files)} files ending with '{FILENAME_SUFFIX}'")
             new_full_paths = [os.path.join(PERFECT_FOLDER_PATH, f) for f in current_files]
-            self.full_file_paths = new_full_paths
-            self.master.after(0, self._update_listbox_with_names_only)
+            # <<< MODIFIED: Update sorted list for IDs and full list >>>
+            self.sorted_file_list_for_id = new_full_paths[:] # Store sorted list
+            self.full_file_paths = new_full_paths[:] # Initialize full list
+            self._create_song_id_map() # Create IDs based on sorted list
+            # <<< END MODIFICATION >>>
+            self.master.after(0, self._update_listbox_with_names_only) # Update display
             loaded_count, reloaded_count, error_count = 0, 0, 0; total_files = len(new_full_paths)
             temp_data_cache = {}; temp_timestamps = {}; temp_file_has_nan = {}; self.file_to_feature_sets = {}
             for i, file_path in enumerate(new_full_paths):
                 filename = os.path.basename(file_path); self._update_status(f"Processing {i+1}/{total_files}: {filename}...")
                 try:
                     current_mtime = os.path.getmtime(file_path); cached_mtime = self.cache_timestamps.get(file_path); lean_data = None
+                    # --- Load/Reload Logic (Unchanged) ---
                     if cached_mtime is None or cached_mtime != current_mtime:
                         if cached_mtime is not None: reloaded_count += 1
                         else: loaded_count += 1
-                        # print(f"Loading full data: {filename}") # Less verbose
                         try:
                             full_track_data = joblib.load(file_path)
                             if not isinstance(full_track_data, dict): print(f" -> Warning: Loaded file {filename} is not a dictionary. Skipping."); continue
@@ -499,12 +601,13 @@ class FeatureInspectorApp:
                                 if key in full_track_data: lean_data[key] = full_track_data[key]
                                 else: missing_essential.append(key)
                             if missing_essential: print(f" -> Warning: File {filename} missing essential keys: {missing_essential}. Skipping."); continue
-                            temp_data_cache[file_path] = lean_data; temp_timestamps[file_path] = current_mtime; # print(f" -> Extracted lean data.") # Less verbose
+                            temp_data_cache[file_path] = lean_data; temp_timestamps[file_path] = current_mtime;
                         except Exception as load_err: print(f"Error loading file {filename}: {load_err}"); lean_data = None; error_count += 1; continue
                     else:
                         lean_data = self.data_cache.get(file_path)
                         if lean_data is not None: temp_data_cache[file_path] = lean_data; temp_timestamps[file_path] = cached_mtime
                         else: print(f" -> Warning: Timestamp match but no data in memory for {filename}. Will attempt reload on next refresh."); continue
+                    # --- End Load/Reload Logic ---
                     if lean_data is not None:
                         has_nan = self._check_file_for_nan(lean_data); temp_file_has_nan[file_path] = has_nan
                         self._build_feature_sets_for_file(file_path, lean_data)
@@ -523,7 +626,7 @@ class FeatureInspectorApp:
     def _update_listbox_with_names_only(self):
         self.file_listbox.delete(0, tk.END)
         if not self.full_file_paths: self.file_listbox.insert(tk.END, "(No files found)"); return
-        for file_path in self.full_file_paths:
+        for file_path in self.full_file_paths: # Use the potentially filtered list
             filename = os.path.basename(file_path); display_name = filename
             if display_name.lower().endswith(FILENAME_SUFFIX.lower()): display_name = display_name[:-len(FILENAME_SUFFIX)]
             self.file_listbox.insert(tk.END, display_name)
@@ -625,13 +728,23 @@ class FeatureInspectorApp:
              if isinstance(data_dict, dict) and "section_features" in data_dict:
                   for section in data_dict.get("section_features", []):
                        if isinstance(section, dict): all_keys_found.update(section.keys())
-        standard_cols = ["#", "Label", "Start (s)", "End (s)", "Dur (s)"]
+        # <<< MODIFIED: Add new standard columns >>>
+        standard_cols = ["Song Name", "Song ID", "#", "Label", "Start (s)", "End (s)", "Dur (s)"]
         dynamic_keys = sorted([k for k in all_keys_found if k not in ["index", "start_time", "end_time", "duration_sec", "duration_bars", "original_label", "cluster_id"]])
         self.all_columns = standard_cols + dynamic_keys
+        # Update default order if necessary
+        if "Song Name" not in self.column_order: self.column_order.insert(0, "Song Name")
+        if "Song ID" not in self.column_order: self.column_order.insert(1, "Song ID")
+        # Ensure all columns are accounted for
         for col in self.all_columns:
             if col not in self.column_order: self.column_order.append(col)
         self.master.after(0, lambda: self._setup_column_checkboxes(self.all_columns))
 
+    # <<< ADDED: Method to create Song ID mapping >>>
+    def _create_song_id_map(self):
+        """Creates a mapping from sorted file path to a unique ID."""
+        self.song_name_to_id = {file_path: i + 1 for i, file_path in enumerate(self.sorted_file_list_for_id)}
+        print(f"DEBUG: Created Song ID map for {len(self.song_name_to_id)} files.")
 
     def _build_feature_sets_for_file(self, file_path, lean_data):
         # (Code remains the same)
@@ -693,102 +806,190 @@ class FeatureInspectorApp:
         self._update_listbox()
 
     def _update_listbox(self):
+        """Updates the file listbox based on current filters."""
         print("Updating listbox display with filters...")
-        selected_indices = self.file_listbox.curselection(); current_selection_idx = selected_indices[0] if selected_indices else -1
-        selected_path = self.full_file_paths[current_selection_idx] if current_selection_idx != -1 and current_selection_idx < len(self.full_file_paths) else None
-        all_cached_paths = sorted(list(self.cache_timestamps.keys())); filtered_paths = []
-        show_nan = self.show_nan_only_var.get(); #print(f"NaN filter active: {show_nan}") # Less verbose
+        selected_indices = self.file_listbox.curselection() # Get current selections
+        selected_paths = [self.full_file_paths[i] for i in selected_indices if 0 <= i < len(self.full_file_paths)]
+
+        all_cached_paths = sorted(list(self.cache_timestamps.keys())) # Use the full list from cache
+        filtered_paths = []
+        show_nan = self.show_nan_only_var.get()
         for file_path in all_cached_paths:
-            passes_filters = True; filename = os.path.basename(file_path); has_nan = self.file_has_nan.get(file_path, False)
+            passes_filters = True
+            has_nan = self.file_has_nan.get(file_path, False)
             if show_nan and not has_nan: passes_filters = False
             if self.selected_feature_set and not self._check_file_matches_feature_set(file_path, self.selected_feature_set): passes_filters = False
             if passes_filters: filtered_paths.append(file_path)
-        self.file_listbox.delete(0, tk.END); self.full_file_paths = filtered_paths; new_selection_index = -1
-        if not filtered_paths: self.file_listbox.insert(tk.END, "(No files match filters)"); self.clear_feature_display()
+
+        self.file_listbox.delete(0, tk.END)
+        self.full_file_paths = filtered_paths # Update the list used by the listbox
+
+        if not filtered_paths:
+            self.file_listbox.insert(tk.END, "(No files match filters)")
+            self.clear_feature_display()
         else:
+            new_selection_indices = []
             for idx, file_path in enumerate(filtered_paths):
-                filename = os.path.basename(file_path); display_name = filename
-                if display_name.lower().endswith(FILENAME_SUFFIX.lower()): display_name = display_name[:-len(FILENAME_SUFFIX)]
+                filename = os.path.basename(file_path)
+                display_name = filename
+                if display_name.lower().endswith(FILENAME_SUFFIX.lower()):
+                    display_name = display_name[:-len(FILENAME_SUFFIX)]
                 self.file_listbox.insert(tk.END, display_name)
-                if file_path == selected_path: new_selection_index = idx
-            if new_selection_index != -1:
-                self.file_listbox.selection_set(new_selection_index); self.file_listbox.activate(new_selection_index); self.file_listbox.see(new_selection_index)
-                self.master.after(100, lambda: self.on_file_select())
-            elif self.file_listbox.size() > 0: self.clear_feature_display()
-            else: self.clear_feature_display()
+                if file_path in selected_paths: # Check if this path was previously selected
+                    new_selection_indices.append(idx)
+
+            # Restore selection
+            if new_selection_indices:
+                for idx in new_selection_indices:
+                    self.file_listbox.selection_set(idx)
+                self.file_listbox.activate(new_selection_indices[0]) # Activate first selected
+                self.file_listbox.see(new_selection_indices[0]) # Ensure first selected is visible
+            elif self.file_listbox.size() > 0:
+                # If previous selection is gone, maybe select first item? Or clear display?
+                self.clear_feature_display() # Clear display if selection changed drastically
+
         self._update_status(f"Displaying {len(filtered_paths)} files matching filters.")
 
+
     # --- Display Logic (Uses lean data) ---
-    def on_file_select(self, event=None):
-        if self.loading_in_progress: print("Loading in progress, ignoring selection change"); return
+    # <<< MODIFIED: Handler for selection change (doesn't auto-display) >>>
+    def on_file_selection_change(self, event=None):
+        """Updates status based on selection, does not automatically display."""
         selected_indices = self.file_listbox.curselection()
-        if not selected_indices: print("No selection in file listbox"); return
-        selected_index = selected_indices[0]
-        if selected_index < 0 or selected_index >= len(self.full_file_paths): print(f"Error: Selected index {selected_index} out of bounds."); return
-        file_path = self.full_file_paths[selected_index]; display_name = self.file_listbox.get(selected_index)
-        self._update_status(f"Displaying data for {display_name}..."); self.master.update_idletasks()
-        print(f"Checking cache for {file_path}")
-        if file_path in self.data_cache:
-            lean_track_data = self.data_cache[file_path]
-            print(f"Found lean data in cache, type: {type(lean_track_data).__name__}")
-            self.display_track_features(lean_track_data)
-            self._update_status(f"Displayed features for {display_name}")
+        if not selected_indices:
+            self._update_status("No files selected.")
+            self.clear_feature_display()
+        elif len(selected_indices) == 1:
+             idx = selected_indices[0]
+             if 0 <= idx < len(self.full_file_paths):
+                 display_name = self.file_listbox.get(idx)
+                 self._update_status(f"Selected: {display_name}")
+             else:
+                  self._update_status("Selection index out of bounds.")
         else:
-            print(f"Cache miss for {file_path}"); self.master.after(0, lambda: messagebox.showwarning("Cache Miss", f"Data for {display_name} not found in cache. Please Refresh Data."))
-            self.clear_feature_display(); self._update_status(f"Data not cached for {display_name}")
+            self._update_status(f"Selected {len(selected_indices)} files.")
+        # Do NOT call display method here automatically
+
+    # <<< ADDED: Method to display selected files >>>
+    def display_selected_files(self):
+        """Gathers data for selected files and displays it."""
+        if self.loading_in_progress: print("Loading in progress, cannot display."); return
+        selected_indices = self.file_listbox.curselection()
+        if not selected_indices:
+            messagebox.showinfo("Display Info", "No files selected in the list.")
+            return
+
+        paths_to_display = [self.full_file_paths[i] for i in selected_indices if 0 <= i < len(self.full_file_paths)]
+        if not paths_to_display:
+            messagebox.showerror("Display Error", "Selected indices are out of bounds.")
+            return
+
+        self._display_aggregated_data(paths_to_display)
+
+    # <<< ADDED: Method to display all files >>>
+    def display_all_files(self):
+        """Gathers data for ALL currently filtered files and displays it."""
+        if self.loading_in_progress: print("Loading in progress, cannot display."); return
+        if not self.full_file_paths:
+             messagebox.showinfo("Display Info", "No files available to display (check filters).")
+             return
+
+        # Use self.full_file_paths which respects current filters
+        self._display_aggregated_data(self.full_file_paths)
+        # Select all in listbox visually
+        self.file_listbox.selection_set(0, tk.END)
+
+    # <<< ADDED: Central method to prepare and display aggregated data >>>
+    def _display_aggregated_data(self, file_paths_to_display):
+        """Prepares and displays data from a list of file paths."""
+        print(f"Preparing to display data for {len(file_paths_to_display)} files...")
+        self._update_status(f"Loading data for {len(file_paths_to_display)} files...")
+        self.master.update_idletasks()
+
+        aggregated_data = []
+        files_processed = 0
+        total_sections = 0
+
+        # --- Ensure Song ID map is up-to-date ---
+        if not self.song_name_to_id or set(self.sorted_file_list_for_id) != set(self.cache_timestamps.keys()):
+            print("Warning: Song ID map might be outdated or missing. Recreating...")
+            self.sorted_file_list_for_id = sorted(list(self.cache_timestamps.keys()))
+            self._create_song_id_map()
+
+        # --- Prepare data for Treeview ---
+        for file_path in file_paths_to_display:
+            if file_path in self.data_cache:
+                lean_track_data = self.data_cache[file_path]
+                filename_short = os.path.basename(file_path)
+                if filename_short.lower().endswith(FILENAME_SUFFIX.lower()):
+                    filename_short = filename_short[:-len(FILENAME_SUFFIX)]
+                song_id = self.song_name_to_id.get(file_path, "N/A") # Get song ID
+
+                if isinstance(lean_track_data, dict) and "section_features" in lean_track_data:
+                    section_features_list = lean_track_data.get("section_features", [])
+                    semantic_labels = lean_track_data.get("semantic_labels", [])
+                    if isinstance(section_features_list, list) and len(section_features_list) == len(semantic_labels):
+                        for i, section_dict in enumerate(section_features_list):
+                            if not isinstance(section_dict, dict): continue
+                            try:
+                                # <<< MODIFIED: Add Song Name and Song ID >>>
+                                values_dict = {
+                                    "Song Name": filename_short,
+                                    "Song ID": song_id,
+                                    "#": i + 1,
+                                    "Label": semantic_labels[i] if i < len(semantic_labels) else "N/A",
+                                    "Start (s)": f"{section_dict.get('start_time', np.nan):.3f}",
+                                    "End (s)": f"{section_dict.get('end_time', np.nan):.3f}",
+                                    "Dur (s)": f"{section_dict.get('duration_sec', np.nan):.3f}"
+                                }
+                                # <<< MODIFIED: Update standard columns list >>>
+                                standard_cols = ["Song Name", "Song ID", "#", "Label", "Start (s)", "End (s)", "Dur (s)"]
+                                dynamic_feature_keys = [col for col in self.all_columns if col not in standard_cols]
+                                for key in dynamic_feature_keys:
+                                    val = section_dict.get(key, np.nan)
+                                    formatted_val = ""
+                                    if isinstance(val, (int, float, np.number)):
+                                        formatted_val = f"{val:.4f}" if np.isfinite(val) else "NaN"
+                                    else:
+                                        formatted_val = str(val) if val is not None else "None"
+                                    values_dict[key] = formatted_val
+                                # <<< MODIFIED: Store tuple for unique identification >>>
+                                aggregated_data.append((file_path, i, values_dict))
+                                total_sections += 1
+                            except Exception as e:
+                                print(f"Error processing section {i} of {filename_short}: {e}")
+                                traceback.print_exc()
+                        files_processed += 1
+                    else:
+                        print(f"Warning: Mismatched features/labels or not list for {filename_short}")
+                else:
+                    print(f"Warning: Invalid or missing section_features for {filename_short}")
+            else:
+                print(f"Warning: Data not found in cache for {file_path}")
+
+        # --- Update Treeview ---
+        self.current_data = aggregated_data # Store the aggregated data
+        self.sort_column = None # Reset sort when displaying new data
+        self.sort_reverse = False
+        self._refresh_treeview() # Populate the treeview
+
+        self._update_status(f"Displayed {total_sections} sections from {files_processed} files.")
+
 
     def clear_feature_display(self):
+        """Clears the main feature treeview."""
         for item in self.feature_tree.get_children(): self.feature_tree.delete(item)
-        self.feature_tree["columns"] = (); self.current_data = [];
-        # Don't clear all_columns or column_order here, they persist
-        # for widget in self.column_checkbox_frame.winfo_children(): widget.destroy() # Don't destroy checkboxes
+        # Keep columns defined, just clear rows
+        # self.feature_tree["columns"] = ()
+        self.current_data = [];
         print("Feature display cleared")
 
     def display_track_features(self, lean_track_data):
-        # self.clear_feature_display() # Clear is called by on_file_select now
-        for item in self.feature_tree.get_children(): self.feature_tree.delete(item) # Clear only tree content
-        filename = "Unknown" # Filename not stored in lean cache
-        print(f"Displaying track features for: {filename} (from lean cache)")
-        if not isinstance(lean_track_data, dict): print(f"ERROR: Lean data is not a dictionary"); self._update_status("Error: Invalid track data format"); return
-        if "section_features" not in lean_track_data: print("ERROR: 'section_features' key missing"); self._update_status("Error: No section features found"); return
-        section_features_list = lean_track_data.get("section_features"); semantic_labels = lean_track_data.get("semantic_labels", [])
-        if not isinstance(section_features_list, list): print(f"ERROR: 'section_features' is not a list"); self._update_status("Error: Invalid section features format"); return
-        if not section_features_list: print("INFO: 'section_features' list is empty"); self._update_status("No section features found in track"); return
-
-        num_sections = len(section_features_list); print(f"Displaying features for {num_sections} sections")
-        # Determine columns from the first section (assuming consistency, checked during load)
-        if not self.all_columns: # If all_columns not set yet (e.g., first load)
-             all_keys_found = set()
-             for section_dict in section_features_list:
-                 if isinstance(section_dict, dict): all_keys_found.update(section_dict.keys())
-             standard_cols = ["#", "Label", "Start (s)", "End (s)", "Dur (s)"]
-             dynamic_keys = sorted([k for k in all_keys_found if k not in ["index", "start_time", "end_time", "duration_sec", "duration_bars", "original_label", "cluster_id"]])
-             self.all_columns = standard_cols + dynamic_keys
-             if not self.column_order: self.column_order = DEFAULT_VISIBLE_COLUMNS[:]
-             for col in self.all_columns:
-                 if col not in self.column_order: self.column_order.append(col)
-             self.master.after(0, lambda: self._setup_column_checkboxes(self.all_columns)) # Setup checkboxes now
-
-        row_count = 0; self.current_data = [] # Reset current data
-        for i, section_dict in enumerate(section_features_list):
-            if not isinstance(section_dict, dict): continue
-            try:
-                values_dict = {"#": i + 1, "Label": semantic_labels[i] if i < len(semantic_labels) else "N/A",
-                               "Start (s)": f"{section_dict.get('start_time', np.nan):.3f}",
-                               "End (s)": f"{section_dict.get('end_time', np.nan):.3f}",
-                               "Dur (s)": f"{section_dict.get('duration_sec', np.nan):.3f}"}
-                dynamic_feature_keys = [col for col in self.all_columns if col not in ["#", "Label", "Start (s)", "End (s)", "Dur (s)"]]
-                for key in dynamic_feature_keys:
-                    val = section_dict.get(key, np.nan); formatted_val = ""
-                    if isinstance(val, (int, float, np.number)): formatted_val = f"{val:.4f}" if np.isfinite(val) else "NaN"
-                    else: formatted_val = str(val) if val is not None else "None"
-                    values_dict[key] = formatted_val
-                self.current_data.append((i, values_dict))
-                if self._get_visible_columns_in_order(): row_count += 1
-            except Exception as e: print(f"Error processing section {i}: {e}"); traceback.print_exc()
-
-        self._refresh_treeview() # Refresh display with new data
-        self._update_status(f"Displayed {len(self.current_data)} sections with {len(self._get_visible_columns_in_order())} visible columns")
+        """(Deprecated) Use _display_aggregated_data instead."""
+        print("Warning: display_track_features is deprecated. Use _display_aggregated_data.")
+        # This function is no longer called directly by on_file_select
+        # If needed for single file display elsewhere, adapt _display_aggregated_data
+        pass
 
 
     # --- Search Functionality ---
@@ -883,16 +1084,14 @@ class FeatureInspectorApp:
 
                 if match:
                     matches_found += 1
-                    # <<< MODIFIED: Add section number (i+1) to results tuple >>>
+                    # Add section number (i+1) to results tuple
                     results.append((filename, i + 1, label, feature, f"{value:.4f}"))
-                    # <<< END MODIFICATION >>>
 
         print(f"Search complete. Found {matches_found} matches in {sections_searched} sections across {files_searched} files.")
         if results:
             for item in results:
-                # <<< MODIFIED: Insert item with 5 values >>>
+                # Insert item with 5 values
                 self.search_results_tree.insert("", tk.END, values=item)
-                # <<< END MODIFICATION >>>
             self._update_status(f"Search complete. Found {matches_found} results.")
         else: self._update_status("Search complete. No matching sections found.")
 
@@ -959,6 +1158,143 @@ class FeatureInspectorApp:
             self._update_status("Transition search complete. No matches found.")
 
         self.transition_results_text.config(state=tk.DISABLED) # Make read-only
+
+    # <<< ADDED: Export to CSV Function >>>
+    def _export_to_csv(self):
+        """Exports the data currently displayed in the main feature treeview to a CSV file."""
+        print("Exporting displayed data to CSV...")
+        self._update_status("Exporting data...")
+        self.master.update_idletasks()
+
+        # Get visible columns in their current display order
+        visible_columns = self._get_visible_columns_in_order()
+        if not visible_columns:
+            messagebox.showwarning("Export Error", "No columns are visible to export.")
+            self._update_status("Export cancelled: No visible columns.")
+            return
+
+        # Get data currently displayed in the treeview
+        # This uses the order currently shown, respecting any sorting
+        tree_items = self.feature_tree.get_children('')
+        if not tree_items:
+            messagebox.showinfo("Export Info", "No data currently displayed in the table to export.")
+            self._update_status("Export cancelled: No data displayed.")
+            return
+
+        # Ask user for save location
+        default_filename = f"feature_inspector_export_{time.strftime('%Y%m%d_%H%M%S')}.csv"
+        file_path = filedialog.asksaveasfilename(
+            title="Save Displayed Data as CSV",
+            defaultextension=".csv",
+            initialfile=default_filename,
+            filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")]
+        )
+
+        if not file_path:
+            self._update_status("Export cancelled by user.")
+            return
+
+        try:
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                # Write header row
+                writer.writerow(visible_columns)
+                # Write data rows
+                for item_id in tree_items:
+                    row_values = self.feature_tree.item(item_id)['values']
+                    writer.writerow(row_values)
+            self._update_status(f"Data successfully exported to {os.path.basename(file_path)}")
+            messagebox.showinfo("Export Successful", f"Data exported to:\n{file_path}")
+        except Exception as e:
+            self._update_status("Export failed!")
+            messagebox.showerror("Export Error", f"Failed to write CSV file:\n{e}")
+            traceback.print_exc()
+
+    # <<< ADDED: Sorting Functionality >>>
+    def _on_column_header_right_click(self, event):
+        """Handles right-click on Treeview column header for sorting."""
+        region = self.feature_tree.identify_region(event.x, event.y)
+        if region != "heading":
+            return # Click wasn't on a heading
+
+        column_id_str = self.feature_tree.identify_column(event.x) # e.g., '#1', '#2'
+        try:
+            # Convert Treeview column ID (like '#3') to actual column name
+            col_index = int(column_id_str.replace('#', '')) - 1
+            visible_cols = self._get_visible_columns_in_order()
+            if 0 <= col_index < len(visible_cols):
+                column_name = visible_cols[col_index]
+            else:
+                print(f"Warning: Could not map column ID {column_id_str} to visible column.")
+                return
+        except (ValueError, IndexError):
+            print(f"Warning: Could not parse column ID {column_id_str} for sorting.")
+            return
+
+        # Create popup menu
+        sort_menu = tk.Menu(self.master, tearoff=0)
+        sort_menu.add_command(label=f"Sort Ascending by '{column_name}'",
+                              command=lambda: self._sort_treeview(column_name, reverse=False))
+        sort_menu.add_command(label=f"Sort Descending by '{column_name}'",
+                              command=lambda: self._sort_treeview(column_name, reverse=True))
+
+        # Display the menu at the cursor position
+        sort_menu.tk_popup(event.x_root, event.y_root)
+
+
+    def _sort_treeview(self, column, reverse=False):
+        """Sorts the data in self.current_data and refreshes the treeview."""
+        print(f"Sorting by column '{column}', reverse={reverse}")
+        self._update_status(f"Sorting by '{column}'...")
+        self.master.update_idletasks()
+
+        if not self.current_data:
+            print("No data to sort.")
+            self._update_status("No data to sort.")
+            return
+
+        # --- Sorting Logic ---
+        # Define a key function to handle potential type errors during sort
+        def sort_key(item_tuple):
+            # item_tuple is expected to be (file_path, section_index, values_dict)
+            if len(item_tuple) != 3 or not isinstance(item_tuple[2], dict):
+                return None # Should not happen, but handles malformed data
+
+            values_dict = item_tuple[2]
+            val = values_dict.get(column)
+
+            # Attempt numerical conversion for sorting
+            try:
+                # Handle potential 'NaN' strings or actual NaN/inf
+                if isinstance(val, str) and val.lower() == 'nan':
+                    return float('inf') # Treat string 'NaN' as largest value
+                float_val = float(val)
+                if not math.isfinite(float_val):
+                     # Treat actual NaN/inf as largest value
+                     # Use negative infinity if sorting descending to put them last
+                    return float('-inf') if reverse else float('inf')
+                return float_val
+            except (ValueError, TypeError):
+                 # Fallback to string sorting (case-insensitive) if conversion fails
+                 return str(val).lower() if val is not None else ""
+
+
+        try:
+            # Sort the underlying data list (self.current_data)
+            self.current_data.sort(key=sort_key, reverse=reverse)
+            self.sort_column = column # Store last sort criteria
+            self.sort_reverse = reverse
+        except Exception as e:
+             print(f"Error during sorting: {e}")
+             traceback.print_exc()
+             messagebox.showerror("Sort Error", f"Could not sort by column '{column}'.\nError: {e}")
+             self._update_status("Sort failed.")
+             return
+
+        # Refresh the treeview display with the sorted data
+        self._refresh_treeview()
+        sort_dir = "Descending" if reverse else "Ascending"
+        self._update_status(f"Sorted by '{column}' ({sort_dir})")
 
 
 # --- Main Execution ---
